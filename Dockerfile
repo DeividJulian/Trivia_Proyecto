@@ -13,7 +13,10 @@ RUN groupadd --gid 10001 appuser \
  && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin appuser
 
 COPY requirements.txt requirements-panel.txt ./
-RUN pip install -r requirements-panel.txt
+# Se instala y luego se quita pip: la app no lo necesita en ejecución y su copia interna de
+# setuptools 70.3.0 aparece en Trivy como CVE-2025-47273 (DEF-018).
+RUN pip install -r requirements-panel.txt \
+ && python -m pip uninstall -y pip
 
 # El panel del Saboteador ejecuta pytest dentro del contenedor: se copian también las pruebas.
 COPY pyproject.toml ./

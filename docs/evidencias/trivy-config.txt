@@ -1,0 +1,13 @@
+# Trivy config – Dockerfile
+# Fecha: 2026-11-05
+$ trivy config Dockerfile
+
+Report Summary
+┌────────────┬────────────┬───────────────────┐
+│   Target   │    Type    │ Misconfigurations │
+├────────────┼────────────┼───────────────────┤
+│ Dockerfile │ dockerfile │         0         │
+└────────────┴────────────┴───────────────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)

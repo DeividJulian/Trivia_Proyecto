@@ -1,0 +1,15 @@
+# Trivy fs (HIGH/CRITICAL) – vulnerabilidades, secretos y configuración del repositorio
+# Fecha: 2026-11-05 – Trivy 0.76.1
+$ trivy fs --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --skip-dirs .venv .
+
+Report Summary
+┌──────────────────┬────────────┬─────────────────┬─────────┬───────────────────┐
+│      Target      │    Type    │ Vulnerabilities │ Secrets │ Misconfigurations │
+├──────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+│ requirements.txt │    pip     │        0        │    -    │         -         │
+├──────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+│ Dockerfile       │ dockerfile │        -        │    -    │         0         │
+└──────────────────┴────────────┴─────────────────┴─────────┴───────────────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
