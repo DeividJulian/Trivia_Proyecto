@@ -60,6 +60,11 @@ class GestorPartidas:
             del self._tokens_host[pin]
         return len(vencidas)
 
+    def listar(self) -> list[Partida]:
+        """Devuelve la lista de partidas activas (tras limpiar las inactivas)."""
+        self.limpiar()
+        return list(self._partidas.values())
+
     def obtener(self, pin: str) -> Partida:
         """Devuelve la partida del PIN o lanza PartidaNoEncontrada."""
         partida = self._partidas.get(pin)

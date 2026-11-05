@@ -113,10 +113,11 @@ async def responder(
     pin: Pin, entrada: ResponderEntrada, gestor: Gestor, conexiones: Conexiones
 ) -> ResultadoRespuesta:
     """Registra la respuesta de un jugador a la pregunta abierta y devuelve los puntos obtenidos."""
+    partida = gestor.obtener(pin)
+    tiempo_recibido = partida.tiempo_transcurrido()
     if sabotajes.esta_activo("respuesta_lenta"):
         await asyncio.sleep(sabotajes.RETARDO_RESPUESTA_LENTA_S)  # MUTANTE: incumple RNF-03
-    partida = gestor.obtener(pin)
-    puntos = partida.responder(entrada.nombre, entrada.opcion)
+    puntos = partida.responder(entrada.nombre, entrada.opcion, tiempo_recibido=tiempo_recibido)
     jugador = partida.buscar_jugador(entrada.nombre)
     await difundir_estado(conexiones, partida)
     return ResultadoRespuesta(
