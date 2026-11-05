@@ -283,3 +283,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo la imagen (despliegue). La app no importa pip. |
 | Regresión ejecutada | `pytest -q` → `254 passed`; `verificar_mutantes.py` → 6/6 |
 | Estado | **Cerrado en la imagen** (confirmar en CI) / **Riesgo aceptado** en el entorno local |
+
+### DEF-019 – Ternario anidado en el tablero de dominó de app/static/app.js (SonarLint S3358)
+| Campo | Valor |
+|---|---|
+| Detectado por | SonarQube for IDE (SonarLint en VS Code), regla `javascript:S3358` ("Extract this nested ternary operation into an independent statement") |
+| Severidad | Baja (code smell de mantenibilidad) |
+| Pasos para reproducir | 1. Abrir `app/static/app.js` en VS Code con SonarLint activo. 2. Revisar la línea de formateo de `detalle.textContent` dentro del evento click de `adm-btn-pruebas`. |
+| Resultado esperado / obtenido | Esperado: código sin operadores condicionales ternarios anidados. Obtenido: advertencia `javascript:S3358` en `detalle.textContent = datos.fallidas.length ? ... : datos.en_riesgo_por.length ? ... : ...` (`DEF-019-antes.txt` / `DEF-019-antes.png`) |
+| Causa encontrada (debugging) | En `adm-btn-pruebas`, el texto descriptivo del estado de cada módulo en el tablero de dominó se formateaba mediante dos operadores ternarios anidados en una sola sentencia, lo cual reduce la legibilidad y viola el estándar de mantenibilidad S3358. |
+| Corrección | Commit `fix(front): reemplaza el ternario anidado del tablero (DEF-019)`: se extrae la lógica a la función independiente `describirModulo(datos)` con sentencias `if/else` claras. |
+| Re-ejecución (confirmación) | `node --check app/static/app.js` sin errores; sin advertencias en SonarLint (`DEF-019-despues.txt` / `DEF-019-despues.png`). |
+| Análisis de impacto | Solo `app/static/app.js` (interfaz del tablero de administración). |
+| Regresión ejecutada | `node --check app/static/app.js` OK; `pytest -q` → 259 passed. |
+| Estado | **Cerrado** |

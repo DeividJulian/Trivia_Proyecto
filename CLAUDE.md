@@ -97,5 +97,5 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
   `C:\Users\COREi5\AppData\Local\Microsoft\WinGet\Packages\AquaSecurity.Trivy_Microsoft.Winget.Source_8wekyb3d8bbwe\trivy.exe`.
 - **Front de demostración** (pedido por el usuario el 2026-11-05): `app/static/` (HTML, CSS y JS sin dependencias),
   servido por FastAPI en `/`. Vistas: profesor, jugador y Saboteador.
-- **Siguiente:** Fase 14 (`feature/sonar`): esperando la organization y la projectKey de SonarCloud.
-- **Pruebas:** 258 en verde, cobertura 98 %. **Defectos:** DEF-001 a DEF-018.
+- **Siguiente:** Tarea 2 (`feature/impacto-sabotaje`): impacto del sabotaje en el panel de administrador.
+- **Pruebas:** 259 en verde, cobertura 98 %. **Defectos:** DEF-001 a DEF-019.
