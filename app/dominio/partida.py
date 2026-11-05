@@ -2,10 +2,13 @@
 
 import time
 from collections.abc import Callable, Sequence
+from dataclasses import asdict
+from typing import Any
 
 from app.dominio.errores import ErrorPartida
 from app.dominio.modelos import NUMERO_OPCIONES, EstadoPartida, Jugador, Pregunta, Respuesta
 from app.dominio.puntaje import calcular_puntos
+from app.dominio.ranking import FilaRanking, obtener_ganador, ordenar_ranking
 
 Reloj = Callable[[], float]
 
@@ -161,3 +164,46 @@ class Partida:
             self._tocar()
         else:
             raise ErrorPartida(f"No se puede avanzar desde el estado {self.estado}.")
+
+    # --- Resultados --------------------------------------------------------------------------------
+
+    def ranking(self) -> list[FilaRanking]:
+        """Ranking actual de la partida."""
+        return ordenar_ranking(self.jugadores.values())
+
+    def ganador(self) -> FilaRanking | None:
+        """Ganador de la partida (None si no hay jugadores)."""
+        return obtener_ganador(self.jugadores.values())
+
+    def estado_publico(self) -> dict[str, Any]:
+        """Estado que se puede enviar a todos los jugadores.
+
+        La respuesta correcta solo se revela en RESULTADOS; mientras la pregunta está abierta
+        nadie puede verla.
+        """
+        pregunta = self.pregunta_actual
+        estado: dict[str, Any] = {
+            "pin": self.pin,
+            "estado": self.estado.value,
+            "jugadores": [jugador.nombre for jugador in self.jugadores.values()],
+            "numero_pregunta": self.indice_pregunta + 1,
+            "total_preguntas": len(self.preguntas),
+            "pregunta": None,
+            "tiempo_restante": round(self.tiempo_restante(), 3),
+            "respondieron": len(self.respuestas),
+        }
+        if pregunta is not None and self.estado in (EstadoPartida.PREGUNTA, EstadoPartida.RESULTADOS):
+            estado["pregunta"] = {
+                "texto": pregunta.texto,
+                "opciones": list(pregunta.opciones),
+                "tiempo_limite": pregunta.tiempo_limite,
+            }
+        if self.estado == EstadoPartida.RESULTADOS:
+            estado["correcta"] = pregunta.correcta
+            estado["puntos_ronda"] = dict(self.puntos_ronda)
+        if self.estado in (EstadoPartida.RESULTADOS, EstadoPartida.FINALIZADA):
+            estado["ranking"] = [asdict(fila) for fila in self.ranking()]
+        if self.estado == EstadoPartida.FINALIZADA:
+            ganador = self.ganador()
+            estado["ganador"] = asdict(ganador) if ganador else None
+        return estado
