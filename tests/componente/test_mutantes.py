@@ -7,7 +7,9 @@ Estas pruebas comprueban que el mutante está bien conectado. Que las demás pru
 import pytest
 
 from app.dominio import sabotajes
+from app.dominio.modelos import Jugador
 from app.dominio.puntaje import calcular_puntos, es_respuesta_a_tiempo, sumar_racha
+from app.dominio.ranking import ordenar_ranking
 
 pytestmark = [pytest.mark.componente, pytest.mark.sabotajes]
 
@@ -39,3 +41,12 @@ def test_bono_sin_acierto(sin_sabotajes):
     sabotajes.activar("bono_sin_acierto")
 
     assert calcular_puntos(False, 1.0, 20.0, racha=0) == (475, 0)
+
+
+def test_empates_mal(sin_sabotajes):
+    jugadores = [Jugador("Ana", puntos=100, tiempo_total=9.0), Jugador("Beto", puntos=100, tiempo_total=1.0)]
+    assert [f.nombre for f in ordenar_ranking(jugadores)] == ["Beto", "Ana"]
+
+    sabotajes.activar("empates_mal")
+
+    assert [f.nombre for f in ordenar_ranking(jugadores)] == ["Ana", "Beto"]
