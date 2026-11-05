@@ -1,0 +1,8 @@
+# Shift-left: Ruff revisa el estilo y los errores antes de cada commit.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.3
+    hooks:
+      - id: ruff
+      - id: ruff-format
+        args: [--check]
