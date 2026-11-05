@@ -1,6 +1,7 @@
-"""Reglas de puntaje del juego (v1: sin bono por velocidad)."""
+"""Reglas de puntaje del juego (v2: con bono por velocidad, SOLICITUD_CAMBIO_001)."""
 
 PUNTOS_BASE = 1000
+BONO_VELOCIDAD_MAX = 500
 BONO_POR_RACHA = 100
 BONO_RACHA_MAX = 500
 
@@ -8,6 +9,14 @@ BONO_RACHA_MAX = 500
 def es_respuesta_a_tiempo(tiempo_respuesta: float, tiempo_limite: float) -> bool:
     """Una respuesta está a tiempo si llega en el límite o antes: el límite exacto SÍ cuenta."""
     return tiempo_respuesta <= tiempo_limite
+
+
+def calcular_bono_velocidad(tiempo_respuesta: float, tiempo_limite: float) -> int:
+    """Bono proporcional al tiempo que sobró: 500 al instante, 250 a mitad de tiempo, 0 al límite."""
+    if tiempo_limite <= 0:
+        return 0
+    restante = max(0.0, tiempo_limite - max(0.0, tiempo_respuesta))
+    return round(BONO_VELOCIDAD_MAX * restante / tiempo_limite)
 
 
 def sumar_racha(racha: int, acerto: bool) -> int:
@@ -36,5 +45,6 @@ def calcular_puntos(
     acerto = opcion_correcta and es_respuesta_a_tiempo(tiempo_respuesta, tiempo_limite)
     nueva_racha = sumar_racha(racha, acerto)
     if not acerto:
-        return 0, nueva_racha
-    return PUNTOS_BASE + calcular_bono_racha(nueva_racha), nueva_racha
+        return 0, nueva_racha  # incorrecta o tarde: 0, sin bono de ningún tipo (DEF-011)
+    bono_velocidad = calcular_bono_velocidad(tiempo_respuesta, tiempo_limite)
+    return PUNTOS_BASE + bono_velocidad + calcular_bono_racha(nueva_racha), nueva_racha

@@ -1,0 +1,20 @@
+# DEF-011 – Re-ejecución (confirmación) y regresión tras el commit 0adad0d
+# Fecha: 2026-11-04
+
+## 1. Re-ejecución: SOLO las pruebas que fallaron
+$ pytest -v tests/componente/test_puntaje.py::test_respuesta_incorrecta_suma_0_y_reinicia_la_racha tests/sistema/test_api.py::test_partida_completa_de_extremo_a_extremo tests/aceptacion/test_historias.py::test_hu02_gana_quien_responde_bien
+tests/componente/test_puntaje.py::test_respuesta_incorrecta_suma_0_y_reinicia_la_racha PASSED [ 33%]
+tests/sistema/test_api.py::test_partida_completa_de_extremo_a_extremo PASSED [ 66%]
+tests/aceptacion/test_historias.py::test_hu02_gana_quien_responde_bien PASSED [100%]
+======================== 3 passed, 1 warning in 0.17s =========================
+
+## 2. Regresión selectiva por análisis de impacto (Puntaje -> Ranking, Partida, API)
+$ pytest -q -m "puntaje or ranking or partida or api"
+127 passed, 51 deselected, 1 warning in 1.45s
+
+## 3. Suite completa
+$ pytest -q
+178 passed, 1 warning in 1.83s
+
+## 4. Depuración repetida
+Esperado (0, 0) para una respuesta incorrecta; obtenido (0, 0)
