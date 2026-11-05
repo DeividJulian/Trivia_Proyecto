@@ -188,3 +188,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Puntaje → Racha (no afectada: la racha se reinicia bien) → **Ranking** (orden incorrecto) → **Partida** (acumula puntos falsos) → **API** (expone puntos y ganador falsos). Ver `SOLICITUD_CAMBIO_001.md`. |
 | Regresión ejecutada | Selectiva por impacto: `pytest -m "puntaje or ranking or partida or api"` → `127 passed, 51 deselected`. Suite completa: `pytest -q` → `178 passed`. GitHub Actions en verde en `v3-corregido`. |
 | Estado | **Cerrado** |
+
+### DEF-012 – Ruff E402 y S603 en el script de regresión por impacto
+| Campo | Valor |
+|---|---|
+| Detectado por | Ruff (pre-commit), reglas E402 y S603, en `scripts/regresion_por_impacto.py` |
+| Severidad | Baja |
+| Pasos para reproducir | `ruff check scripts --ignore-noqa` (`docs/evidencias/DEF-012-antes.txt`) |
+| Resultado esperado / obtenido | Esperado: sin hallazgos. Obtenido: 1 × E402 (import después de modificar `sys.path`) y 2 × S603 (`subprocess` con posible entrada no confiable) |
+| Causa encontrada (debugging) | E402: el script se ejecuta como `python scripts\regresion_por_impacto.py`, así que necesita agregar la raíz del repo a `sys.path` **antes** de importar `app`. S603: el script llama a `git diff` y a `pytest`; los comandos son fijos, sin `shell=True`, con la ruta absoluta de git (`shutil.which`) y `sys.executable`; el único dato variable es el nombre de la rama base que escribe el propio desarrollador. |
+| Corrección | Riesgo aceptado: `# noqa: E402` y `# noqa: S603` **solo en esas 3 líneas**, cada uno con su motivo. Se evitó S607 usando rutas absolutas. |
+| Re-ejecución (confirmación) | `ruff check scripts` → `All checks passed!`; `python scripts/regresion_por_impacto.py --solo-ver` funciona (`DEF-012-despues.txt`) |
+| Análisis de impacto | Solo herramientas de calidad (`scripts/`). No afecta al servidor. |
+| Regresión ejecutada | `pytest -q` → `203 passed` |
+| Estado | **Riesgo aceptado** |

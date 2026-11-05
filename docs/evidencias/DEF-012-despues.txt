@@ -1,0 +1,18 @@
+# Con los noqa justificados línea por línea
+# Fecha: 2026-11-04
+$ ruff check scripts
+All checks passed!
+
+$ python scripts/regresion_por_impacto.py --solo-ver
+Archivos cambiados respecto de develop: 9
+  - app/calidad/__init__.py
+  - app/calidad/impacto.py
+  - docs/ANALISIS_IMPACTO.md
+  - pyproject.toml
+  - scripts/__init__.py
+  - scripts/regresion_por_impacto.py
+  - tests/componente/test_impacto.py
+  - tests/componente/test_modelos.py
+  - tests/componente/test_preguntas.py
+Plan: Archivos sin módulo asignado (app/calidad/__init__.py, app/calidad/impacto.py, pyproject.toml, scripts/__init__.py, scripts/regresion_por_impacto.py): se ejecuta todo.
+Comando: pytest -q
