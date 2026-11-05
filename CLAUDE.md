@@ -85,7 +85,7 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 
 ## Estado actual
 
-- **Fases terminadas:** 0 a 7 (integradas en `develop`).
-- **Siguiente:** Fase 8 (`feature/aceptacion`): historias de usuario, aceptación y exploratorias.
-- **Pruebas:** 152 en verde, cobertura 99 %. **Defectos:** DEF-001 a DEF-007.
+- **Fases terminadas:** 0 a 8 (integradas en `develop`).
+- **Siguiente:** Fase 9 (`feature/bono-velocidad`): tag `v1-sin-bono` en develop ANTES de crear la rama.
+- **Pruebas:** 169 en verde, cobertura 99 %. **Defectos:** DEF-001 a DEF-010.
 - **Pendiente del usuario:** instalar la extensión "SonarQube for IDE" en VS Code.
