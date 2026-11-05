@@ -104,3 +104,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo `tests/`. Las pruebas futuras del panel admin reutilizan las mismas constantes. |
 | Regresión ejecutada | `pytest -q` → `12 passed` |
 | Estado | **Riesgo aceptado** |
+
+### DEF-006 – Ruff N818 pide el sufijo "Error" en la excepción base
+| Campo | Valor |
+|---|---|
+| Detectado por | Ruff, regla N818 (pre-commit) en `app/dominio/errores.py` |
+| Severidad | Baja |
+| Pasos para reproducir | 1. `ruff check app` |
+| Resultado esperado / obtenido | Esperado: sin hallazgos. Obtenido: `N818 Exception name ErrorPartida should be named with an Error suffix` |
+| Causa encontrada (debugging) | N818 asume nombres en inglés (`GameError`). En español el sustantivo va primero: `ErrorPartida`. El nombre es parte del lenguaje del dominio usado en el plan y en la API, y comunica bien que es una excepción. Solo se marca la clase que hereda directamente de `Exception`. |
+| Corrección | `# noqa: N818` **solo** en la línea de `class ErrorPartida`, con el motivo. La regla N818 sigue activa en todo el proyecto. |
+| Re-ejecución (confirmación) | `ruff check .` → `All checks passed!` |
+| Análisis de impacto | Solo `app/dominio/errores.py`. |
+| Regresión ejecutada | `pytest -q` → `12 passed` |
+| Estado | **Riesgo aceptado** |
