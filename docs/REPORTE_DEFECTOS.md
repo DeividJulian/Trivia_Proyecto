@@ -216,3 +216,43 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Calidad (ejecutor) → Admin (`POST /api/admin/pruebas`). |
 | Regresión ejecutada | `pytest -q` → `241 passed`; `python scripts/verificar_mutantes.py` → 6/6 detectados |
 | Estado | **Riesgo aceptado** |
+
+### DEF-014 – Conexiones reiniciadas tras 5 s sin actividad (keep-alive de uvicorn)
+| Campo | Valor |
+|---|---|
+| Detectado por | Locust, prueba de estrés local (`punto_quiebre.py`), nivel sistema, **no funcional** |
+| Severidad | Media (un profesor que espera unos segundos en el lobby puede recibir un error al iniciar la partida) |
+| Pasos para reproducir | 1. `uvicorn app.main:app --port 8000` (sin opciones). 2. `locust -f performance\punto_quiebre.py --host http://127.0.0.1:8000 --headless ...`. 3. Revisar `quiebre_local_failures.csv` |
+| Resultado esperado / obtenido | Esperado: 0 fallos de conexión. Obtenido: 21 fallos en `POST /iniciar` (`ConnectionResetError 10054`, `ConnectionAbortedError 10053`, `RemoteDisconnected`) (`DEF-014-antes.txt`) |
+| Causa encontrada (debugging) | Los fallos aparecían **solo** en `POST /iniciar`, la única petición que el presentador hace tras esperar 5 s sin enviar nada. uvicorn cierra las conexiones inactivas a los **5 s** (`--timeout-keep-alive` por defecto) y el cliente reutilizaba esa conexión justo cuando el servidor la cerraba (carrera del keep-alive). |
+| Corrección | Ejecutar uvicorn con `--timeout-keep-alive 75` (mayor que las esperas normales de un cliente y que el keep-alive de los balanceadores habituales). Se aplica en el `CMD` del Dockerfile (Fase 13) y en el README. |
+| Re-ejecución (confirmación) | Con el servidor nuevo verificado (`Get-NetTCPConnection`): carga 50 usuarios → 0 fallos; estrés hasta 1000 usuarios → 0 fallos (`DEF-014-despues.txt`). **Nota:** una primera re-ejecución no fue válida porque el servidor nuevo no arrancó (puerto ocupado por el anterior) y las pruebas corrieron contra el viejo; se detectó por el código de salida 3 y se repitió. |
+| Análisis de impacto | Configuración del servidor (despliegue): API completa. No cambia el código. |
+| Regresión ejecutada | `pytest -q` → `254 passed`; carga local: RNF-01 y RNF-02 cumplen |
+| Estado | **Cerrado** (la configuración queda fija en el Dockerfile de la Fase 13) |
+
+### DEF-015 – El script de carga avanza partidas que no se iniciaron (409 falsos)
+| Campo | Valor |
+|---|---|
+| Detectado por | Locust (fallos `409` en `POST /siguiente`), revisando la causa de DEF-014 |
+| Severidad | Baja (defecto del **script de prueba**: inflaba la tasa de fallos) |
+| Pasos para reproducir | Igual que DEF-014: 21 × `409 Conflict` en `POST /siguiente` |
+| Causa encontrada (debugging) | En `Presentador.dirigir_partida`, si `POST /iniciar` fallaba por la conexión (status 0), el código seguía el bucle y llamaba a `/siguiente` sobre una partida en LOBBY → 409. Coincidía 1 a 1 con los fallos de `/iniciar`. |
+| Corrección | Commit `fix(rendimiento): el presentador no avanza la partida si iniciar falló (DEF-015)` |
+| Re-ejecución (confirmación) | Sin `409` en `/siguiente` en las corridas siguientes (`DEF-015-despues.txt`) |
+| Análisis de impacto | Solo `performance/locustfile.py` (y `punto_quiebre.py`, que usa sus usuarios). |
+| Regresión ejecutada | `pytest -q` → `254 passed` |
+| Estado | **Cerrado** |
+
+### DEF-016 – El script de carga agota el cupo de 500 partidas con partidas vacías
+| Campo | Valor |
+|---|---|
+| Detectado por | Locust: 1246 × `409` en `POST /api/partidas` ("Se alcanzó el máximo de 500 partidas") en la segunda corrida de estrés (`DEF-016-antes.txt`) |
+| Severidad | Media (falseaba el punto de quiebre: la prueba "quebraba" en 800 usuarios por el cupo, no por el rendimiento) |
+| Pasos para reproducir | Estrés con el locustfile anterior contra un servidor con partidas de corridas previas |
+| Causa encontrada (debugging) | Todos los jugadores se unían a la **última** partida publicada; con muchos presentadores, las demás quedaban vacías, el presentador las abandonaba (409 al iniciar) y creaba otra cada ~6 s. Las partidas abandonadas en LOBBY viven 30 min (`PARTIDA_TTL_MINUTOS`) y llenaron el cupo `MAX_PARTIDAS=500`. El límite del servidor funcionó como se diseñó (409 con mensaje claro). |
+| Corrección | Commit `fix(rendimiento): los jugadores se reparten entre las partidas abiertas y el presentador no abandona la suya vacía (DEF-016)`. **Mejora preventiva propuesta** (no implementada): limpiar antes las partidas en LOBBY sin jugadores, para que nadie pueda agotar el cupo creando partidas vacías. |
+| Re-ejecución (confirmación) | Estrés hasta 1000 usuarios: 0 × `409` en `POST /api/partidas`, 0 fallos (`DEF-016-despues.txt`) |
+| Análisis de impacto | Script de carga. En el servidor: Gestor (cupo y limpieza), anotado como riesgo. |
+| Regresión ejecutada | `pytest -q` → `254 passed` |
+| Estado | **Cerrado** (riesgo del cupo anotado en `RESULTADOS_RENDIMIENTO.md`) |
