@@ -86,6 +86,18 @@ def test_catalogo_con_los_6_mutantes(cliente):
     assert datos["activos"] == []
 
 
+CAMPOS_EXPLICACION = ("que_sabotea", "comportamiento_correcto", "comportamiento_saboteado", "como_notarlo")
+
+
+def test_cada_sabotaje_explica_que_sabotea_y_como_notarlo(cliente):
+    catalogo = cliente.get("/api/admin/sabotajes", headers=ADMIN).json()["catalogo"]
+
+    for sabotaje in catalogo:
+        for campo in CAMPOS_EXPLICACION:
+            assert len(sabotaje[campo]) >= 30, f"{sabotaje['clave']}: falta explicar '{campo}'"
+        assert sabotaje["comportamiento_correcto"] != sabotaje["comportamiento_saboteado"]
+
+
 def test_activar_y_desactivar(cliente):
     activado = cliente.post("/api/admin/sabotajes/empates_mal/activar", headers=ADMIN)
     assert activado.status_code == 200
