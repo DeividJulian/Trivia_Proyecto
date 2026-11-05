@@ -1,0 +1,41 @@
+# Re-ejecuci√≥n (confirmaci√≥n) tras la correcci√≥n ‚Äì servidor nuevo verificado con Get-NetTCPConnection:
+#   uvicorn app.main:app --port 8000 --timeout-keep-alive 75   (locustfile con DEF-015 y DEF-016 corregidos)
+# Fecha: 2026-11-04
+
+$ locust -f performance\locustfile.py ... -u 50 -r 10 -t 2m --csv performance\resultados\carga_local
+$ python performance\verificar_umbrales.py performance\resultados\carga_local_stats.csv
+Peticiones: 5003  fallos: 0  mediana: 4 ms  rps: 42.1
+  [CUMPLE   ] RNF-01 p95     medido      7 ms  umbral < 500 ms
+  [CUMPLE   ] RNF-02 fallos  medido    0.00 %  umbral < 1 %
+
+## Fallos de la carga (carga_local_failures.csv)
+Method,Name,Error,Occurrences,First Seen,Last Seen
+
+$ locust -f performance\punto_quiebre.py ... --csv performance\resultados\quiebre_local --csv-full-history
+## Fallos del estr√©s (quiebre_local_failures.csv)
+Method,Name,Error,Occurrences,First Seen,Last Seen
+
+## Escalones
+EscalÛn 1: 50 usuarios, 826 peticiones, fallos 0.00 %, p95 8 ms
+EscalÛn 2: 100 usuarios, 1722 peticiones, fallos 0.00 %, p95 9 ms
+EscalÛn 3: 150 usuarios, 2571 peticiones, fallos 0.00 %, p95 11 ms
+EscalÛn 4: 200 usuarios, 3356 peticiones, fallos 0.00 %, p95 12 ms
+EscalÛn 5: 250 usuarios, 4268 peticiones, fallos 0.00 %, p95 12 ms
+EscalÛn 6: 300 usuarios, 5165 peticiones, fallos 0.00 %, p95 15 ms
+EscalÛn 7: 350 usuarios, 5888 peticiones, fallos 0.00 %, p95 19 ms
+EscalÛn 8: 400 usuarios, 6816 peticiones, fallos 0.00 %, p95 20 ms
+EscalÛn 9: 450 usuarios, 7825 peticiones, fallos 0.00 %, p95 27 ms
+EscalÛn 10: 500 usuarios, 8503 peticiones, fallos 0.00 %, p95 32 ms
+EscalÛn 11: 550 usuarios, 9305 peticiones, fallos 0.00 %, p95 29 ms
+EscalÛn 12: 600 usuarios, 10118 peticiones, fallos 0.00 %, p95 71 ms
+CPU usage above 90%! This may constrain your throughput and may even give inconsistent response time measurements! See https://docs.locust.io/en/stable/running-distributed.html for how to distribute the load over multiple CPU cores or machines
+EscalÛn 13: 650 usuarios, 10310 peticiones, fallos 0.00 %, p95 130 ms
+EscalÛn 14: 700 usuarios, 11537 peticiones, fallos 0.00 %, p95 180 ms
+EscalÛn 15: 750 usuarios, 11528 peticiones, fallos 0.00 %, p95 250 ms
+EscalÛn 16: 800 usuarios, 11729 peticiones, fallos 0.00 %, p95 360 ms
+EscalÛn 17: 850 usuarios, 9816 peticiones, fallos 0.00 %, p95 550 ms
+EscalÛn 18: 900 usuarios, 10817 peticiones, fallos 0.00 %, p95 960 ms
+EscalÛn 19: 950 usuarios, 11337 peticiones, fallos 0.00 %, p95 700 ms
+EscalÛn 20: 1000 usuarios, 10891 peticiones, fallos 0.00 %, p95 1100 ms
+Se alcanzÛ QUIEBRE_MAXIMO=1000 sin llegar al punto de quiebre.
+CPU usage was too high at some point during the test! See https://docs.locust.io/en/stable/running-distributed.html for how to distribute the load over multiple CPU cores or machines

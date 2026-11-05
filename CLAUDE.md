@@ -85,10 +85,12 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 
 ## Estado actual
 
-- **Fases terminadas:** 0 a 11 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
+- **Fases terminadas:** 0 a 12 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
 - **CI:** CI mínimo (`.github/workflows/ci.yml`, Ruff + pytest); en la Fase 15 se amplía a las 8 compuertas.
 - **Saboteador:** 6 mutantes en `app/dominio/sabotajes.py`; `scripts/verificar_mutantes.py` → 6/6.
   El ejecutor del panel lanza pytest dentro del servidor: la imagen Docker necesita `tests/`, `pytest` y `httpx`.
-- **Siguiente:** Fase 12 (`feature/rendimiento`).
-- **Pruebas:** 241 en verde, cobertura 99 %. **Defectos:** DEF-001 a DEF-013.
+- **Rendimiento local:** RNF-01/02 cumplen; degradación 850 usuarios; quiebre no alcanzado hasta 1000.
+  El servidor debe correr con `--timeout-keep-alive 75` (DEF-014). Usar `127.0.0.1`, no `localhost`.
+- **Siguiente:** Fase 13 (`feature/seguridad`): requiere Trivy (`winget install AquaSecurity.Trivy`).
+- **Pruebas:** 254 en verde. **Defectos:** DEF-001 a DEF-016.
 - **Pendiente del usuario:** instalar la extensión "SonarQube for IDE" en VS Code.
