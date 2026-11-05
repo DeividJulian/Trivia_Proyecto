@@ -1,0 +1,7 @@
+# Tras la corrección (per-file-ignores S101 solo en tests/)
+# Fecha: 2026-11-04
+$ .venv/Scripts/python -m ruff check .
+
+All checks passed!
+
+(código de salida: 0)

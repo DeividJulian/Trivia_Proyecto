@@ -1,0 +1,7 @@
+# Con el noqa: N818 justificado en esa única línea
+# Fecha: 2026-11-04
+$ .venv/Scripts/python -m ruff check app/
+
+All checks passed!
+
+(código de salida: 0)
