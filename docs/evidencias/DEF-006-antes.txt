@@ -1,0 +1,15 @@
+# Reproducción: Ruff ignorando el noqa de la línea
+# Fecha: 2026-11-04
+$ .venv/Scripts/python -m ruff check --ignore-noqa --select N818 app/dominio/errores.py
+
+N818 Exception name `ErrorPartida` should be named with an Error suffix
+ --> app\dominio\errores.py:4:7
+  |
+4 | class ErrorPartida(Exception):  # noqa: N818 - nombre en español: "Error" va al inicio (DEF-006)
+  |       ^^^^^^^^^^^^
+5 |     """Error base: la acción no es válida en el estado actual de la partida."""
+  |
+
+Found 1 error.
+
+(código de salida: 1)

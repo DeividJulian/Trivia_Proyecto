@@ -1,0 +1,24 @@
+# Reproducción del hallazgo original: Ruff sin la configuración del proyecto (sin per-file-ignores)
+# Fecha: 2026-11-04
+$ .venv/Scripts/python -m ruff check --isolated --select S101 tests/sistema/test_salud.py
+
+S101 Use of `assert` detected
+  --> tests\sistema\test_salud.py:16:5
+   |
+14 |     respuesta = cliente.get("/salud")
+15 |
+16 |     assert respuesta.status_code == 200
+   |     ^^^^^^
+17 |     assert respuesta.json() == {"estado": "ok", "version": VERSION}
+   |
+
+S101 Use of `assert` detected
+  --> tests\sistema\test_salud.py:17:5
+   |
+16 |     assert respuesta.status_code == 200
+17 |     assert respuesta.json() == {"estado": "ok", "version": VERSION}
+   |     ^^^^^^
+
+Found 2 errors.
+
+(código de salida: 1)

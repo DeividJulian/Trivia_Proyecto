@@ -1,0 +1,7 @@
+# Tras centralizar los tokens en tests/valores_prueba.py
+# Fecha: 2026-11-04
+$ .venv/Scripts/python -m ruff check tests/
+
+All checks passed!
+
+(código de salida: 0)

@@ -1,0 +1,8 @@
+# Tras la corrección (hook 'ruff-check')
+# Fecha: 2026-11-04
+$ .venv/Scripts/pre-commit run --all-files
+
+ruff check...............................................................Passed
+ruff format..............................................................Passed
+
+(código de salida: 0)

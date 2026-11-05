@@ -1,0 +1,18 @@
+# Reproducción: Ruff ignorando el noqa de la línea
+# Fecha: 2026-11-04
+$ .venv/Scripts/python -m ruff check --ignore-noqa --select S105 tests/componente/test_config.py
+
+S105 Possible hardcoded password assigned to: "admin_token"
+  --> tests\componente\test_config.py:38:34
+   |
+36 |     config = cargar_configuracion()
+37 |
+38 |     assert config.admin_token == "secreto"  # noqa: S105 - valor de prueba, no es una credencial (DEF-004)
+   |                                  ^^^^^^^^^
+39 |     assert config.permitir_sabotaje is False
+40 |     assert config.max_partidas == 3
+   |
+
+Found 1 error.
+
+(código de salida: 1)
