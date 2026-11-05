@@ -1,0 +1,34 @@
+[project]
+name = "testquiz-saboteador"
+version = "1.0.0"
+description = "Backend de TestQuiz – El Saboteador"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "N", "S"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    # Niveles ISTQB
+    "componente: prueba de componente (unidad aislada)",
+    "integracion: prueba de integración de componentes",
+    "sistema: prueba de sistema a través de la API",
+    "integracion_sistemas: prueba contra el sistema desplegado (humo)",
+    "aceptacion: prueba de aceptación basada en historias de usuario",
+    # Tipos
+    "no_funcional: prueba no funcional (tiempos, carga)",
+    "seguridad: prueba de seguridad",
+    # Módulos (para la regresión por análisis de impacto)
+    "puntaje: módulo de puntaje",
+    "ranking: módulo de ranking",
+    "partida: módulo de partida",
+    "gestor: módulo gestor de partidas",
+    "api: capa API",
+    "sabotajes: módulo de sabotajes",
+]
