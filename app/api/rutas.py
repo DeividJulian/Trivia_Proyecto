@@ -2,7 +2,7 @@
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Header, Request, status
 
 from app.api.esquemas import CrearPartidaEntrada, Error, PartidaCreada, UnirseEntrada
 from app.dominio.gestor import GestorPartidas
@@ -43,3 +43,27 @@ async def unirse(pin: str, entrada: UnirseEntrada, gestor: Gestor) -> dict[str, 
     partida = gestor.obtener(pin)
     jugador = partida.unirse(entrada.nombre)
     return {"nombre": jugador.nombre, "estado": partida.estado_publico()}
+
+
+TokenHost = Annotated[str | None, Header(description="Token del anfitrión recibido al crear la partida.")]
+RESPUESTAS_HOST = {
+    **RESPUESTAS_404,
+    403: {"model": Error, "description": "Falta el header X-Host-Token o no es válido."},
+    409: {"model": Error, "description": "La partida no está en un estado que permita la acción."},
+}
+
+
+@router.post("/{pin}/iniciar", responses=RESPUESTAS_HOST)
+async def iniciar(pin: str, gestor: Gestor, x_host_token: TokenHost = None) -> dict[str, Any]:
+    """Inicia la partida (LOBBY → PREGUNTA). Solo el anfitrión."""
+    partida = gestor.validar_host(pin, x_host_token)
+    partida.iniciar()
+    return partida.estado_publico()
+
+
+@router.post("/{pin}/siguiente", responses=RESPUESTAS_HOST)
+async def siguiente(pin: str, gestor: Gestor, x_host_token: TokenHost = None) -> dict[str, Any]:
+    """Cierra la pregunta abierta o pasa a la siguiente / al final. Solo el anfitrión."""
+    partida = gestor.validar_host(pin, x_host_token)
+    partida.siguiente()
+    return partida.estado_publico()
