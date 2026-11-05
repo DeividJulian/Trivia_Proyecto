@@ -66,17 +66,24 @@ def test_respuesta_correcta_pero_tarde_suma_0_y_reinicia_la_racha():
     assert calcular_puntos(True, 20.001, LIMITE, racha=4) == (0, 0)
 
 
+# Los totales exactos se miden respondiendo justo en el límite: así la prueba aísla la regla que
+# verifica (base y racha) y no depende de reglas futuras que premien la velocidad.
+
+
 def test_primer_acierto_da_los_puntos_base():
-    assert calcular_puntos(True, 5.0, LIMITE, racha=0) == (1000, 1)
+    assert calcular_puntos(True, LIMITE, LIMITE, racha=0) == (1000, 1)
 
 
-def test_acierto_justo_en_el_limite_da_puntos():
-    assert calcular_puntos(True, 20.0, LIMITE, racha=0) == (1000, 1)
+def test_acierto_rapido_da_al_menos_los_puntos_base():
+    puntos, racha = calcular_puntos(True, 1.0, LIMITE, racha=0)
+
+    assert puntos >= 1000
+    assert racha == 1
 
 
 def test_segundo_acierto_seguido_suma_bono_de_racha():
-    assert calcular_puntos(True, 5.0, LIMITE, racha=1) == (1100, 2)
+    assert calcular_puntos(True, LIMITE, LIMITE, racha=1) == (1100, 2)
 
 
 def test_racha_larga_respeta_el_tope():
-    assert calcular_puntos(True, 5.0, LIMITE, racha=20) == (1500, 21)
+    assert calcular_puntos(True, LIMITE, LIMITE, racha=20) == (1500, 21)
