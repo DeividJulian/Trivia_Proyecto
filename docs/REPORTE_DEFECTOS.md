@@ -202,3 +202,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo herramientas de calidad (`scripts/`). No afecta al servidor. |
 | Regresión ejecutada | `pytest -q` → `203 passed` |
 | Estado | **Riesgo aceptado** |
+
+### DEF-013 – Ruff S314, S603 y E402 en el ejecutor de pruebas y en verificar_mutantes
+| Campo | Valor |
+|---|---|
+| Detectado por | Ruff (pre-commit), reglas S314, S603 y E402, en `app/calidad/ejecutor.py` y `scripts/verificar_mutantes.py` |
+| Severidad | Baja |
+| Pasos para reproducir | `ruff check app/calidad scripts --ignore-noqa` (`docs/evidencias/DEF-013-antes.txt`) |
+| Resultado esperado / obtenido | Esperado: sin hallazgos. Obtenido: S314 (parsear XML con `xml.etree`, vulnerable a XML malicioso), S603 (`subprocess`) y E402 (import tras ajustar `sys.path`) |
+| Causa encontrada (debugging) | S314: el XML lo genera **nuestro propio** pytest en una carpeta temporal creada por el ejecutor (`tempfile.TemporaryDirectory`); nunca llega desde la red ni desde el usuario. S603: se ejecuta `sys.executable -m pytest` con argumentos fijos; los únicos datos variables son claves de sabotaje validadas contra el catálogo y niveles validados por Pydantic (`Literal`), así que el panel no permite pasar argumentos libres a pytest (probado en `test_no_acepta_argumentos_libres_de_pytest`). E402: igual que en DEF-012. |
+| Corrección | Riesgo aceptado con `# noqa` solo en esas líneas, cada uno con su motivo. No se agregó `defusedxml` porque no hay entrada externa; si algún día el XML viniera de fuera, se cambia a `defusedxml` (anotado como mantenimiento preventivo). |
+| Re-ejecución (confirmación) | `ruff check app/calidad scripts` → `All checks passed!` (`DEF-013-despues.txt`) |
+| Análisis de impacto | Calidad (ejecutor) → Admin (`POST /api/admin/pruebas`). |
+| Regresión ejecutada | `pytest -q` → `241 passed`; `python scripts/verificar_mutantes.py` → 6/6 detectados |
+| Estado | **Riesgo aceptado** |
