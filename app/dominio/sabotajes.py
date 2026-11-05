@@ -79,7 +79,19 @@ _registrar(
     )
 )
 
+_registrar(
+    Sabotaje(
+        clave="respuesta_lenta",
+        nombre="Respuesta lenta",
+        modulo="api",
+        descripcion="POST /respuestas tarda 1,5 s antes de responder (incumple RNF-03).",
+        nivel_que_lo_detecta="sistema, no funcional (tiempo de respuesta < 0,5 s)",
+    )
+)
+
 # --- Estado: qué sabotajes están activos -------------------------------------------------------
+
+RETARDO_RESPUESTA_LENTA_S = 1.5
 
 _activos: set[str] = set()
 
