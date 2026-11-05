@@ -106,3 +106,34 @@ def test_jugador_inexistente_responde_404(cliente, partida_creada):
 
     assert respuesta.status_code == 404
     assert "Nadie" in respuesta.json()["detail"]
+
+
+# --- Extremo a extremo ---------------------------------------------------------------------------
+
+
+def test_partida_completa_de_extremo_a_extremo(cliente, reloj):
+    """Crear → unirse → iniciar → responder cada pregunta → resultados → podio, solo por HTTP."""
+    creada = cliente.post("/api/partidas").json()
+    pin, host = creada["pin"], {"X-Host-Token": creada["token_host"]}
+    for nombre in ("Ana", "Beto"):
+        assert cliente.post(f"/api/partidas/{pin}/jugadores", json={"nombre": nombre}).status_code == 201
+    assert cliente.post(f"/api/partidas/{pin}/iniciar", headers=host).json()["estado"] == "PREGUNTA"
+
+    total = cliente.get(f"/api/partidas/{pin}").json()["total_preguntas"]
+    for numero in range(total):
+        correcta = numero % 4
+        reloj.avanzar(20.0)  # justo en el límite: los totales dependen solo de base y racha
+        cliente.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Ana", "opcion": correcta})
+        incorrecta = (correcta + 1) % 4
+        cliente.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Beto", "opcion": incorrecta})
+        estado = cliente.get(f"/api/partidas/{pin}").json()
+        assert estado["estado"] == "RESULTADOS"
+        assert estado["correcta"] == correcta
+        cliente.post(f"/api/partidas/{pin}/siguiente", headers=host)
+
+    final = cliente.get(f"/api/partidas/{pin}").json()
+    assert final["estado"] == "FINALIZADA"
+    assert final["ganador"]["nombre"] == "Ana"
+    assert final["ganador"]["puntos"] == 1000 + 1100 + 1200
+    assert [fila["nombre"] for fila in final["ranking"]] == ["Ana", "Beto"]
+    assert final["ranking"][1]["puntos"] == 0
