@@ -256,3 +256,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Script de carga. En el servidor: Gestor (cupo y limpieza), anotado como riesgo. |
 | Regresión ejecutada | `pytest -q` → `254 passed` |
 | Estado | **Cerrado** (riesgo del cupo anotado en `RESULTADOS_RENDIMIENTO.md`) |
+
+### DEF-017 – La imagen Docker no podía ejecutar la suite (faltaba `performance/`)
+| Campo | Valor |
+|---|---|
+| Detectado por | pytest sobre una copia con el contenido exacto de la imagen (nivel sistema, despliegue). Docker no está instalado en la máquina, así que se reprodujo copiando lo mismo que copia el Dockerfile. |
+| Severidad | **Alta** (en producción, `POST /api/admin/pruebas` devolvería un tablero vacío: el modo Saboteador, eje de la exposición, no funcionaría) |
+| Pasos para reproducir | 1. Copiar `pyproject.toml`, `app/`, `data/` y `tests/` a una carpeta vacía. 2. `pytest -q` → `2 errors during collection` (`DEF-017-antes.txt`) |
+| Resultado esperado / obtenido | Esperado: la suite completa pasa dentro de la imagen. Obtenido: `ModuleNotFoundError: performance` en `test_umbrales.py` y `test_analizar_resultados.py` |
+| Causa encontrada (debugging) | El `.dockerignore` excluía `performance/` completo y el Dockerfile no lo copiaba, pero dos pruebas de componente importan `performance.verificar_umbrales` y `performance.analizar_resultados`. |
+| Corrección | Commit `fix(docker): la imagen incluye performance/ porque las pruebas lo importan; el panel no podía correr la suite (DEF-017)`: `COPY performance ./performance`; el `.dockerignore` solo excluye `performance/resultados/`. |
+| Re-ejecución (confirmación) | Copia corregida: `pytest -q` → `254 passed`; el ejecutor del panel con `empates_mal` arma el tablero (Ranking y Partida CAIDO) (`DEF-017-despues.txt`). Pendiente confirmar con `docker build` cuando Docker esté disponible (lo hace el job de Trivy en el CI). |
+| Análisis de impacto | Despliegue → panel del Saboteador (`POST /api/admin/pruebas`). |
+| Regresión ejecutada | `pytest -q` → `254 passed` |
+| Estado | **Cerrado** |

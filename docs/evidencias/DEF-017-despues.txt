@@ -1,0 +1,7 @@
+# DEF-017 – Re-ejecución con el contenido corregido de la imagen (pyproject.toml, app, data, tests, performance sin resultados)
+# Fecha: 2026-11-04
+$ pytest -q -p no:cacheprovider   # dentro de la carpeta simulada
+254 passed, 1 warning in 5.63s
+
+$ python -c "from app.calidad.ejecutor import ejecutar_pruebas, armar_tablero; ..."   # el panel con empates_mal
+codigo 1 {'pruebas': 171, 'fallidas': 3, 'caidos': ['Partida', 'Ranking'], 'en_riesgo': ['API', 'Gestor'], 'por_nivel': {'componente': 2, 'integracion': 1}}
