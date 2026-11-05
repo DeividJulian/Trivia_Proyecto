@@ -184,7 +184,7 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Resultado esperado / obtenido | Esperado: una respuesta incorrecta vale 0. Obtenido: vale el bono por velocidad (475 con 1 s de 20; 1425 acumulados en la prueba de sistema; 1500 en la de aceptación) |
 | Causa encontrada (debugging) | Traza línea por línea con `sys.settrace` (`docs/evidencias/DEF-011-depuracion.txt`): el bono se calcula en la línea 47 **antes** de comprobar si la respuesta es correcta, y la línea 49 devuelve `return bono, nueva_racha` en la rama `if not opcion_correcta`. Las pruebas nuevas del bono solo probaban respuestas correctas, por eso pasaban. |
 | Corrección | Commit `fix(puntaje): el bono solo aplica a respuestas correctas (DEF-011)` |
-| Re-ejecución (confirmación) | Pendiente (se anota tras la corrección) |
+| Re-ejecución (confirmación) | Solo las 3 que fallaron: `pytest -v tests/componente/test_puntaje.py::test_respuesta_incorrecta_suma_0_y_reinicia_la_racha tests/sistema/test_api.py::test_partida_completa_de_extremo_a_extremo tests/aceptacion/test_historias.py::test_hu02_gana_quien_responde_bien` → `3 passed`. Depuración repetida: `calcular_puntos(False, 1.0, 20.0, 4)` → `(0, 0)`. Se agregó `test_respuesta_incorrecta_y_rapida_no_recibe_bono` (el caso que faltaba en las pruebas nuevas). Evidencia: `DEF-011-despues.txt` |
 | Análisis de impacto | Puntaje → Racha (no afectada: la racha se reinicia bien) → **Ranking** (orden incorrecto) → **Partida** (acumula puntos falsos) → **API** (expone puntos y ganador falsos). Ver `SOLICITUD_CAMBIO_001.md`. |
-| Regresión ejecutada | Pendiente |
-| Estado | En corrección |
+| Regresión ejecutada | Selectiva por impacto: `pytest -m "puntaje or ranking or partida or api"` → `127 passed, 51 deselected`. Suite completa: `pytest -q` → `178 passed`. GitHub Actions en verde en `v3-corregido`. |
+| Estado | **Cerrado** |
