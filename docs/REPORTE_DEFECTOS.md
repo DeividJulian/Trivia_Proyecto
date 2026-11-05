@@ -132,3 +132,45 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | `preguntas` → `partida` (la partida recibe las preguntas cargadas). El cambio solo afecta al camino de error; las cargas válidas no cambian. |
 | Regresión ejecutada | `pytest -m componente` → `30 passed`; suite completa `pytest -q` → `35 passed` |
 | Estado | **Cerrado** |
+
+### DEF-008 – Un nombre solo con espacios responde 409 en vez de 422
+| Campo | Valor |
+|---|---|
+| Detectado por | Prueba exploratoria manual (sesión 1, `docs/PRUEBAS_EXPLORATORIAS.md`), nivel sistema |
+| Severidad | Baja |
+| Pasos para reproducir | 1. `POST /api/partidas`. 2. `POST /api/partidas/{pin}/jugadores` con `{"nombre": "   "}` |
+| Resultado esperado / obtenido | Esperado: 422 (entrada inválida). Obtenido: 409 `El nombre debe tener entre 1 y 20 caracteres.` |
+| Causa encontrada (debugging) | `UnirseEntrada` validaba `min_length=1` **antes** de quitar espacios: `"   "` mide 3 y pasaba. El dominio lo recortaba y lo rechazaba como `ErrorPartida`, que la API traduce a 409 (conflicto de estado). |
+| Corrección | Commit `fix(api): un nombre solo con espacios es entrada inválida (422), no conflicto (DEF-008)`: tipo `Nombre` con `strip_whitespace=True` antes de validar la longitud. |
+| Re-ejecución (confirmación) | `pytest tests/sistema/test_validacion_entradas.py -k espacios` → `3 passed` (`docs/evidencias/DEF-008-despues.txt`) |
+| Análisis de impacto | API (`esquemas.py`) → Partida (recibe el nombre ya recortado). La regla del dominio no cambia. |
+| Regresión ejecutada | `pytest -m "api or partida"` → `90 passed`; suite completa → `169 passed` |
+| Estado | **Cerrado** |
+
+### DEF-009 – `"opcion": true` se acepta como la opción 1 y suma puntos
+| Campo | Valor |
+|---|---|
+| Detectado por | Prueba exploratoria manual (sesión 1), nivel sistema; confirmado con TestClient |
+| Severidad | **Media** (un cliente mal hecho o malicioso responde con un valor que no es una opción y obtiene 1000 puntos) |
+| Pasos para reproducir | 1. Crear partida, unirse e iniciar. 2. `POST /respuestas` con `{"nombre": "Ana", "opcion": true}` |
+| Resultado esperado / obtenido | Esperado: 422. Obtenido: 200 `{"puntos": 1000, ...}` (la correcta de la 1.ª pregunta es 1). También se aceptaban `"2"` y `1.0`. |
+| Causa encontrada (debugging) | Pydantic v2 en modo *lax* convierte `true` → 1, `"2"` → 2 y `1.0` → 1 en un campo `int`. |
+| Corrección | Commit `fix(api): la opción solo acepta enteros; true ya no cuenta como la opción 1 (DEF-009)`: `Field(..., strict=True)`. |
+| Re-ejecución (confirmación) | `pytest tests/sistema/test_validacion_entradas.py -k entero_estricto` → `4 passed` (`DEF-009-despues.txt`) |
+| Análisis de impacto | API → Partida → Puntaje → Ranking: una opción mal interpretada cambia puntos y posiciones. |
+| Regresión ejecutada | `pytest -m "api or partida or puntaje"` → `110 passed`; suite completa → `169 passed` |
+| Estado | **Cerrado** |
+
+### DEF-010 – El PIN no se valida y los errores repiten la entrada recibida
+| Campo | Valor |
+|---|---|
+| Detectado por | Prueba exploratoria manual (sesión 2), nivel sistema |
+| Severidad | Baja (seguridad: reflejo de entradas arbitrarias en las respuestas) |
+| Pasos para reproducir | 1. `GET /api/partidas/` seguido de 300 nueves |
+| Resultado esperado / obtenido | Esperado: 422 corto, sin la entrada. Obtenido: 404 `No existe una partida con el PIN 9999…` (300 caracteres repetidos) |
+| Causa encontrada (debugging) | El parámetro `pin` era un `str` libre y el mensaje de `PartidaNoEncontrada` lo incluye. Al validar el formato apareció una segunda causa: el 422 estándar de FastAPI devuelve el campo `input` con la entrada completa. |
+| Corrección | 1) `fix(api): el PIN se valida como 6 dígitos (422) y no se repite en la respuesta (DEF-010)`: `Path(pattern=r"^\d{6}$")` y, en el WebSocket, cierre 4404 con un mensaje fijo. 2) `fix(api): las respuestas 422 no repiten la entrada recibida (DEF-010)`: manejador propio de `RequestValidationError` que devuelve solo `type`, `loc` y `msg`. |
+| Re-ejecución (confirmación) | **1.ª confirmación: falló** (`assert 455 < 400`, el 422 traía la entrada). Tras la 2.ª corrección: `5 passed` (`DEF-010-despues.txt`). Muestra por qué la re-ejecución es obligatoria: la primera corrección parecía suficiente. |
+| Análisis de impacto | Todas las rutas con `{pin}` y todas las respuestas 422 de la API. |
+| Regresión ejecutada | `pytest -m api` → `63 passed`; suite completa → `169 passed` |
+| Estado | **Cerrado** |
