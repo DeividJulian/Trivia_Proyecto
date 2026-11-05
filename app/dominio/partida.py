@@ -4,7 +4,8 @@ import time
 from collections.abc import Callable, Sequence
 
 from app.dominio.errores import ErrorPartida
-from app.dominio.modelos import EstadoPartida, Jugador, Pregunta, Respuesta
+from app.dominio.modelos import NUMERO_OPCIONES, EstadoPartida, Jugador, Pregunta, Respuesta
+from app.dominio.puntaje import calcular_puntos
 
 Reloj = Callable[[], float]
 
@@ -74,3 +75,89 @@ class Partida:
         self.jugadores[nombre] = jugador
         self._tocar()
         return jugador
+
+    # --- Flujo del juego ---------------------------------------------------------------------------
+
+    def _mostrar_pregunta(self, indice: int) -> None:
+        """Pasa a la pregunta indicada y arranca su cronómetro."""
+        self.indice_pregunta = indice
+        self.estado = EstadoPartida.PREGUNTA
+        self._inicio_pregunta = self._reloj()
+        self.respuestas = {}
+        self.puntos_ronda = {}
+
+    def iniciar(self) -> None:
+        """LOBBY → PREGUNTA. Exige al menos un jugador."""
+        if self.estado != EstadoPartida.LOBBY:
+            raise ErrorPartida("La partida ya fue iniciada.")
+        if not self.jugadores:
+            raise ErrorPartida("Se necesita al menos un jugador para iniciar.")
+        self._mostrar_pregunta(0)
+        self._tocar()
+
+    def tiempo_transcurrido(self) -> float:
+        """Segundos desde que se mostró la pregunta actual."""
+        if self._inicio_pregunta is None:
+            return 0.0
+        return max(0.0, self._reloj() - self._inicio_pregunta)
+
+    def tiempo_restante(self) -> float:
+        """Segundos que quedan para responder (0 fuera del estado PREGUNTA)."""
+        pregunta = self.pregunta_actual
+        if self.estado != EstadoPartida.PREGUNTA or pregunta is None:
+            return 0.0
+        return max(0.0, pregunta.tiempo_limite - self.tiempo_transcurrido())
+
+    def responder(self, nombre: str, opcion: int) -> int:
+        """Registra la respuesta de un jugador y devuelve los puntos que ganó.
+
+        Solo en PREGUNTA y una vez por jugador. Una respuesta fuera de tiempo se acepta pero vale 0
+        y reinicia la racha. Si ya respondieron todos, la pregunta se cierra sola.
+        """
+        if self.estado != EstadoPartida.PREGUNTA:
+            raise ErrorPartida("Solo se puede responder mientras hay una pregunta abierta.")
+        jugador = self.buscar_jugador(nombre)
+        if jugador is None:
+            raise ErrorPartida(f"'{nombre}' no está en la partida.")
+        if not 0 <= opcion < NUMERO_OPCIONES:
+            raise ErrorPartida(f"La opción debe estar entre 0 y {NUMERO_OPCIONES - 1}.")
+        if jugador.nombre in self.respuestas:
+            raise ErrorPartida(f"{jugador.nombre} ya respondió esta pregunta.")
+
+        pregunta = self.pregunta_actual
+        tiempo = self.tiempo_transcurrido()
+        puntos, jugador.racha = calcular_puntos(
+            opcion == pregunta.correcta, tiempo, pregunta.tiempo_limite, jugador.racha
+        )
+        jugador.puntos += puntos
+        jugador.tiempo_total += tiempo
+        self.respuestas[jugador.nombre] = Respuesta(opcion=opcion, tiempo_respuesta=tiempo)
+        self.puntos_ronda[jugador.nombre] = puntos
+        self._tocar()
+
+        if len(self.respuestas) == len(self.jugadores):
+            self.cerrar_pregunta()
+        return puntos
+
+    def cerrar_pregunta(self) -> None:
+        """PREGUNTA → RESULTADOS. Quien no respondió pierde la racha."""
+        if self.estado != EstadoPartida.PREGUNTA:
+            raise ErrorPartida("No hay una pregunta abierta para cerrar.")
+        for jugador in self.jugadores.values():
+            if jugador.nombre not in self.respuestas:
+                jugador.racha = 0
+        self.estado = EstadoPartida.RESULTADOS
+        self._tocar()
+
+    def siguiente(self) -> None:
+        """Avanza la partida: PREGUNTA → RESULTADOS, y RESULTADOS → PREGUNTA o FINALIZADA."""
+        if self.estado == EstadoPartida.PREGUNTA:
+            self.cerrar_pregunta()
+        elif self.estado == EstadoPartida.RESULTADOS:
+            if self.indice_pregunta + 1 < len(self.preguntas):
+                self._mostrar_pregunta(self.indice_pregunta + 1)
+            else:
+                self.estado = EstadoPartida.FINALIZADA
+            self._tocar()
+        else:
+            raise ErrorPartida(f"No se puede avanzar desde el estado {self.estado}.")
