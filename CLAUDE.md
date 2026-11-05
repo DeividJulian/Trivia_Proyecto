@@ -85,13 +85,15 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 
 ## Estado actual
 
-- **Fases terminadas:** 0 a 12 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
+- **Carpeta del proyecto:** `D:\Descargas\Trivia_Proyecto` (no `D:\Users\User\Trivia_Proyecto`, que está vacía).
+- **Fases terminadas:** 0 a 13 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
 - **CI:** CI mínimo (`.github/workflows/ci.yml`, Ruff + pytest); en la Fase 15 se amplía a las 8 compuertas.
 - **Saboteador:** 6 mutantes en `app/dominio/sabotajes.py`; `scripts/verificar_mutantes.py` → 6/6.
   El ejecutor del panel lanza pytest dentro del servidor: la imagen Docker necesita `tests/`, `pytest` y `httpx`.
 - **Rendimiento local:** RNF-01/02 cumplen; degradación 850 usuarios; quiebre no alcanzado hasta 1000.
   El servidor debe correr con `--timeout-keep-alive 75` (DEF-014). Usar `127.0.0.1`, no `localhost`.
-- **En curso:** Fase 13 (`feature/seguridad`): Dockerfile, .dockerignore y requirements-panel.txt hechos;
-  DEF-017 corregido. **Detenido esperando al usuario:** instalar Trivy (y Docker Desktop, opcional).
-- **Pruebas:** 254 en verde. **Defectos:** DEF-001 a DEF-017.
-- **Pendiente del usuario:** instalar la extensión "SonarQube for IDE" en VS Code.
+- **Seguridad:** `trivy fs` y `trivy config` limpios; la imagen quita pip (DEF-018). `trivy image` queda para el
+  CI (no hay Docker local). Trivy está en
+  `C:\Users\COREi5\AppData\Local\Microsoft\WinGet\Packages\AquaSecurity.Trivy_Microsoft.Winget.Source_8wekyb3d8bbwe\trivy.exe`.
+- **Siguiente:** Fase 14 (`feature/sonar`): esperando la organization y la projectKey de SonarCloud.
+- **Pruebas:** 254 en verde, cobertura 98 %. **Defectos:** DEF-001 a DEF-018.
