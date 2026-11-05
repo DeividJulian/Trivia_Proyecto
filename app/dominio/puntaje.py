@@ -23,3 +23,18 @@ def calcular_bono_racha(racha: int) -> int:
     if racha < 2:
         return 0
     return min(BONO_POR_RACHA * (racha - 1), BONO_RACHA_MAX)
+
+
+def calcular_puntos(
+    opcion_correcta: bool, tiempo_respuesta: float, tiempo_limite: float, racha: int
+) -> tuple[int, int]:
+    """Calcula los puntos de una respuesta y la nueva racha.
+
+    `racha` es la que traía el jugador antes de responder. Una respuesta incorrecta o fuera de
+    tiempo da 0 puntos y reinicia la racha. Devuelve la tupla (puntos, nueva_racha).
+    """
+    acerto = opcion_correcta and es_respuesta_a_tiempo(tiempo_respuesta, tiempo_limite)
+    nueva_racha = sumar_racha(racha, acerto)
+    if not acerto:
+        return 0, nueva_racha
+    return PUNTOS_BASE + calcular_bono_racha(nueva_racha), nueva_racha
