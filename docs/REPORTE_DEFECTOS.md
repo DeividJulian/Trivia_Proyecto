@@ -118,3 +118,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo `app/dominio/errores.py`. |
 | Regresión ejecutada | `pytest -q` → `12 passed` |
 | Estado | **Riesgo aceptado** |
+
+### DEF-007 – Un JSON de preguntas mal formado no dice qué archivo falló
+| Campo | Valor |
+|---|---|
+| Detectado por | pytest, nivel componente: `tests/componente/test_preguntas.py::test_json_mal_formado_indica_el_archivo` |
+| Severidad | Media (al arrancar con un banco dañado, el administrador no sabe qué archivo corregir) |
+| Pasos para reproducir | 1. Crear `roto.json` con `[{ esto no es json`. 2. `cargar_preguntas(ruta="roto.json")` |
+| Resultado esperado / obtenido | Esperado: `ValueError` que nombre `roto.json`. Obtenido: `Expecting property name enclosed in double quotes: line 1 column 4 (char 3)` sin el nombre del archivo |
+| Causa encontrada (debugging) | `cargar_preguntas` validaba la estructura y cada pregunta, pero `json.load` estaba fuera del `try`: el `JSONDecodeError` (subclase de `ValueError`) salía con el mensaje crudo de la librería estándar. |
+| Corrección | Commit `fix(preguntas): el error de JSON mal formado indica el archivo, la línea y la columna (DEF-007)` |
+| Re-ejecución (confirmación) | `pytest tests/componente/test_preguntas.py::test_json_mal_formado_indica_el_archivo` → `1 passed` |
+| Análisis de impacto | `preguntas` → `partida` (la partida recibe las preguntas cargadas). El cambio solo afecta al camino de error; las cargas válidas no cambian. |
+| Regresión ejecutada | `pytest -m componente` → `30 passed`; suite completa `pytest -q` → `35 passed` |
+| Estado | **Cerrado** |
