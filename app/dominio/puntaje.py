@@ -25,6 +25,8 @@ def calcular_bono_velocidad(tiempo_respuesta: float, tiempo_limite: float) -> in
 
 def sumar_racha(racha: int, acerto: bool) -> int:
     """Nueva racha: suma uno si acierta y vuelve a cero si falla."""
+    if sabotajes.esta_activo("racha_no_suma"):
+        return racha if acerto else 0  # MUTANTE: la racha no aumenta
     return racha + 1 if acerto else 0
 
 

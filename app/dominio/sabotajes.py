@@ -39,6 +39,16 @@ _registrar(
     )
 )
 
+_registrar(
+    Sabotaje(
+        clave="racha_no_suma",
+        nombre="Racha que no suma",
+        modulo="puntaje",
+        descripcion="sumar_racha no aumenta la racha al acertar: nunca hay bono de racha.",
+        nivel_que_lo_detecta="componente (racha) e integración (puntaje + racha + ranking)",
+    )
+)
+
 # --- Estado: qué sabotajes están activos -------------------------------------------------------
 
 _activos: set[str] = set()
