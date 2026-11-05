@@ -2,7 +2,7 @@
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Path, Request, status
 
 from app.api.esquemas import (
     CrearPartidaEntrada,
@@ -18,6 +18,9 @@ from app.dominio.partida import Partida
 from app.tiempo_real.conexiones import GestorConexiones
 
 router = APIRouter(prefix="/api/partidas", tags=["partidas"])
+
+# El PIN se valida antes de buscarlo: un formato inválido es 422 y no se repite en la respuesta (DEF-010).
+Pin = Annotated[str, Path(pattern=r"^\d{6}$", description="PIN de 6 dígitos.", examples=["123456"])]
 
 RESPUESTAS_404 = {404: {"model": Error, "description": "No existe una partida con ese PIN."}}
 
@@ -48,7 +51,7 @@ async def crear_partida(gestor: Gestor, entrada: CrearPartidaEntrada | None = No
 
 
 @router.get("/{pin}", responses=RESPUESTAS_404)
-async def ver_partida(pin: str, gestor: Gestor) -> dict[str, Any]:
+async def ver_partida(pin: Pin, gestor: Gestor) -> dict[str, Any]:
     """Estado público de la partida (sin la respuesta correcta mientras la pregunta está abierta)."""
     return gestor.obtener(pin).estado_publico()
 
@@ -58,7 +61,7 @@ async def ver_partida(pin: str, gestor: Gestor) -> dict[str, Any]:
     status_code=status.HTTP_201_CREATED,
     responses={**RESPUESTAS_404, 409: {"model": Error, "description": "Nombre repetido o partida iniciada."}},
 )
-async def unirse(pin: str, entrada: UnirseEntrada, gestor: Gestor, conexiones: Conexiones) -> dict[str, Any]:
+async def unirse(pin: Pin, entrada: UnirseEntrada, gestor: Gestor, conexiones: Conexiones) -> dict[str, Any]:
     """Une un jugador a la partida (solo mientras está en LOBBY)."""
     partida = gestor.obtener(pin)
     jugador = partida.unirse(entrada.nombre)
@@ -76,7 +79,7 @@ RESPUESTAS_HOST = {
 
 @router.post("/{pin}/iniciar", responses=RESPUESTAS_HOST)
 async def iniciar(
-    pin: str, gestor: Gestor, conexiones: Conexiones, x_host_token: TokenHost = None
+    pin: Pin, gestor: Gestor, conexiones: Conexiones, x_host_token: TokenHost = None
 ) -> dict[str, Any]:
     """Inicia la partida (LOBBY → PREGUNTA). Solo el anfitrión."""
     partida = gestor.validar_host(pin, x_host_token)
@@ -87,7 +90,7 @@ async def iniciar(
 
 @router.post("/{pin}/siguiente", responses=RESPUESTAS_HOST)
 async def siguiente(
-    pin: str, gestor: Gestor, conexiones: Conexiones, x_host_token: TokenHost = None
+    pin: Pin, gestor: Gestor, conexiones: Conexiones, x_host_token: TokenHost = None
 ) -> dict[str, Any]:
     """Cierra la pregunta abierta o pasa a la siguiente / al final. Solo el anfitrión."""
     partida = gestor.validar_host(pin, x_host_token)
@@ -105,7 +108,7 @@ async def siguiente(
     },
 )
 async def responder(
-    pin: str, entrada: ResponderEntrada, gestor: Gestor, conexiones: Conexiones
+    pin: Pin, entrada: ResponderEntrada, gestor: Gestor, conexiones: Conexiones
 ) -> ResultadoRespuesta:
     """Registra la respuesta de un jugador a la pregunta abierta y devuelve los puntos obtenidos."""
     partida = gestor.obtener(pin)
@@ -118,7 +121,7 @@ async def responder(
 
 
 @router.get("/{pin}/jugadores/{nombre}", response_model=EstadoJugador, responses=RESPUESTAS_404)
-async def ver_jugador(pin: str, nombre: str, gestor: Gestor) -> EstadoJugador:
+async def ver_jugador(pin: Pin, nombre: str, gestor: Gestor) -> EstadoJugador:
     """Marcador y posición de un jugador."""
     partida = gestor.obtener(pin)
     jugador = partida.buscar_jugador(nombre)

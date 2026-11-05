@@ -1,0 +1,10 @@
+# Re-ejecución (confirmación) y regresión tras la corrección
+# Fecha: 2026-11-04
+$ pytest -q tests/sistema/test_validacion_entradas.py -k "entero_estricto"
+4 passed, 8 deselected, 1 warning in 0.40s
+
+$ pytest -q -m "api or partida or puntaje"   # regresión selectiva
+110 passed, 59 deselected, 1 warning in 4.69s
+
+$ pytest -q   # suite completa
+169 passed, 1 warning in 5.95s

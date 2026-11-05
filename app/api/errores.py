@@ -1,6 +1,7 @@
 """Traducción de los errores del dominio a respuestas HTTP con {"detail": ...}."""
 
 from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.dominio.errores import AccesoDenegado, ErrorPartida, PartidaNoEncontrada
@@ -24,6 +25,13 @@ async def manejar_error_partida(_request: Request, error: ErrorPartida) -> JSONR
     return JSONResponse(status_code=codigo_para(error), content={"detail": str(error)})
 
 
+async def manejar_validacion(_request: Request, error: RequestValidationError) -> JSONResponse:
+    """422 sin repetir la entrada recibida: solo tipo, ubicación y mensaje de cada error (DEF-010)."""
+    detalle = [{"type": e["type"], "loc": list(e["loc"]), "msg": e["msg"]} for e in error.errors()]
+    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"detail": detalle})
+
+
 def registrar_manejadores(app: FastAPI) -> None:
-    """Registra el manejador para toda la jerarquía de ErrorPartida."""
+    """Registra los manejadores de ErrorPartida (404/403/409) y de validación (422)."""
     app.add_exception_handler(ErrorPartida, manejar_error_partida)
+    app.add_exception_handler(RequestValidationError, manejar_validacion)
