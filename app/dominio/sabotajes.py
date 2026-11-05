@@ -49,6 +49,16 @@ _registrar(
     )
 )
 
+_registrar(
+    Sabotaje(
+        clave="bono_sin_acierto",
+        nombre="Bono sin acierto",
+        modulo="puntaje",
+        descripcion="Reproduce el error de la v2: una respuesta incorrecta recibe el bono por velocidad.",
+        nivel_que_lo_detecta="componente, sistema (extremo a extremo) y aceptación (HU-02)",
+    )
+)
+
 # --- Estado: qué sabotajes están activos -------------------------------------------------------
 
 _activos: set[str] = set()
