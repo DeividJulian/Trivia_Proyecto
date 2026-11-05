@@ -122,10 +122,11 @@ def test_partida_completa_de_extremo_a_extremo(cliente, reloj):
     total = cliente.get(f"/api/partidas/{pin}").json()["total_preguntas"]
     for numero in range(total):
         correcta = numero % 4
-        reloj.avanzar(20.0)  # justo en el límite: los totales dependen solo de base y racha
-        cliente.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Ana", "opcion": correcta})
         incorrecta = (correcta + 1) % 4
+        reloj.avanzar(1.0)  # Beto responde rápido, pero mal: no debe sumar nada
         cliente.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Beto", "opcion": incorrecta})
+        reloj.avanzar(19.0)  # Ana responde justo en el límite: su total depende solo de base y racha
+        cliente.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Ana", "opcion": correcta})
         estado = cliente.get(f"/api/partidas/{pin}").json()
         assert estado["estado"] == "RESULTADOS"
         assert estado["correcta"] == correcta
