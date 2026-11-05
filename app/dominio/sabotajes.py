@@ -29,6 +29,16 @@ def _registrar(sabotaje: Sabotaje) -> None:
 # --- Catálogo de mutantes ----------------------------------------------------------------------
 
 
+_registrar(
+    Sabotaje(
+        clave="tiempo_estricto",
+        nombre="Tiempo estricto",
+        modulo="puntaje",
+        descripcion="es_respuesta_a_tiempo usa < en vez de <=: responder justo en el límite deja de contar.",
+        nivel_que_lo_detecta="componente (valores límite) y sistema (extremo a extremo)",
+    )
+)
+
 # --- Estado: qué sabotajes están activos -------------------------------------------------------
 
 _activos: set[str] = set()

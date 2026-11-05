@@ -1,5 +1,7 @@
 """Reglas de puntaje del juego (v2: con bono por velocidad, SOLICITUD_CAMBIO_001)."""
 
+from app.dominio import sabotajes
+
 PUNTOS_BASE = 1000
 BONO_VELOCIDAD_MAX = 500
 BONO_POR_RACHA = 100
@@ -8,6 +10,8 @@ BONO_RACHA_MAX = 500
 
 def es_respuesta_a_tiempo(tiempo_respuesta: float, tiempo_limite: float) -> bool:
     """Una respuesta está a tiempo si llega en el límite o antes: el límite exacto SÍ cuenta."""
+    if sabotajes.esta_activo("tiempo_estricto"):
+        return tiempo_respuesta < tiempo_limite  # MUTANTE: < en vez de <=
     return tiempo_respuesta <= tiempo_limite
 
 
