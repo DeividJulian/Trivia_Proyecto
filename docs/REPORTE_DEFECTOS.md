@@ -76,3 +76,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo el flujo local de commits. |
 | Regresión ejecutada | `pytest -q` → `1 passed` |
 | Estado | **Cerrado** |
+
+### DEF-004 – Ruff S105 confunde un valor de prueba con una contraseña
+| Campo | Valor |
+|---|---|
+| Detectado por | Ruff, regla S105 (pre-commit) en `tests/componente/test_config.py` |
+| Severidad | Baja |
+| Pasos para reproducir | 1. `ruff check tests/componente/test_config.py` |
+| Resultado esperado / obtenido | Esperado: sin hallazgos. Obtenido: `S105 Possible hardcoded password assigned to: "admin_token"` en la línea `assert config.admin_token == "secreto"` |
+| Causa encontrada (debugging) | S105 marca cualquier literal comparado con un nombre que parece credencial. Aquí es un valor inventado que la prueba pone con `monkeypatch.setenv` para comprobar que se lee del entorno; no es un secreto real ni se usa fuera de la prueba. |
+| Corrección | `# noqa: S105` **solo en esa línea**, con el motivo y el número del DEF. No se ignora S105 en ningún otro lugar. |
+| Re-ejecución (confirmación) | `ruff check .` → `All checks passed!` |
+| Análisis de impacto | Solo `tests/componente/test_config.py`. |
+| Regresión ejecutada | `pytest -q` → `8 passed` |
+| Estado | **Riesgo aceptado** |
