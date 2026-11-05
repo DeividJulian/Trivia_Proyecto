@@ -4,7 +4,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Request, status
 
-from app.api.esquemas import CrearPartidaEntrada, Error, PartidaCreada
+from app.api.esquemas import CrearPartidaEntrada, Error, PartidaCreada, UnirseEntrada
 from app.dominio.gestor import GestorPartidas
 
 router = APIRouter(prefix="/api/partidas", tags=["partidas"])
@@ -31,3 +31,15 @@ async def crear_partida(gestor: Gestor, entrada: CrearPartidaEntrada | None = No
 async def ver_partida(pin: str, gestor: Gestor) -> dict[str, Any]:
     """Estado público de la partida (sin la respuesta correcta mientras la pregunta está abierta)."""
     return gestor.obtener(pin).estado_publico()
+
+
+@router.post(
+    "/{pin}/jugadores",
+    status_code=status.HTTP_201_CREATED,
+    responses={**RESPUESTAS_404, 409: {"model": Error, "description": "Nombre repetido o partida iniciada."}},
+)
+async def unirse(pin: str, entrada: UnirseEntrada, gestor: Gestor) -> dict[str, Any]:
+    """Une un jugador a la partida (solo mientras está en LOBBY)."""
+    partida = gestor.obtener(pin)
+    jugador = partida.unirse(entrada.nombre)
+    return {"nombre": jugador.nombre, "estado": partida.estado_publico()}
