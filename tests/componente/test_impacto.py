@@ -2,7 +2,13 @@
 
 import pytest
 
-from app.calidad.impacto import DEPENDIENTES, dependientes_directos, impacto_de, modulos_afectados
+from app.calidad.impacto import (
+    DEPENDIENTES,
+    dependientes_directos,
+    impacto_de,
+    modulos_afectados,
+    planificar_regresion,
+)
 
 pytestmark = pytest.mark.componente
 
@@ -51,3 +57,53 @@ def test_modulo_desconocido_da_error_claro():
 def test_el_mapa_no_tiene_dependientes_inexistentes():
     for dependientes in DEPENDIENTES.values():
         assert dependientes <= set(DEPENDIENTES)
+
+
+# --- Plan de regresión a partir de archivos ----------------------------------------------------
+
+
+def test_cambio_en_puntaje_ejecuta_puntaje_y_sus_dependientes():
+    plan = planificar_regresion(["app/dominio/puntaje.py"])
+
+    assert plan.modulos_cambiados == {"Tiempo", "Racha", "Puntaje"}
+    assert plan.argumentos_pytest() == ["-q", "-m", "api or gestor or partida or puntaje or ranking"]
+    assert not plan.suite_completa
+
+
+def test_cambio_en_ranking_solo_ejecuta_ranking_y_api():
+    assert planificar_regresion(["app/dominio/ranking.py"]).argumentos_pytest() == [
+        "-q",
+        "-m",
+        "api or ranking",
+    ]
+
+
+def test_cambio_en_el_banco_de_preguntas():
+    plan = planificar_regresion(["data/cultura_general.json"])
+
+    assert "preguntas" in plan.argumentos_pytest()[-1]
+
+
+def test_rutas_de_windows_se_normalizan():
+    assert planificar_regresion([r"app\api\rutas.py"]).argumentos_pytest() == ["-q", "-m", "api"]
+
+
+def test_solo_documentacion_no_ejecuta_nada():
+    plan = planificar_regresion(["docs/PLAN_DE_PRUEBAS.md", "README.md"])
+
+    assert plan.argumentos_pytest() == []
+    assert "documentación" in plan.motivo
+
+
+def test_solo_pruebas_ejecuta_esas_pruebas():
+    plan = planificar_regresion(["tests/componente/test_ranking.py"])
+
+    assert plan.argumentos_pytest() == ["-q", "tests/componente/test_ranking.py"]
+
+
+def test_archivo_desconocido_ejecuta_toda_la_suite():
+    plan = planificar_regresion(["app/dominio/ranking.py", "requirements.txt"])
+
+    assert plan.suite_completa
+    assert plan.argumentos_pytest() == ["-q"]
+    assert "requirements.txt" in plan.motivo
