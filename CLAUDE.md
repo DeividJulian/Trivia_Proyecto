@@ -85,7 +85,7 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 
 ## Estado actual
 
-- **Fases terminadas:** 0, 1, 2, 3, 4 y 5 (integradas en `develop`).
-- **En curso:** Fase 6 (`feature/partida`): clase `Partida` y `unirse` hechas.
-- **Pruebas:** 63 en verde. **Defectos:** DEF-001 a DEF-007.
+- **Fases terminadas:** 0 a 6 (integradas en `develop`).
+- **Siguiente:** Fase 7 (`feature/api`): API REST, WebSocket y pruebas de sistema.
+- **Pruebas:** 106 en verde, cobertura 99 %. **Defectos:** DEF-001 a DEF-007.
 - **Pendiente del usuario:** instalar la extensión "SonarQube for IDE" en VS Code.
