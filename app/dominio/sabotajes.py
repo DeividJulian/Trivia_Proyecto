@@ -59,6 +59,16 @@ _registrar(
     )
 )
 
+_registrar(
+    Sabotaje(
+        clave="empates_mal",
+        nombre="Empates mal resueltos",
+        modulo="ranking",
+        descripcion="El ranking no desempata por tiempo total: con igualdad de puntos ordena por nombre.",
+        nivel_que_lo_detecta="componente (ranking) e integración (partida)",
+    )
+)
+
 # --- Estado: qué sabotajes están activos -------------------------------------------------------
 
 _activos: set[str] = set()
