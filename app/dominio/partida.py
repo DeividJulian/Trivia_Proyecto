@@ -3,6 +3,7 @@
 import time
 from collections.abc import Callable, Sequence
 
+from app.dominio.errores import ErrorPartida
 from app.dominio.modelos import EstadoPartida, Jugador, Pregunta, Respuesta
 
 Reloj = Callable[[], float]
@@ -49,3 +50,27 @@ class Partida:
         if 0 <= self.indice_pregunta < len(self.preguntas):
             return self.preguntas[self.indice_pregunta]
         return None
+
+    def buscar_jugador(self, nombre: str) -> Jugador | None:
+        """Busca un jugador sin distinguir mayúsculas de minúsculas ni espacios en los extremos."""
+        clave = (nombre or "").strip().casefold()
+        for jugador in self.jugadores.values():
+            if jugador.nombre.casefold() == clave:
+                return jugador
+        return None
+
+    def unirse(self, nombre: str) -> Jugador:
+        """Agrega un jugador: solo en LOBBY, nombre de 1 a 20 caracteres, sin repetir y con cupo."""
+        if self.estado != EstadoPartida.LOBBY:
+            raise ErrorPartida("La partida ya comenzó: no se admiten más jugadores.")
+        nombre = (nombre or "").strip()
+        if not 1 <= len(nombre) <= LONGITUD_MAX_NOMBRE:
+            raise ErrorPartida(f"El nombre debe tener entre 1 y {LONGITUD_MAX_NOMBRE} caracteres.")
+        if self.buscar_jugador(nombre) is not None:
+            raise ErrorPartida(f"Ya hay un jugador llamado '{nombre}' en la partida.")
+        if len(self.jugadores) >= self.max_jugadores:
+            raise ErrorPartida(f"La partida está llena: máximo {self.max_jugadores} jugadores.")
+        jugador = Jugador(nombre=nombre)
+        self.jugadores[nombre] = jugador
+        self._tocar()
+        return jugador
