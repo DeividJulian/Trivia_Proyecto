@@ -83,3 +83,26 @@ def test_iniciar_sin_token_responde_403(cliente, partida_creada):
 
     assert respuesta.status_code == 403
     assert cliente.get(f"/api/partidas/{pin}").json()["estado"] == "LOBBY"
+
+
+def test_responder_y_consultar_el_marcador(cliente, partida_creada, reloj):
+    pin, token = partida_creada["pin"], partida_creada["token_host"]
+    for nombre in ("Ana", "Beto"):
+        cliente.post(f"/api/partidas/{pin}/jugadores", json={"nombre": nombre})
+    cliente.post(f"/api/partidas/{pin}/iniciar", headers={"X-Host-Token": token})
+    reloj.avanzar(20.0)
+
+    respuesta = cliente.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Ana", "opcion": 0})
+
+    assert respuesta.status_code == 200
+    assert respuesta.json() == {"nombre": "Ana", "puntos": 1000, "racha": 1, "puntos_totales": 1000}
+    marcador = cliente.get(f"/api/partidas/{pin}/jugadores/Ana").json()
+    assert marcador["posicion"] == 1
+    assert marcador["respondio_pregunta_actual"] is True
+
+
+def test_jugador_inexistente_responde_404(cliente, partida_creada):
+    respuesta = cliente.get(f"/api/partidas/{partida_creada['pin']}/jugadores/Nadie")
+
+    assert respuesta.status_code == 404
+    assert "Nadie" in respuesta.json()["detail"]
