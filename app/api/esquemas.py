@@ -1,8 +1,11 @@
 """Esquemas Pydantic de entrada y salida de la API."""
 
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
+
+# Se quitan los espacios de los extremos ANTES de validar la longitud: "   " queda vacío y es 422 (DEF-008).
+Nombre = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=20)]
 
 
 class CrearPartidaEntrada(BaseModel):
@@ -22,13 +25,13 @@ class PartidaCreada(BaseModel):
 class UnirseEntrada(BaseModel):
     """Jugador que quiere unirse a una partida."""
 
-    nombre: str = Field(min_length=1, max_length=20, description="Nombre visible, de 1 a 20 caracteres.")
+    nombre: Nombre = Field(description="Nombre visible, de 1 a 20 caracteres (sin contar espacios extremos).")
 
 
 class ResponderEntrada(BaseModel):
     """Respuesta de un jugador a la pregunta abierta."""
 
-    nombre: str = Field(min_length=1, max_length=20)
+    nombre: Nombre
     opcion: int = Field(ge=0, le=3, description="Índice de la opción elegida (0 a 3).")
 
 
