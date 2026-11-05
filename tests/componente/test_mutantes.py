@@ -7,7 +7,7 @@ Estas pruebas comprueban que el mutante está bien conectado. Que las demás pru
 import pytest
 
 from app.dominio import sabotajes
-from app.dominio.puntaje import es_respuesta_a_tiempo, sumar_racha
+from app.dominio.puntaje import calcular_puntos, es_respuesta_a_tiempo, sumar_racha
 
 pytestmark = [pytest.mark.componente, pytest.mark.sabotajes]
 
@@ -31,3 +31,11 @@ def test_racha_no_suma(sin_sabotajes):
     sabotajes.activar("racha_no_suma")
 
     assert sumar_racha(2, acerto=True) == 2
+
+
+def test_bono_sin_acierto(sin_sabotajes):
+    assert calcular_puntos(False, 1.0, 20.0, racha=0) == (0, 0)
+
+    sabotajes.activar("bono_sin_acierto")
+
+    assert calcular_puntos(False, 1.0, 20.0, racha=0) == (475, 0)
