@@ -1,0 +1,5 @@
+Comando: .venv\Scripts\ruff.exe check .
+Resultado:
+E501 Line too long (121 > 110)
+  --> tests\componente\test_reporte_predespliegue.py:43:111
+43 |     ruta.write_text('<testsuite tests="1"><testcase name="omitida"><skipped /></testcase></testsuite>', encoding="utf-8")

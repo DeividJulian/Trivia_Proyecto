@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: testquiz-el-saboteador
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /salud
+    autoDeploy: false
+    envVars:
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: PERMITIR_SABOTAJE
+        value: "true"
+      - key: MAX_PARTIDAS
+        value: "500"
+      - key: PARTIDA_TTL_MINUTOS
+        value: "30"

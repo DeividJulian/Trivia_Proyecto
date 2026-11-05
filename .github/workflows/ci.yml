@@ -1,6 +1,6 @@
-# CI mínimo: estilo y pruebas en cada push. En la Fase 15 se amplía a las 8 compuertas.
 name: CI
 
+# SonarCloud se añadirá como compuerta 3 al final; el reporte bloquea despliegues mientras tanto.
 on:
   push:
   pull_request:
@@ -9,8 +9,8 @@ permissions:
   contents: read
 
 jobs:
-  pruebas:
-    name: Estilo y pruebas
+  estilo:
+    name: 1 - Estilo
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,5 +25,276 @@ jobs:
         run: |
           ruff check .
           ruff format --check .
-      - name: Pytest
-        run: pytest -q
+
+  pruebas:
+    name: 2 - Pruebas y cobertura
+    needs: estilo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt
+      - name: Preparar reportes
+        run: mkdir -p reportes/junit
+      - name: Pruebas de componente
+        run: pytest -q -m componente --junitxml=reportes/junit/componente.xml
+      - name: Pruebas de integración
+        run: pytest -q -m integracion --junitxml=reportes/junit/integracion.xml
+      - name: Pruebas de sistema
+        run: pytest -q -m sistema --junitxml=reportes/junit/sistema.xml
+      - name: Pruebas de aceptación
+        run: pytest -q -m aceptacion --junitxml=reportes/junit/aceptacion.xml
+      - name: Suite completa y cobertura
+        run: >-
+          pytest -q --junitxml=reportes/junit/suite.xml
+          --cov=app --cov-report=xml:reportes/coverage.xml --cov-fail-under=85
+      - name: Guardar evidencias de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-pruebas
+          path: reportes/
+          if-no-files-found: error
+
+  mutantes:
+    name: 4 - Mutantes (SonarCloud diferido)
+    needs: pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt
+      - name: Verificar los seis mutantes
+        run: |
+          mkdir -p reportes
+          set -o pipefail
+          python scripts/verificar_mutantes.py | tee reportes/mutantes.txt
+      - name: Guardar evidencia de mutantes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-mutantes
+          path: reportes/mutantes.txt
+          if-no-files-found: warn
+
+  seguridad:
+    name: 5 - Trivy
+    needs: mutantes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar reportes
+        run: mkdir -p reportes
+      - name: Trivy filesystem
+        id: trivy-fs
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret
+          severity: HIGH,CRITICAL
+          format: json
+          output: reportes/trivy-fs.json
+          exit-code: "1"
+      - name: Trivy configuración
+        id: trivy-config
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          format: json
+          output: reportes/trivy-config.json
+          exit-code: "1"
+      - name: Construir imagen
+        run: docker build --tag testquiz:ci .
+      - name: Trivy imagen
+        id: trivy-image
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: image
+          image-ref: testquiz:ci
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          format: json
+          output: reportes/trivy-image.json
+          exit-code: "1"
+      - name: Fallar si algún escaneo encontró bloqueos o no pudo ejecutarse
+        if: always()
+        env:
+          FS_RESULT: ${{ steps.trivy-fs.outcome }}
+          CONFIG_RESULT: ${{ steps.trivy-config.outcome }}
+          IMAGE_RESULT: ${{ steps.trivy-image.outcome }}
+        run: |
+          test "$FS_RESULT" = success
+          test "$CONFIG_RESULT" = success
+          test "$IMAGE_RESULT" = success
+      - name: Guardar evidencias Trivy
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-trivy
+          path: reportes/trivy-*.json
+          if-no-files-found: warn
+
+  rendimiento:
+    name: 6 - Rendimiento
+    needs: seguridad
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt
+      - name: Levantar servidor y medir 50 usuarios por 60 segundos
+        run: |
+          mkdir -p reportes/performance
+          ADMIN_TOKEN=ci-demo uvicorn app.main:app --host 127.0.0.1 --port 8000 --timeout-keep-alive 75 > reportes/uvicorn.log 2>&1 &
+          servidor=$!
+          trap 'kill "$servidor" 2>/dev/null || true' EXIT
+          curl --retry 20 --retry-connrefused --retry-delay 1 --fail http://127.0.0.1:8000/salud
+          locust -f performance/locustfile.py --host http://127.0.0.1:8000 --headless -u 50 -r 10 -t 60s --csv reportes/performance/run --only-summary
+          python performance/verificar_umbrales.py reportes/performance/run_stats.csv
+      - name: Guardar evidencias de rendimiento
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-rendimiento
+          path: reportes/performance/
+          if-no-files-found: warn
+
+  desplegar:
+    name: 7 - Reporte, despliegue y release
+    needs: [estilo, pruebas, mutantes, seguridad, rendimiento]
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Preparar directorio de evidencias
+        run: mkdir -p reportes
+      - name: Descargar evidencia de pruebas
+        if: always()
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: evidencias-pruebas
+          path: reportes
+      - name: Descargar evidencia de mutantes
+        if: always()
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: evidencias-mutantes
+          path: reportes
+      - name: Descargar evidencia de Trivy
+        if: always()
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: evidencias-trivy
+          path: reportes
+      - name: Descargar evidencia de rendimiento
+        if: always()
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: evidencias-rendimiento
+          path: reportes/performance
+      - name: Generar veredicto de predespliegue
+        id: veredicto
+        env:
+          ESTILO: ${{ needs.estilo.result }}
+          PRUEBAS: ${{ needs.pruebas.result }}
+          MUTANTES: ${{ needs.mutantes.result }}
+          SEGURIDAD: ${{ needs.seguridad.result }}
+          RENDIMIENTO: ${{ needs.rendimiento.result }}
+        run: |
+          python scripts/reporte_predespliegue.py \
+            --report-dir reportes \
+            --style-result "$ESTILO" \
+            --tests-result "$PRUEBAS" \
+            --mutants-result "$MUTANTES" \
+            --security-result "$SEGURIDAD" \
+            --performance-result "$RENDIMIENTO" \
+            --sonar-result pending
+      - name: Guardar reporte de predespliegue
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: REPORTE_PREDESPLIEGUE
+          path: reportes/REPORTE_PREDESPLIEGUE.md
+          if-no-files-found: error
+      - name: Comprobar secreto de despliegue
+        if: success()
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: test -n "$RENDER_DEPLOY_HOOK"
+      - name: Comprobar URL de la aplicación desplegada
+        if: success()
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: test -n "$APP_URL"
+      - name: Desplegar en Render
+        if: success()
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: curl --fail --show-error --silent --request POST "$RENDER_DEPLOY_HOOK"
+      - name: Crear GitHub Release con el reporte
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          VERSION: v1.0.${{ github.run_number }}
+        run: |
+          gh release create "$VERSION" reportes/REPORTE_PREDESPLIEGUE.md \
+            --title "$VERSION" \
+            --notes "Veredicto: APTO PARA DESPLEGAR. Ejecución: $RUN_URL"
+
+  humo:
+    name: 8 - Humo en despliegue
+    needs: desplegar
+    if: success() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt
+      - name: Exigir APP_URL configurada
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: test -n "$APP_URL"
+      - name: Esperar a que el despliegue responda
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: curl --retry 30 --retry-connrefused --retry-delay 10 --retry-max-time 300 --fail "$APP_URL/salud"
+      - name: Ejecutar pruebas de humo
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: pytest -q -m integracion_sistemas

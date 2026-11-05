@@ -87,7 +87,11 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 
 - **Carpeta del proyecto:** `D:\Descargas\Trivia_Proyecto` (no `D:\Users\User\Trivia_Proyecto`, que está vacía).
 - **Fases terminadas:** 0 a 13 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
-- **CI:** CI mínimo (`.github/workflows/ci.yml`, Ruff + pytest); en la Fase 15 se amplía a las 8 compuertas.
+- **CI:** rama `feature/ci` con etapas de estilo, pruebas por nivel/cobertura, mutantes, Trivy,
+  carga y reporte/despliegue/humo. La etapa de SonarCloud se agrega al final como etapa 3; mientras
+  falte, el reporte produce **NO DESPLEGAR** y bloquea el release.
+- **Render:** blueprint `render.yaml` con `autoDeploy: false`; la activación requiere
+  `RENDER_DEPLOY_HOOK` como secreto y `APP_URL` como variable del repositorio.
 - **Saboteador:** 6 mutantes en `app/dominio/sabotajes.py`; `scripts/verificar_mutantes.py` → 6/6.
   El ejecutor del panel lanza pytest dentro del servidor: la imagen Docker necesita `tests/`, `pytest` y `httpx`.
 - **Rendimiento local:** RNF-01/02 cumplen; degradación 850 usuarios; quiebre no alcanzado hasta 1000.
@@ -98,5 +102,10 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 - **Front de demostración:** `app/static/` (HTML, CSS y JS sin dependencias),
   servido por FastAPI en `/`. Vistas: profesor, jugador y Saboteador (con tablero de dominó e impacto del sabotaje en vivo).
 - **Impacto del sabotaje:** evaluación sombra (`sin_sabotajes`, `ranking_real`, `impacto_por_jugador`), endpoints `/api/admin/partidas` e `/impacto` y monitoreo en panel admin.
-- **Siguiente:** Tarea 3 / Fase 14 (`feature/sonar`): SonarQube Cloud.
-- **Pruebas:** 277 en verde, cobertura 98 %. **Defectos:** DEF-001 a DEF-019.
+- **Trabajo actual:** implementación local de Fase 15 (`feature/ci`); falta ejecutar la CI de GitHub,
+  Trivy contra la imagen, y humo contra una URL desplegada. SonarCloud (Fase 14) se deja para el
+  final por decisión del equipo; no desplegar hasta tener su Quality Gate aprobado.
+- **Validación local de Fase 15:** 290 passed, 2 pruebas de humo omitidas sin `APP_URL`, cobertura
+  97.53 %, mutantes 6/6, Ruff/format limpios; Locust 50 usuarios/60 s: p95 9 ms y 0 % fallos.
+  Entorno local Python 3.11.9 (CI objetivo 3.12); Docker daemon y Trivy no disponibles localmente.
+  **Defectos:** DEF-001 a DEF-023.

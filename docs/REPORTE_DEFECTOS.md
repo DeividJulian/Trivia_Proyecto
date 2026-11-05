@@ -297,3 +297,59 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo `app/static/app.js` (interfaz del tablero de administración). |
 | Regresión ejecutada | `node --check app/static/app.js` OK; `pytest -q` → 259 passed. |
 | Estado | **Cerrado** |
+
+### DEF-020 – Ruff S314 señala el XML generado por las pruebas en el reporte predespliegue
+| Campo | Valor |
+|---|---|
+| Detectado por | Ruff, regla S314 (análisis estático) en `scripts/reporte_predespliegue.py` |
+| Severidad | Baja |
+| Pasos para reproducir | 1. Analizar el script del reporte con `ruff check scripts/reporte_predespliegue.py`. |
+| Resultado esperado / obtenido | Esperado: sin alertas. Obtenido: S314 en los dos `ET.parse` (`DEF-020-antes.txt`). |
+| Causa encontrada (debugging) | Ruff no puede distinguir los informes XML locales y generados por pytest/coverage de XML externo no confiable. El reporte solo lee archivos producidos dentro del workspace por el propio pipeline. |
+| Corrección | Riesgo aceptado, con `# noqa: S314` solo en las dos lecturas del XML generado por las herramientas del pipeline. No se desactiva la regla globalmente. |
+| Re-ejecución (confirmación) | `ruff check ...` → `All checks passed!` (`DEF-020-despues.txt`). |
+| Análisis de impacto | Solo el generador del reporte predespliegue. |
+| Regresión ejecutada | `pytest -q tests/componente/test_reporte_predespliegue.py tests/integracion_sistemas/test_humo.py` → 6 passed, 2 skipped sin `APP_URL`. |
+| Estado | **Riesgo aceptado** |
+
+### DEF-021 – Sintaxis inválida al escapar separadores en el reporte predespliegue
+| Campo | Valor |
+|---|---|
+| Detectado por | pytest, error de recolección de nivel componente |
+| Severidad | Baja |
+| Pasos para reproducir | Ejecutar `pytest -q tests/componente/test_reporte_predespliegue.py` antes de la corrección. |
+| Resultado esperado / obtenido | Esperado: se recolectan y ejecutan las pruebas. Obtenido: `SyntaxError: f-string expression part cannot include a backslash` (`DEF-021-antes.txt`). |
+| Causa encontrada (debugging) | El escapado Markdown con una barra invertida estaba dentro de una expresión f-string, sintaxis no permitida por Python. |
+| Corrección | Se calcula el texto escapado antes de interpolarlo en el f-string. |
+| Re-ejecución (confirmación) | `pytest -q tests/componente/test_reporte_predespliegue.py tests/integracion_sistemas/test_humo.py` → 8 passed, 2 skipped (`APP_URL` no configurada; `DEF-021-despues.txt`). |
+| Análisis de impacto | Solo el formato de la tabla del reporte predespliegue. |
+| Regresión ejecutada | Ruff check y format sobre los archivos nuevos; suite dirigida: 8 passed, 2 skipped. |
+| Estado | **Cerrado** |
+
+### DEF-022 – La ejecución directa del reporte no encuentra el módulo de rendimiento
+| Campo | Valor |
+|---|---|
+| Detectado por | Ejecución manual del comando de generación de reporte en la integración CI |
+| Severidad | Media (impide producir el artefacto de predespliegue) |
+| Pasos para reproducir | Ejecutar `python scripts/reporte_predespliegue.py ...` desde la raíz del repositorio. |
+| Resultado esperado / obtenido | Esperado: genera el Markdown con el veredicto. Obtenido: `ModuleNotFoundError: No module named 'performance'` (`DEF-022-antes.txt`). |
+| Causa encontrada (debugging) | Al ejecutar un archivo por ruta, Python agrega `scripts/` a `sys.path`; la raíz del repositorio no estaba disponible para importar `performance`. |
+| Corrección | Se agrega la raíz del repositorio a `sys.path` antes de importar el verificador de umbrales, evitando duplicarla cuando ya está presente. |
+| Re-ejecución (confirmación) | Ejecución del CLI con evidencias locales: genera el reporte y sale con código 1 por Trivy no ejecutado y Sonar pendiente (`DEF-022-despues.txt`). |
+| Análisis de impacto | Solo el generador del reporte predespliegue y su ejecución en CI. |
+| Regresión ejecutada | Suite de pruebas del reporte y suite completa. |
+| Estado | **Cerrado** |
+
+### DEF-023 – Línea larga en la prueba de conteo de omitidas
+| Campo | Valor |
+|---|---|
+| Detectado por | Ruff, regla E501, análisis estático del nuevo test |
+| Severidad | Baja |
+| Pasos para reproducir | Ejecutar `ruff check tests/componente/test_reporte_predespliegue.py`. |
+| Resultado esperado / obtenido | Esperado: sin líneas fuera del límite. Obtenido: línea de 121 caracteres (`DEF-023-antes.txt`). |
+| Causa encontrada (debugging) | La creación del XML de prueba y su codificación quedaron en una sola línea extensa. |
+| Corrección | Se divide la llamada `write_text` en varias líneas; no se cambia el límite de Ruff. |
+| Re-ejecución (confirmación) | Ruff check y format sobre el repositorio completo → sin hallazgos (`DEF-023-despues.txt`). |
+| Análisis de impacto | Solo legibilidad de la prueba del reporte. |
+| Regresión ejecutada | Suite completa de pytest. |
+| Estado | **Cerrado** |

@@ -1,0 +1,3 @@
+Comando: .venv\Scripts\python.exe scripts\reporte_predespliegue.py --report-dir reportes --style-result success --tests-result success --mutants-result success --security-result failure --performance-result success --sonar-result pending
+Resultado obtenido: ModuleNotFoundError: No module named 'performance'
+El script terminó antes de generar reportes\REPORTE_PREDESPLIEGUE.md.
