@@ -244,7 +244,15 @@ $("jug-btn-unirse").addEventListener("click", async () => {
 // ---------------------------------------------------------------------------------------------
 const cabecerasAdmin = () => ({ "X-Admin-Token": $("adm-token").value });
 
-function pintarSabotajes(datos) {
+let ultimoResumenSabotajes = {};
+let ultimoCatalogo = null;
+
+function pintarSabotajes(datos, resumenSabotajes = ultimoResumenSabotajes) {
+  if (datos) ultimoCatalogo = datos;
+  else datos = ultimoCatalogo;
+  if (!datos) return;
+  if (resumenSabotajes) ultimoResumenSabotajes = resumenSabotajes;
+
   $("adm-sabotajes").innerHTML = "";
   datos.catalogo.forEach((sabotaje) => {
     const li = document.createElement("li");
@@ -252,6 +260,14 @@ function pintarSabotajes(datos) {
     const info = document.createElement("div");
     const titulo = document.createElement("strong");
     titulo.textContent = `${sabotaje.nombre} (módulo ${sabotaje.modulo})${sabotaje.activo ? " – ACTIVO" : ""}`;
+    const res = ultimoResumenSabotajes[sabotaje.clave];
+    if (res && res.respuestas_afectadas > 0) {
+      const badge = document.createElement("span");
+      badge.className = "resumen-impacto";
+      const signo = res.puntos_de_diferencia > 0 ? "+" : "";
+      badge.textContent = ` · afectó ${res.respuestas_afectadas} respuesta${res.respuestas_afectadas === 1 ? "" : "s"} · ${signo}${res.puntos_de_diferencia} pts`;
+      titulo.appendChild(badge);
+    }
     const detalle = document.createElement("dl");
     detalle.className = "detalle-sabotaje";
     [
@@ -344,3 +360,133 @@ $("adm-btn-pruebas").addEventListener("click", async () => {
     boton.disabled = false;
   }
 });
+
+// ---------------------------------------------------------------------------------------------
+// Impacto en la partida
+// ---------------------------------------------------------------------------------------------
+async function actualizarListaPartidas() {
+  const token = $("adm-token").value.trim();
+  if (!token) return;
+  try {
+    const partidas = await api("GET", "/api/admin/partidas", undefined, cabecerasAdmin());
+    const select = $("adm-sel-partida");
+    const seleccionPrevia = select.value;
+    select.innerHTML = '<option value="">Selecciona una partida activa…</option>';
+    partidas.forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = p.pin;
+      opt.textContent = `PIN ${p.pin} – ${p.estado} (${p.jugadores.length} jugadores)`;
+      if (p.pin === seleccionPrevia) opt.selected = true;
+      select.appendChild(opt);
+    });
+    if (seleccionPrevia && select.value !== seleccionPrevia) {
+      mostrar($("adm-impacto-contenido"), false);
+      $("adm-impacto-estado").textContent = "La partida seleccionada ya no está activa.";
+    }
+  } catch (_e) {
+    // Si no está autorizado o falló, no interrumpir el ciclo
+  }
+}
+
+async function cargarImpacto() {
+  const pin = $("adm-sel-partida").value;
+  if (!pin) {
+    mostrar($("adm-impacto-contenido"), false);
+    $("adm-impacto-estado").textContent = "Selecciona una partida activa para ver el impacto.";
+    return;
+  }
+  try {
+    const impacto = await api("GET", `/api/admin/partidas/${pin}/impacto`, undefined, cabecerasAdmin());
+    mostrar($("adm-impacto-contenido"), true);
+    $("adm-impacto-estado").textContent = `Monitoreando PIN ${pin} · Sabotajes activos: ${impacto.sabotajes_activos.join(", ") || "ninguno"}`;
+
+    if (impacto.resumen_por_sabotaje && ultimoCatalogo) {
+      pintarSabotajes(ultimoCatalogo, impacto.resumen_por_sabotaje);
+    }
+
+    const tbody = $("adm-tabla-impacto").querySelector("tbody");
+    tbody.innerHTML = "";
+    if (impacto.jugadores.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 6;
+      td.textContent = "Aún no hay jugadores en esta partida.";
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    } else {
+      impacto.jugadores.forEach((item) => {
+        const tr = document.createElement("tr");
+
+        const tdJugador = document.createElement("td");
+        tdJugador.textContent = item.jugador;
+
+        const tdMostrados = document.createElement("td");
+        tdMostrados.textContent = item.puntos_mostrados;
+
+        const tdReales = document.createElement("td");
+        tdReales.textContent = item.puntos_reales;
+
+        const tdDif = document.createElement("td");
+        if (item.diferencia < 0) {
+          tdDif.className = "dif-negativa";
+          tdDif.textContent = `${item.diferencia}`;
+        } else if (item.diferencia > 0) {
+          tdDif.className = "dif-positiva";
+          tdDif.textContent = `+${item.diferencia}`;
+        } else {
+          tdDif.textContent = "0";
+        }
+
+        const tdPos = document.createElement("td");
+        if (item.posicion_mostrada !== item.posicion_real) {
+          tdPos.className = "pos-cambiada";
+          tdPos.textContent = `${item.posicion_mostrada} → ${item.posicion_real}`;
+        } else {
+          tdPos.textContent = `${item.posicion_mostrada}`;
+        }
+
+        const tdRacha = document.createElement("td");
+        tdRacha.textContent = `${item.racha_mostrada} / ${item.racha_real}`;
+
+        tr.append(tdJugador, tdMostrados, tdReales, tdDif, tdPos, tdRacha);
+        tbody.appendChild(tr);
+      });
+    }
+
+    const listaResp = $("adm-lista-respuestas");
+    listaResp.innerHTML = "";
+    const afectadas = impacto.respuestas.filter(
+      (r) => r.diferencia !== 0 || (r.nota && !r.nota.startsWith("correcta") && !r.nota.startsWith("incorrecta"))
+    );
+    if (afectadas.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "Sin respuestas afectadas por sabotajes hasta el momento.";
+      listaResp.appendChild(li);
+    } else {
+      afectadas
+        .slice(-10)
+        .reverse()
+        .forEach((r) => {
+          const li = document.createElement("li");
+          li.className = r.diferencia < 0 ? "negativa" : "positiva";
+          const difTxt = r.diferencia > 0 ? `+${r.diferencia}` : `${r.diferencia}`;
+          li.textContent = `Pregunta ${r.numero_pregunta} · ${r.jugador} (${difTxt} pts) · ${r.nota}`;
+          listaResp.appendChild(li);
+        });
+    }
+  } catch (error) {
+    $("adm-impacto-estado").textContent = error.message;
+  }
+}
+
+async function cicloMonitoreoImpacto() {
+  await actualizarListaPartidas();
+  if ($("adm-sel-partida").value) {
+    await cargarImpacto();
+  }
+}
+
+$("adm-sel-partida").addEventListener("change", cargarImpacto);
+$("adm-btn-refrescar-impacto").addEventListener("click", cicloMonitoreoImpacto);
+
+setInterval(cicloMonitoreoImpacto, 2000);
