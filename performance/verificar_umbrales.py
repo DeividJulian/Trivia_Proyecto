@@ -15,6 +15,14 @@ from pathlib import Path
 
 P95_MAX_MS = 500.0  # RNF-01
 FALLOS_MAX_PCT = 1.0  # RNF-02
+# Punto de quiebre (PLAN_DE_PRUEBAS.md): más del 5 % de fallos o p95 mayor a 2000 ms.
+FALLOS_QUIEBRE_PCT = 5.0
+P95_QUIEBRE_MS = 2000.0
+
+
+def supera_quiebre(fallos_pct: float, p95_ms: float) -> bool:
+    """True si un escalón cruzó el punto de quiebre."""
+    return fallos_pct > FALLOS_QUIEBRE_PCT or p95_ms > P95_QUIEBRE_MS
 
 
 @dataclass(frozen=True)
