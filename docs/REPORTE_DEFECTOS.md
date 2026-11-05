@@ -174,3 +174,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Todas las rutas con `{pin}` y todas las respuestas 422 de la API. |
 | Regresión ejecutada | `pytest -m api` → `63 passed`; suite completa → `169 passed` |
 | Estado | **Cerrado** |
+
+### DEF-011 – El bono por velocidad se suma a respuestas incorrectas (efecto dominó de la SC-001)
+| Campo | Valor |
+|---|---|
+| Detectado por | pytest en 3 niveles: **componente** (`test_puntaje.py::test_respuesta_incorrecta_suma_0_y_reinicia_la_racha`), **sistema** (`test_api.py::test_partida_completa_de_extremo_a_extremo`) y **aceptación** (`test_historias.py::test_hu02_gana_quien_responde_bien`). GitHub Actions en rojo: [run 41956121926](https://github.com/DeividJulian/Trivia_Proyecto/actions/runs/41956121926) |
+| Severidad | **Crítica** (el ranking deja de ser justo: quien responde rápido pero mal suma hasta 500 puntos por pregunta) |
+| Pasos para reproducir | 1. `git checkout v2-cambio-con-error`. 2. `pytest -q` → 3 failed, 175 passed. 3. `calcular_puntos(False, 1.0, 20.0, 4)` devuelve `(475, 0)` |
+| Resultado esperado / obtenido | Esperado: una respuesta incorrecta vale 0. Obtenido: vale el bono por velocidad (475 con 1 s de 20; 1425 acumulados en la prueba de sistema; 1500 en la de aceptación) |
+| Causa encontrada (debugging) | Traza línea por línea con `sys.settrace` (`docs/evidencias/DEF-011-depuracion.txt`): el bono se calcula en la línea 47 **antes** de comprobar si la respuesta es correcta, y la línea 49 devuelve `return bono, nueva_racha` en la rama `if not opcion_correcta`. Las pruebas nuevas del bono solo probaban respuestas correctas, por eso pasaban. |
+| Corrección | Commit `fix(puntaje): el bono solo aplica a respuestas correctas (DEF-011)` |
+| Re-ejecución (confirmación) | Pendiente (se anota tras la corrección) |
+| Análisis de impacto | Puntaje → Racha (no afectada: la racha se reinicia bien) → **Ranking** (orden incorrecto) → **Partida** (acumula puntos falsos) → **API** (expone puntos y ganador falsos). Ver `SOLICITUD_CAMBIO_001.md`. |
+| Regresión ejecutada | Pendiente |
+| Estado | En corrección |
