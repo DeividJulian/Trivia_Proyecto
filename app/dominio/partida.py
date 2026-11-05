@@ -5,6 +5,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import asdict
 from typing import Any
 
+from app.dominio import sabotajes
 from app.dominio.errores import ErrorPartida
 from app.dominio.modelos import NUMERO_OPCIONES, EstadoPartida, Jugador, Pregunta, Respuesta
 from app.dominio.puntaje import calcular_puntos
@@ -134,7 +135,8 @@ class Partida:
         )
         jugador.puntos += puntos
         jugador.tiempo_total += tiempo
-        self.respuestas[jugador.nombre] = Respuesta(opcion=opcion, tiempo_respuesta=tiempo)
+        if not sabotajes.esta_activo("no_guarda_respuesta"):  # MUTANTE: si está activo no se registra
+            self.respuestas[jugador.nombre] = Respuesta(opcion=opcion, tiempo_respuesta=tiempo)
         self.puntos_ronda[jugador.nombre] = puntos
         self._tocar()
 

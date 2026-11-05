@@ -19,6 +19,8 @@ select = ["E", "F", "I", "B", "UP", "SIM", "N", "S"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+# xunit1 permite guardar propiedades (módulo y nivel) por prueba en el JUnit XML: las usa el tablero.
+junit_family = "xunit1"
 markers = [
     # Niveles ISTQB
     "componente: prueba de componente (unidad aislada)",

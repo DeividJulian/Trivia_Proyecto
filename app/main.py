@@ -1,11 +1,12 @@
 """Punto de entrada de la aplicación FastAPI."""
 
+import asyncio
 import logging
 from dataclasses import replace
 
 from fastapi import FastAPI, Request, Response
 
-from app.api import rutas, ws
+from app.api import admin, rutas, ws
 from app.api.errores import registrar_manejadores
 from app.config import VERSION, Configuracion, cargar_configuracion
 from app.dominio.gestor import GestorPartidas
@@ -50,9 +51,11 @@ def crear_app(
     app.state.config = config
     app.state.gestor = gestor
     app.state.conexiones = GestorConexiones()
+    app.state.candado_pruebas = asyncio.Lock()
     registrar_manejadores(app)
     app.include_router(rutas.router)
     app.include_router(ws.router)
+    app.include_router(admin.router)
 
     @app.middleware("http")
     async def cabeceras_seguridad(request: Request, call_next) -> Response:

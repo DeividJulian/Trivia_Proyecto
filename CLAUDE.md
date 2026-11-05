@@ -85,10 +85,10 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 
 ## Estado actual
 
-- **Fases terminadas:** 0 a 10 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
-- **CI:** existe un CI mínimo (`.github/workflows/ci.yml`, Ruff + pytest) desde antes de la Fase 9
-  para que se viera el rojo de v2; en la Fase 15 se amplía a las 8 compuertas.
-- **Fase 10 terminada:** `app/calidad/impacto.py` y `scripts/regresion_por_impacto.py`.
-- **Siguiente:** Fase 11 (`feature/saboteador`).
-- **Pruebas:** 203 en verde, cobertura 99 %. **Defectos:** DEF-001 a DEF-012.
+- **Fases terminadas:** 0 a 11 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
+- **CI:** CI mínimo (`.github/workflows/ci.yml`, Ruff + pytest); en la Fase 15 se amplía a las 8 compuertas.
+- **Saboteador:** 6 mutantes en `app/dominio/sabotajes.py`; `scripts/verificar_mutantes.py` → 6/6.
+  El ejecutor del panel lanza pytest dentro del servidor: la imagen Docker necesita `tests/`, `pytest` y `httpx`.
+- **Siguiente:** Fase 12 (`feature/rendimiento`).
+- **Pruebas:** 241 en verde, cobertura 99 %. **Defectos:** DEF-001 a DEF-013.
 - **Pendiente del usuario:** instalar la extensión "SonarQube for IDE" en VS Code.

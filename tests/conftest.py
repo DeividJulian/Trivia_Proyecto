@@ -2,10 +2,25 @@
 
 import pytest
 
+from app.dominio import sabotajes
 from app.dominio.modelos import Pregunta
 from app.dominio.partida import Partida
 
 LIMITE = 20.0
+
+MARCADORES_MODULO = ("puntaje", "ranking", "partida", "gestor", "api", "preguntas", "sabotajes")
+MARCADORES_NIVEL = ("componente", "integracion", "sistema", "integracion_sistemas", "aceptacion")
+
+
+@pytest.fixture(autouse=True)
+def _marcadores_en_junit(request, record_property):
+    """Guarda módulo y nivel de cada prueba en el JUnit XML: el tablero de dominó los necesita."""
+    for nombre in MARCADORES_MODULO:
+        if request.node.get_closest_marker(nombre):
+            record_property("modulo", nombre)
+    for nombre in MARCADORES_NIVEL:
+        if request.node.get_closest_marker(nombre):
+            record_property("nivel", nombre)
 
 
 class RelojFalso:
@@ -32,6 +47,20 @@ def crear_preguntas(cantidad: int = 3, limite: float = LIMITE) -> list[Pregunta]
         )
         for i in range(cantidad)
     ]
+
+
+@pytest.fixture(autouse=True)
+def restaurar_sabotajes():
+    """Cada prueba deja los sabotajes como los encontró.
+
+    No los apaga todos: verificar_mutantes.py ejecuta la suite con SABOTAJES=<clave> y ese
+    mutante debe seguir activo en todas las pruebas.
+    """
+    antes = sabotajes.activos()
+    yield
+    sabotajes.desactivar_todos()
+    for clave in antes:
+        sabotajes.activar(clave)
 
 
 @pytest.fixture

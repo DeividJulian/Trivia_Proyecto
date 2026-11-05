@@ -1,5 +1,6 @@
 """Endpoints REST de las partidas."""
 
+import asyncio
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Path, Request, status
@@ -13,6 +14,7 @@ from app.api.esquemas import (
     ResultadoRespuesta,
     UnirseEntrada,
 )
+from app.dominio import sabotajes
 from app.dominio.gestor import GestorPartidas
 from app.dominio.partida import Partida
 from app.tiempo_real.conexiones import GestorConexiones
@@ -111,6 +113,8 @@ async def responder(
     pin: Pin, entrada: ResponderEntrada, gestor: Gestor, conexiones: Conexiones
 ) -> ResultadoRespuesta:
     """Registra la respuesta de un jugador a la pregunta abierta y devuelve los puntos obtenidos."""
+    if sabotajes.esta_activo("respuesta_lenta"):
+        await asyncio.sleep(sabotajes.RETARDO_RESPUESTA_LENTA_S)  # MUTANTE: incumple RNF-03
     partida = gestor.obtener(pin)
     puntos = partida.responder(entrada.nombre, entrada.opcion)
     jugador = partida.buscar_jugador(entrada.nombre)

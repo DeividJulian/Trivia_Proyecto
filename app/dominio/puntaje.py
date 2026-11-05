@@ -1,5 +1,7 @@
 """Reglas de puntaje del juego (v2: con bono por velocidad, SOLICITUD_CAMBIO_001)."""
 
+from app.dominio import sabotajes
+
 PUNTOS_BASE = 1000
 BONO_VELOCIDAD_MAX = 500
 BONO_POR_RACHA = 100
@@ -8,6 +10,8 @@ BONO_RACHA_MAX = 500
 
 def es_respuesta_a_tiempo(tiempo_respuesta: float, tiempo_limite: float) -> bool:
     """Una respuesta está a tiempo si llega en el límite o antes: el límite exacto SÍ cuenta."""
+    if sabotajes.esta_activo("tiempo_estricto"):
+        return tiempo_respuesta < tiempo_limite  # MUTANTE: < en vez de <=
     return tiempo_respuesta <= tiempo_limite
 
 
@@ -21,6 +25,8 @@ def calcular_bono_velocidad(tiempo_respuesta: float, tiempo_limite: float) -> in
 
 def sumar_racha(racha: int, acerto: bool) -> int:
     """Nueva racha: suma uno si acierta y vuelve a cero si falla."""
+    if sabotajes.esta_activo("racha_no_suma"):
+        return racha if acerto else 0  # MUTANTE: la racha no aumenta
     return racha + 1 if acerto else 0
 
 
@@ -44,6 +50,8 @@ def calcular_puntos(
     """
     acerto = opcion_correcta and es_respuesta_a_tiempo(tiempo_respuesta, tiempo_limite)
     nueva_racha = sumar_racha(racha, acerto)
+    if not opcion_correcta and sabotajes.esta_activo("bono_sin_acierto"):
+        return calcular_bono_velocidad(tiempo_respuesta, tiempo_limite), nueva_racha  # MUTANTE (DEF-011)
     if not acerto:
         return 0, nueva_racha  # incorrecta o tarde: 0, sin bono de ningún tipo (DEF-011)
     bono_velocidad = calcular_bono_velocidad(tiempo_respuesta, tiempo_limite)

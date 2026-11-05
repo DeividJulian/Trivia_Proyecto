@@ -3,6 +3,7 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 
+from app.dominio import sabotajes
 from app.dominio.modelos import Jugador
 
 
@@ -18,6 +19,8 @@ class FilaRanking:
 
 def clave_orden(jugador: Jugador) -> tuple[int, float, str]:
     """Clave de orden: más puntos primero, luego menor tiempo total y luego nombre alfabético."""
+    if sabotajes.esta_activo("empates_mal"):
+        return (-jugador.puntos, 0.0, jugador.nombre.casefold())  # MUTANTE: ignora el tiempo
     return (-jugador.puntos, jugador.tiempo_total, jugador.nombre.casefold())
 
 
