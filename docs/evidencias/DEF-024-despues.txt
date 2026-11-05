@@ -1,0 +1,3 @@
+Ejecución: GitHub Actions 42105714319, job 127520946755 (Trivy)
+Resultado: el tag `aquasecurity/trivy-action@v0.36.0` se resolvió y los escaneos generaron `trivy-fs.json`, `trivy-config.json` y `trivy-image.json`.
+La acción ejecutó el análisis de imagen; sus hallazgos HIGH se registran por separado como DEF-025.

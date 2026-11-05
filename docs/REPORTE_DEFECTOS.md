@@ -363,7 +363,21 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Resultado esperado / obtenido | Esperado: inicia los escaneos. Obtenido: `Unable to resolve action ... unable to find version '0.36.0'` (`DEF-024-antes.txt`). |
 | Causa encontrada (debugging) | El tag publicado por la acción incluye el prefijo `v`; el workflow usaba `0.36.0`. |
 | Corrección | Se cambia la referencia en los tres pasos a `aquasecurity/trivy-action@v0.36.0`. |
-| Re-ejecución (confirmación) | Pendiente reejecutar el workflow con la referencia corregida. |
+| Re-ejecución (confirmación) | GitHub Actions `42105714319` resolvió la acción y generó los tres JSON de escaneo (`DEF-024-despues.txt`). |
 | Análisis de impacto | Solo la ejecución de análisis Trivy en el CI. |
-| Regresión ejecutada | Pendiente del workflow de GitHub Actions. |
-| Estado | **En corrección** |
+| Regresión ejecutada | El job pasó de error al preparar la acción a ejecutar fs/config/imagen. Los hallazgos de imagen quedan registrados en DEF-025. |
+| Estado | **Cerrado** |
+
+### DEF-025 – 46 vulnerabilidades HIGH en los paquetes del sistema de la imagen
+| Campo | Valor |
+|---|---|
+| Detectado por | Trivy `image`, escaneo de seguridad del pipeline |
+| Severidad | Alta |
+| Pasos para reproducir | 1. Construir `testquiz:ci`. 2. Ejecutar Trivy imagen con severidades HIGH/CRITICAL. |
+| Resultado esperado / obtenido | Esperado: 0 HIGH/CRITICAL. Obtenido: 46 HIGH, 0 CRITICAL en paquetes Debian de `python:3.12-slim`; fs y config sin bloqueos (`DEF-025-antes.txt`). |
+| Causa encontrada (debugging) | La capa base incluía versiones antiguas de util-linux, acl, ncurses, SQLite y zlib con avisos de seguridad publicados para Debian 13. |
+| Corrección | Pendiente. Existe una propuesta local no confirmada de actualizar los paquetes APT de la imagen; no se incluye en este commit ni se considera validada. Jack debe revisar el impacto, reconstruir la imagen y repetir Trivy antes de cerrar el defecto. |
+| Re-ejecución (confirmación) | Pendiente de reconstruir y volver a escanear la imagen en GitHub Actions. |
+| Análisis de impacto | Imagen de despliegue. La aplicación Python y sus dependencias no cambian. |
+| Regresión ejecutada | Pendiente del build y escaneo de imagen en CI, además de la suite completa. |
+| Estado | **Abierto** |
