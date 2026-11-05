@@ -1,0 +1,29 @@
+# Segunda corrida de estrÃ©s (con DEF-015 corregido). OJO: el servidor nuevo no arrancÃ³ (puerto ocupado),
+# asÃ­ que corriÃ³ contra el servidor anterior (keep-alive 5 s y partidas acumuladas de las corridas previas).
+# Fecha: 2026-11-04
+
+## performance/resultados/quiebre_local_failures.csv
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,POST /api/partidas,HTTPError('409 Client Error: Conflict for url: POST /api/partidas'),1246,2026-11-05T03:21:30Z,2026-11-05T03:22:19Z
+POST,POST /iniciar,"ConnectionResetError(10054, 'Se ha forzado la interrupción de una conexión existente por el host remoto', None, 10054, None)",10,2026-11-05T03:17:52Z,2026-11-05T03:22:00Z
+POST,POST /iniciar,"ConnectionAbortedError(10053, 'Se ha anulado una conexión establecida por el software en su equipo host', None, 10053, None)",4,2026-11-05T03:17:40Z,2026-11-05T03:20:39Z
+POST,POST /iniciar,RemoteDisconnected('Remote end closed connection without response'),4,2026-11-05T03:17:49Z,2026-11-05T03:20:16Z
+
+## Escalones
+Escalón 1: 50 usuarios, 832 peticiones, fallos 0.00 %, p95 7 ms
+Escalón 2: 100 usuarios, 1708 peticiones, fallos 0.00 %, p95 10 ms
+Escalón 3: 150 usuarios, 2423 peticiones, fallos 0.12 %, p95 11 ms
+Escalón 4: 200 usuarios, 3204 peticiones, fallos 0.00 %, p95 12 ms
+Escalón 5: 250 usuarios, 4029 peticiones, fallos 0.02 %, p95 14 ms
+Escalón 6: 300 usuarios, 5019 peticiones, fallos 0.00 %, p95 16 ms
+Escalón 7: 350 usuarios, 5733 peticiones, fallos 0.05 %, p95 16 ms
+Escalón 8: 400 usuarios, 6576 peticiones, fallos 0.03 %, p95 18 ms
+Escalón 9: 450 usuarios, 7543 peticiones, fallos 0.01 %, p95 30 ms
+Escalón 10: 500 usuarios, 8165 peticiones, fallos 0.04 %, p95 29 ms
+Escalón 11: 550 usuarios, 8993 peticiones, fallos 0.01 %, p95 34 ms
+Escalón 12: 600 usuarios, 9588 peticiones, fallos 0.02 %, p95 37 ms
+Escalón 13: 650 usuarios, 9834 peticiones, fallos 0.00 %, p95 53 ms
+Escalón 14: 700 usuarios, 11149 peticiones, fallos 0.42 %, p95 150 ms
+Escalón 15: 750 usuarios, 10529 peticiones, fallos 3.85 %, p95 100 ms
+Escalón 16: 800 usuarios, 8377 peticiones, fallos 9.50 %, p95 27 ms
+PUNTO DE QUIEBRE en 800 usuarios: se detiene la prueba.

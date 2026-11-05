@@ -22,6 +22,7 @@ import gevent
 from locust import HttpUser, between, events, task
 
 ESPERA_LOBBY_S = 5.0
+MAX_ESPERAS_LOBBY = 6  # DEF-016: el presentador espera jugadores hasta 30 s antes de rendirse
 SEGUNDOS_POR_PREGUNTA = 3.0
 MAX_JUGADORES_POR_PARTIDA = 40
 
@@ -43,7 +44,8 @@ def retirar_partida(pin: str) -> None:
 
 def partida_abierta() -> str | None:
     with _candado:
-        return _partidas_abiertas[-1] if _partidas_abiertas else None
+        # DEF-016: elegir al azar reparte a los jugadores entre todas las partidas abiertas
+        return random.choice(_partidas_abiertas) if _partidas_abiertas else None  # noqa: S311 - simulación
 
 
 @events.test_start.add_listener
@@ -66,7 +68,11 @@ class Presentador(HttpUser):
         datos = respuesta.json()
         pin, cabeceras = datos["pin"], {"X-Host-Token": datos["token_host"]}
         publicar_partida(pin)
-        self.wait_seconds(ESPERA_LOBBY_S)
+        for _ in range(MAX_ESPERAS_LOBBY):  # DEF-016: no abandonar la partida mientras no tenga jugadores
+            self.wait_seconds(ESPERA_LOBBY_S)
+            lobby = self.client.get(f"/api/partidas/{pin}", name="GET /api/partidas/{pin}")
+            if lobby.status_code == 200 and lobby.json()["jugadores"]:
+                break
         retirar_partida(pin)
 
         with self.client.post(
