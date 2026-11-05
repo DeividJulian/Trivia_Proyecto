@@ -5,11 +5,12 @@ import time
 from collections.abc import Callable
 
 from app.dominio.errores import AccesoDenegado, ErrorPartida, PartidaNoEncontrada
-from app.dominio.modelos import Pregunta
+from app.dominio.modelos import EstadoPartida, Pregunta
 from app.dominio.partida import Partida, Reloj
 from app.dominio.preguntas import cargar_preguntas
 
 DIGITOS_PIN = 6
+MINUTOS_GRACIA_FINALIZADA = 5
 
 
 class GestorPartidas:
@@ -20,8 +21,10 @@ class GestorPartidas:
         reloj: Reloj = time.monotonic,
         cargador: Callable[[str], list[Pregunta]] = cargar_preguntas,
         max_partidas: int = 500,
+        ttl_minutos: int = 30,
     ) -> None:
         self.max_partidas = max_partidas
+        self.ttl_minutos = ttl_minutos
         self._reloj = reloj
         self._cargador = cargador
         self._partidas: dict[str, Partida] = {}
@@ -36,6 +39,26 @@ class GestorPartidas:
             pin = f"{secrets.randbelow(10**DIGITOS_PIN):0{DIGITOS_PIN}d}"
             if pin not in self._partidas:
                 return pin
+
+    def limpiar(self) -> int:
+        """Elimina las partidas inactivas y devuelve cuántas se eliminaron.
+
+        Una partida en curso se elimina tras PARTIDA_TTL_MINUTOS sin actividad; una FINALIZADA,
+        antes (a los 5 minutos, o al TTL si es menor), para liberar memoria sin cortar el podio.
+        """
+        ahora = self._reloj()
+        ttl = self.ttl_minutos * 60
+        ttl_finalizada = min(ttl, MINUTOS_GRACIA_FINALIZADA * 60)
+        vencidas = [
+            pin
+            for pin, partida in self._partidas.items()
+            if ahora - partida.ultima_actividad
+            > (ttl_finalizada if partida.estado == EstadoPartida.FINALIZADA else ttl)
+        ]
+        for pin in vencidas:
+            del self._partidas[pin]
+            del self._tokens_host[pin]
+        return len(vencidas)
 
     def obtener(self, pin: str) -> Partida:
         """Devuelve la partida del PIN o lanza PartidaNoEncontrada."""
@@ -57,6 +80,7 @@ class GestorPartidas:
 
         Lanza ErrorPartida si ya se alcanzó el máximo de partidas simultáneas.
         """
+        self.limpiar()
         if len(self._partidas) >= self.max_partidas:
             raise ErrorPartida(
                 f"Se alcanzó el máximo de {self.max_partidas} partidas simultáneas. Intenta más tarde."
