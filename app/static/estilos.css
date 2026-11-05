@@ -1,0 +1,127 @@
+:root {
+  --fondo: #f4f1fb;
+  --tarjeta: #ffffff;
+  --texto: #1f1b2e;
+  --suave: #6b6685;
+  --primario: #5b2bd6;
+  --ok: #1f9d55;
+  --riesgo: #d97706;
+  --caido: #dc2626;
+  --borde: #e3def3;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+header {
+  background: var(--primario);
+  color: #fff;
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+header h1 { margin: 0; font-size: 1.4rem; }
+header h1 span { font-weight: 400; opacity: 0.8; }
+nav { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+nav a { color: #fff; opacity: 0.85; margin-left: 8px; }
+
+.pestana {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+.pestana.activa { background: #fff; color: var(--primario); }
+
+main { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+.tarjeta {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.tarjeta h2 { margin-top: 0; }
+
+label { display: block; margin: 8px 0; color: var(--suave); font-size: 0.9rem; }
+input, select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+}
+.niveles label { display: inline-flex; gap: 6px; align-items: center; margin-right: 12px; }
+.niveles input { width: auto; display: inline; margin: 0; }
+
+button {
+  padding: 10px 16px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--borde);
+  background: #fff;
+  cursor: pointer;
+}
+button.primario { background: var(--primario); color: #fff; border-color: var(--primario); }
+button.secundario { color: var(--suave); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.fila { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.botones { justify-content: flex-start; margin-top: 12px; }
+.oculto { display: none !important; }
+
+.etiqueta { color: var(--suave); margin: 4px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.pin { font-size: 3rem; font-weight: 800; letter-spacing: 0.3rem; margin: 0; color: var(--primario); }
+.estado-chip { background: var(--fondo); border-radius: 999px; padding: 6px 14px; font-weight: 700; }
+.reloj { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+.chips { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.chips li { background: var(--fondo); border-radius: 999px; padding: 4px 12px; }
+
+.opciones li { margin: 4px 0; }
+.opciones li.correcta { color: var(--ok); font-weight: 700; }
+
+.botones-respuesta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.botones-respuesta button { color: #fff; border: none; min-height: 72px; font-weight: 600; }
+.botones-respuesta button:nth-child(1) { background: #e21b3c; }
+.botones-respuesta button:nth-child(2) { background: #1368ce; }
+.botones-respuesta button:nth-child(3) { background: #d89e00; }
+.botones-respuesta button:nth-child(4) { background: #26890c; }
+@media (max-width: 520px) { .botones-respuesta { grid-template-columns: 1fr; } }
+
+.mensaje { color: var(--suave); }
+.puntos { margin-top: 16px; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--borde); }
+
+.sabotajes { list-style: none; padding: 0; }
+.sabotajes li {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--borde);
+}
+.sabotajes small { color: var(--suave); display: block; }
+.sabotajes li.activo strong { color: var(--caido); }
+
+.tablero { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; }
+.modulo { border-radius: 10px; padding: 12px; color: #fff; }
+.modulo.OK { background: var(--ok); }
+.modulo.EN_RIESGO { background: var(--riesgo); }
+.modulo.CAIDO { background: var(--caido); }
+.modulo small { display: block; opacity: 0.9; }
+
+.aviso {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  background: var(--texto); color: #fff; padding: 10px 16px; border-radius: 8px; max-width: 90%;
+}

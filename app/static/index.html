@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TestQuiz – El Saboteador</title>
+  <link rel="stylesheet" href="/estilos.css">
+</head>
+<body>
+  <header>
+    <h1>TestQuiz <span>El Saboteador</span></h1>
+    <nav>
+      <button class="pestana activa" data-vista="profesor">Profesor</button>
+      <button class="pestana" data-vista="jugador">Jugador</button>
+      <button class="pestana" data-vista="admin">Saboteador</button>
+      <a href="/docs" target="_blank" rel="noopener">API /docs</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ===================== PROFESOR ===================== -->
+    <section id="vista-profesor" class="vista">
+      <div class="tarjeta" id="prof-crear">
+        <h2>Crear partida</h2>
+        <label>Banco de preguntas
+          <select id="prof-categoria">
+            <option value="pruebas">Pruebas de software (ISTQB)</option>
+            <option value="cultura">Cultura general</option>
+          </select>
+        </label>
+        <button id="prof-btn-crear" class="primario">Crear partida</button>
+      </div>
+
+      <div class="tarjeta oculto" id="prof-juego">
+        <div class="fila">
+          <div>
+            <p class="etiqueta">PIN de la partida</p>
+            <p class="pin" id="prof-pin">------</p>
+          </div>
+          <div class="estado-chip" id="prof-estado">LOBBY</div>
+        </div>
+        <p class="etiqueta">Jugadores (<span id="prof-total-jugadores">0</span>)</p>
+        <ul class="chips" id="prof-jugadores"></ul>
+
+        <div id="prof-pregunta" class="oculto">
+          <p class="etiqueta">Pregunta <span id="prof-num"></span></p>
+          <h3 id="prof-texto"></h3>
+          <ol class="opciones" id="prof-opciones"></ol>
+          <p><span class="reloj" id="prof-reloj">0.0</span> s · respondieron <b id="prof-respondieron">0</b></p>
+        </div>
+
+        <div id="prof-ranking" class="oculto">
+          <h3 id="prof-ganador"></h3>
+          <table><thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>Tiempo (s)</th></tr></thead>
+            <tbody id="prof-tabla"></tbody></table>
+        </div>
+
+        <div class="fila botones">
+          <button id="prof-btn-iniciar" class="primario">Iniciar</button>
+          <button id="prof-btn-siguiente">Siguiente</button>
+          <button id="prof-btn-nueva" class="secundario">Nueva partida</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== JUGADOR ===================== -->
+    <section id="vista-jugador" class="vista oculto">
+      <div class="tarjeta" id="jug-unirse">
+        <h2>Unirse a una partida</h2>
+        <label>PIN <input id="jug-pin" inputmode="numeric" maxlength="6" placeholder="123456"></label>
+        <label>Tu nombre <input id="jug-nombre" maxlength="20" placeholder="Ana"></label>
+        <button id="jug-btn-unirse" class="primario">Entrar</button>
+      </div>
+
+      <div class="tarjeta oculto" id="jug-juego">
+        <div class="fila">
+          <p>Hola, <b id="jug-yo"></b></p>
+          <div class="estado-chip" id="jug-estado">LOBBY</div>
+        </div>
+        <p id="jug-mensaje" class="mensaje">Esperando a que el profesor inicie…</p>
+        <div id="jug-pregunta" class="oculto">
+          <p class="etiqueta">Pregunta <span id="jug-num"></span> · <span class="reloj" id="jug-reloj">0.0</span> s</p>
+          <h3 id="jug-texto"></h3>
+          <div class="botones-respuesta" id="jug-opciones"></div>
+        </div>
+        <p class="puntos">Puntos: <b id="jug-puntos">0</b> · Racha: <b id="jug-racha">0</b> · Posición: <b id="jug-posicion">-</b></p>
+      </div>
+    </section>
+
+    <!-- ===================== ADMIN / SABOTEADOR ===================== -->
+    <section id="vista-admin" class="vista oculto">
+      <div class="tarjeta">
+        <h2>Panel del Saboteador</h2>
+        <label>Token de administrador (ADMIN_TOKEN)
+          <input id="adm-token" type="password" placeholder="demo123">
+        </label>
+        <div class="fila botones">
+          <button id="adm-btn-cargar" class="primario">Ver sabotajes</button>
+          <button id="adm-btn-reparar" class="secundario">Reparar todo</button>
+        </div>
+        <ul id="adm-sabotajes" class="sabotajes"></ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Ejecutar pruebas (tablero de dominó)</h2>
+        <div class="fila niveles">
+          <label><input type="checkbox" value="componente" checked> Componente</label>
+          <label><input type="checkbox" value="integracion" checked> Integración</label>
+          <label><input type="checkbox" value="sistema"> Sistema</label>
+          <label><input type="checkbox" value="aceptacion"> Aceptación</label>
+        </div>
+        <button id="adm-btn-pruebas" class="primario">Ejecutar pruebas</button>
+        <p id="adm-resumen" class="mensaje"></p>
+        <div id="adm-tablero" class="tablero"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="aviso" class="aviso oculto"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
