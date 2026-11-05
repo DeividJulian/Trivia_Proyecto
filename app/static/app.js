@@ -303,6 +303,16 @@ $("adm-btn-reparar").addEventListener("click", async () => {
   }
 });
 
+function describirModulo(datos) {
+  if (datos.fallidas.length) {
+    return `${datos.fallidas.length} de ${datos.total} fallan`;
+  }
+  if (datos.en_riesgo_por.length) {
+    return `depende de ${datos.en_riesgo_por.join(", ")}`;
+  }
+  return `${datos.total} pruebas OK`;
+}
+
 $("adm-btn-pruebas").addEventListener("click", async () => {
   const niveles = [...document.querySelectorAll(".niveles input:checked")].map((c) => c.value);
   const boton = $("adm-btn-pruebas");
@@ -323,11 +333,7 @@ $("adm-btn-pruebas").addEventListener("click", async () => {
       const estado = document.createElement("small");
       estado.textContent = datos.estado.replace("_", " ");
       const detalle = document.createElement("small");
-      detalle.textContent = datos.fallidas.length
-        ? `${datos.fallidas.length} de ${datos.total} fallan`
-        : datos.en_riesgo_por.length
-          ? `depende de ${datos.en_riesgo_por.join(", ")}`
-          : `${datos.total} pruebas OK`;
+      detalle.textContent = describirModulo(datos);
       caja.append(nombre, estado, detalle);
       $("adm-tablero").appendChild(caja);
     });

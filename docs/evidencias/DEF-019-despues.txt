@@ -1,0 +1,17 @@
+Regla SonarLint / SonarQube for IDE: javascript:S3358 resuelta.
+Verificación: node --check app/static/app.js (código 0, sin errores de sintaxis).
+
+Solución implementada:
+-----------------------
+function describirModulo(datos) {
+  if (datos.fallidas.length) {
+    return `${datos.fallidas.length} de ${datos.total} fallan`;
+  }
+  if (datos.en_riesgo_por.length) {
+    return `depende de ${datos.en_riesgo_por.join(", ")}`;
+  }
+  return `${datos.total} pruebas OK`;
+}
+
+// En el tablero de dominó:
+detalle.textContent = describirModulo(datos);

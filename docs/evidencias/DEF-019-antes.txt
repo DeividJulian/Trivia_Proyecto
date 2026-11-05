@@ -1,0 +1,11 @@
+Regla SonarLint / SonarQube for IDE: javascript:S3358
+Mensaje: "Extract this nested ternary operation into an independent statement."
+Ubicación: app/static/app.js (evento click en adm-btn-pruebas, líneas 326-330)
+
+Código detectado:
+-----------------
+      detalle.textContent = datos.fallidas.length
+        ? `${datos.fallidas.length} de ${datos.total} fallan`
+        : datos.en_riesgo_por.length
+          ? `depende de ${datos.en_riesgo_por.join(", ")}`
+          : `${datos.total} pruebas OK`;
