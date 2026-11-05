@@ -6,6 +6,7 @@ from typing import Any
 
 from fastapi import FastAPI, Request, Response
 
+from app.api.errores import registrar_manejadores
 from app.config import VERSION, Configuracion, cargar_configuracion
 
 __all__ = ["VERSION", "app", "crear_app"]
@@ -43,6 +44,7 @@ def crear_app(
     app = FastAPI(title="TestQuiz – El Saboteador", version=VERSION)
     app.state.config = config
     app.state.gestor = gestor
+    registrar_manejadores(app)
 
     @app.middleware("http")
     async def cabeceras_seguridad(request: Request, call_next) -> Response:
