@@ -30,6 +30,7 @@ markers = [
     "no_funcional: prueba no funcional (tiempos, carga)",
     "seguridad: prueba de seguridad",
     # Módulos (para la regresión por análisis de impacto)
+    "preguntas: módulo de preguntas (modelos y bancos JSON)",
     "puntaje: módulo de puntaje",
     "ranking: módulo de ranking",
     "partida: módulo de partida",
