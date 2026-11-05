@@ -1,11 +1,10 @@
 # Re-ejecución (confirmación) y regresión tras la corrección
 # Fecha: 2026-11-04
 $ pytest -q tests/sistema/test_validacion_entradas.py -k "espacios"
-3 passed, 9 deselected, 1 warning in 0.21s
-(código de salida: 0)
+3 passed, 9 deselected, 1 warning in 0.26s
 
 $ pytest -q -m "api or partida"   # regresión selectiva
-1 failed, 89 passed, 79 deselected, 1 warning in 3.90s
+90 passed, 79 deselected, 1 warning in 4.68s
 
 $ pytest -q   # suite completa
-1 failed, 168 passed, 1 warning in 4.76s
+169 passed, 1 warning in 6.01s
