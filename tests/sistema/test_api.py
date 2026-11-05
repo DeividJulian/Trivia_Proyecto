@@ -58,3 +58,28 @@ def test_unirse_con_nombre_repetido_responde_409(cliente, partida_creada):
 
     assert respuesta.status_code == 409
     assert "Ya hay un jugador" in respuesta.json()["detail"]
+
+
+def test_anfitrion_inicia_y_avanza_la_partida(cliente, partida_creada):
+    pin, token = partida_creada["pin"], partida_creada["token_host"]
+    cliente.post(f"/api/partidas/{pin}/jugadores", json={"nombre": "Ana"})
+    cabeceras = {"X-Host-Token": token}
+
+    iniciada = cliente.post(f"/api/partidas/{pin}/iniciar", headers=cabeceras)
+    assert iniciada.status_code == 200
+    assert iniciada.json()["estado"] == "PREGUNTA"
+    assert "correcta" not in iniciada.json()
+
+    resultados = cliente.post(f"/api/partidas/{pin}/siguiente", headers=cabeceras)
+    assert resultados.json()["estado"] == "RESULTADOS"
+    assert resultados.json()["correcta"] == 0
+
+
+def test_iniciar_sin_token_responde_403(cliente, partida_creada):
+    pin = partida_creada["pin"]
+    cliente.post(f"/api/partidas/{pin}/jugadores", json={"nombre": "Ana"})
+
+    respuesta = cliente.post(f"/api/partidas/{pin}/iniciar")
+
+    assert respuesta.status_code == 403
+    assert cliente.get(f"/api/partidas/{pin}").json()["estado"] == "LOBBY"
