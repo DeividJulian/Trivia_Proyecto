@@ -2,9 +2,17 @@
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
-from app.api.esquemas import CrearPartidaEntrada, Error, PartidaCreada, UnirseEntrada
+from app.api.esquemas import (
+    CrearPartidaEntrada,
+    Error,
+    EstadoJugador,
+    PartidaCreada,
+    ResponderEntrada,
+    ResultadoRespuesta,
+    UnirseEntrada,
+)
 from app.dominio.gestor import GestorPartidas
 
 router = APIRouter(prefix="/api/partidas", tags=["partidas"])
@@ -67,3 +75,39 @@ async def siguiente(pin: str, gestor: Gestor, x_host_token: TokenHost = None) ->
     partida = gestor.validar_host(pin, x_host_token)
     partida.siguiente()
     return partida.estado_publico()
+
+
+@router.post(
+    "/{pin}/respuestas",
+    response_model=ResultadoRespuesta,
+    responses={
+        **RESPUESTAS_404,
+        409: {"model": Error, "description": "Ya respondió o no hay pregunta abierta."},
+    },
+)
+async def responder(pin: str, entrada: ResponderEntrada, gestor: Gestor) -> ResultadoRespuesta:
+    """Registra la respuesta de un jugador a la pregunta abierta y devuelve los puntos obtenidos."""
+    partida = gestor.obtener(pin)
+    puntos = partida.responder(entrada.nombre, entrada.opcion)
+    jugador = partida.buscar_jugador(entrada.nombre)
+    return ResultadoRespuesta(
+        nombre=jugador.nombre, puntos=puntos, racha=jugador.racha, puntos_totales=jugador.puntos
+    )
+
+
+@router.get("/{pin}/jugadores/{nombre}", response_model=EstadoJugador, responses=RESPUESTAS_404)
+async def ver_jugador(pin: str, nombre: str, gestor: Gestor) -> EstadoJugador:
+    """Marcador y posición de un jugador."""
+    partida = gestor.obtener(pin)
+    jugador = partida.buscar_jugador(nombre)
+    if jugador is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"No hay un jugador llamado '{nombre}' en la partida.")
+    posicion = next(fila.posicion for fila in partida.ranking() if fila.nombre == jugador.nombre)
+    return EstadoJugador(
+        nombre=jugador.nombre,
+        puntos=jugador.puntos,
+        racha=jugador.racha,
+        tiempo_total=round(jugador.tiempo_total, 3),
+        posicion=posicion,
+        respondio_pregunta_actual=jugador.nombre in partida.respuestas,
+    )
