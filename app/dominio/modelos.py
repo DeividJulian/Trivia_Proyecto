@@ -54,3 +54,24 @@ class Jugador:
     puntos: int = 0
     racha: int = 0
     tiempo_total: float = 0.0
+    puntos_reales: int = 0
+    racha_real: int = 0
+    tiempo_total_real: float = 0.0
+
+
+@dataclass(frozen=True)
+class ImpactoRespuesta:
+    """Registro del impacto de los sabotajes sobre una respuesta individual."""
+
+    numero_pregunta: int
+    jugador: str
+    opcion: int
+    correcta: bool
+    sabotajes_activos: tuple[str, ...]
+    puntos_mostrados: int
+    puntos_reales: int
+    diferencia: int
+    racha_mostrada: int
+    racha_real: int
+    segundos_extra: float = 0.0
+    nota: str = ""

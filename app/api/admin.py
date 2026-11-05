@@ -121,3 +121,32 @@ async def ejecutar_pruebas(request: Request, entrada: EjecutarPruebasEntrada | N
         "duracion_s": ejecucion.duracion_s,
         "tablero": ejecutor.armar_tablero(ejecucion.resultados),
     }
+
+
+@router.get("/partidas")
+async def listar_partidas(request: Request) -> list[dict[str, Any]]:
+    """Lista de partidas activas."""
+    gestor = request.app.state.gestor
+    return [
+        {
+            "pin": p.pin,
+            "estado": p.estado.value,
+            "jugadores": [j.nombre for j in p.jugadores.values()],
+            "pregunta_actual": p.indice_pregunta + 1 if p.indice_pregunta >= 0 else 0,
+            "total_preguntas": len(p.preguntas),
+        }
+        for p in gestor.listar()
+    ]
+
+
+@router.get("/partidas/{pin}/impacto")
+async def ver_impacto(pin: str, request: Request) -> dict[str, Any]:
+    """Impacto de los sabotajes en la partida indicada."""
+    gestor = request.app.state.gestor
+    partida = gestor.obtener(pin)
+    return {
+        "sabotajes_activos": sabotajes.activos(),
+        "jugadores": partida.impacto_por_jugador(),
+        "respuestas": [asdict(r) for r in partida.impacto],
+        "resumen_por_sabotaje": partida.resumen_por_sabotaje(),
+    }

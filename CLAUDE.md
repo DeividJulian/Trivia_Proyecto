@@ -95,7 +95,8 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 - **Seguridad:** `trivy fs` y `trivy config` limpios; la imagen quita pip (DEF-018). `trivy image` queda para el
   CI (no hay Docker local). Trivy está en
   `C:\Users\COREi5\AppData\Local\Microsoft\WinGet\Packages\AquaSecurity.Trivy_Microsoft.Winget.Source_8wekyb3d8bbwe\trivy.exe`.
-- **Front de demostración** (pedido por el usuario el 2026-11-05): `app/static/` (HTML, CSS y JS sin dependencias),
-  servido por FastAPI en `/`. Vistas: profesor, jugador y Saboteador.
-- **Siguiente:** Tarea 2 (`feature/impacto-sabotaje`): impacto del sabotaje en el panel de administrador.
-- **Pruebas:** 259 en verde, cobertura 98 %. **Defectos:** DEF-001 a DEF-019.
+- **Front de demostración:** `app/static/` (HTML, CSS y JS sin dependencias),
+  servido por FastAPI en `/`. Vistas: profesor, jugador y Saboteador (con tablero de dominó e impacto del sabotaje en vivo).
+- **Impacto del sabotaje:** evaluación sombra (`sin_sabotajes`, `ranking_real`, `impacto_por_jugador`), endpoints `/api/admin/partidas` e `/impacto` y monitoreo en panel admin.
+- **Siguiente:** Tarea 3 / Fase 14 (`feature/sonar`): SonarQube Cloud.
+- **Pruebas:** 277 en verde, cobertura 98 %. **Defectos:** DEF-001 a DEF-019.

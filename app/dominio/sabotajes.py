@@ -5,6 +5,9 @@ esta_activo("clave") es verdadero. El código nunca se modifica en caliente.
 """
 
 import os
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 
 
@@ -176,6 +179,7 @@ _registrar(
 RETARDO_RESPUESTA_LENTA_S = 1.5
 
 _activos: set[str] = set()
+_filtro_contexto: ContextVar[frozenset[str] | None] = ContextVar("_filtro_contexto", default=None)
 
 
 def _validar(clave: str) -> str:
@@ -186,8 +190,43 @@ def _validar(clave: str) -> str:
 
 
 def esta_activo(clave: str) -> bool:
-    """True si el mutante indicado está activo."""
-    return clave in _activos
+    """True si el mutante indicado está activo (respetando filtros de contexto)."""
+    if clave not in _activos:
+        return False
+    filtro = _filtro_contexto.get()
+    if filtro is None:
+        return True
+    return clave in filtro
+
+
+@contextmanager
+def sin_sabotajes() -> Iterator[None]:
+    """Context manager que evalúa el bloque sin ningún sabotaje activo.
+
+    No modifica la lista global de sabotajes activos ni afecta a otros hilos/contextos.
+    """
+    token = _filtro_contexto.set(frozenset())
+    try:
+        yield
+    finally:
+        _filtro_contexto.reset(token)
+
+
+@contextmanager
+def solo_sabotajes(claves: Iterable[str]) -> Iterator[None]:
+    """Context manager que restringe los sabotajes activos en el contexto a las claves dadas.
+
+    Solo tendrán efecto si además están activos globalmente.
+    """
+    filtro_actual = _filtro_contexto.get()
+    nuevas = frozenset(claves)
+    if filtro_actual is not None:
+        nuevas = nuevas & filtro_actual
+    token = _filtro_contexto.set(nuevas)
+    try:
+        yield
+    finally:
+        _filtro_contexto.reset(token)
 
 
 def activar(clave: str) -> None:

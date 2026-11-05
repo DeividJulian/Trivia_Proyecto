@@ -18,8 +18,8 @@ Exposición: 9 de noviembre de 2026.
 | Integrante | Rol principal |
 |---|---|
 | Deivid Julián Alvarado | Desarrollo backend y automatización de pruebas |
-| Integrante 2 | Plan de pruebas, aceptación y pruebas exploratorias |
-| Integrante 3 | Rendimiento, seguridad y despliegue |
+| Juan Maya | Plan de pruebas, aceptación, impacto del sabotaje y corrección de calidad |
+| Jack Limas | Rendimiento, seguridad, integración continua y despliegue |
 
 ## Tecnologías
 
@@ -39,6 +39,6 @@ uvicorn app.main:app --port 8000 --timeout-keep-alive 75
 - Front de demostración: <http://127.0.0.1:8000/>
   - **Profesor:** crea la partida, muestra el PIN, inicia y avanza las preguntas.
   - **Jugador:** se une con el PIN (abrir en otra pestaña o en el celular, misma red) y responde.
-  - **Saboteador:** con el token `demo123` activa mutantes y ejecuta las pruebas (tablero de dominó).
+  - **Saboteador:** con el token `demo123` activa mutantes, ejecuta las pruebas (tablero de dominó) y monitorea el **Impacto del sabotaje en tiempo real** (puntos mostrados vs reales por jugador, diferencias acumuladas, posiciones alteradas y últimas respuestas afectadas con su causa).
 - Documentación de la API: <http://127.0.0.1:8000/docs>
 - Pruebas: `pytest -q` · mutantes: `python scripts\verificar_mutantes.py`

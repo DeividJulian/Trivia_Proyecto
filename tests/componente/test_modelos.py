@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.dominio.modelos import EstadoPartida, Jugador, Pregunta
+from app.dominio.modelos import EstadoPartida, ImpactoRespuesta, Jugador, Pregunta
 
 pytestmark = [pytest.mark.componente, pytest.mark.preguntas]
 
@@ -54,6 +54,27 @@ def test_jugador_empieza_en_cero():
     jugador = Jugador(nombre="Ana")
 
     assert (jugador.puntos, jugador.racha, jugador.tiempo_total) == (0, 0, 0.0)
+    assert (jugador.puntos_reales, jugador.racha_real, jugador.tiempo_total_real) == (0, 0, 0.0)
+
+
+def test_impacto_respuesta_conserva_valores():
+    impacto = ImpactoRespuesta(
+        numero_pregunta=1,
+        jugador="Ana",
+        opcion=2,
+        correcta=True,
+        sabotajes_activos=("racha_no_suma",),
+        puntos_mostrados=1000,
+        puntos_reales=1100,
+        diferencia=-100,
+        racha_mostrada=0,
+        racha_real=2,
+        segundos_extra=0.0,
+        nota="sin racha",
+    )
+    assert impacto.jugador == "Ana"
+    assert impacto.diferencia == -100
+    assert impacto.sabotajes_activos == ("racha_no_suma",)
 
 
 def test_estados_de_la_partida():

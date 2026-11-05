@@ -113,6 +113,39 @@
         <p id="adm-resumen" class="mensaje"></p>
         <div id="adm-tablero" class="tablero"></div>
       </div>
+
+      <div class="tarjeta">
+        <h2>Impacto en la partida</h2>
+        <div class="fila">
+          <label style="flex: 1; min-width: 200px;">
+            Partida a monitorear
+            <select id="adm-sel-partida">
+              <option value="">Selecciona una partida activa…</option>
+            </select>
+          </label>
+          <button id="adm-btn-refrescar-impacto" class="secundario" style="margin-top: 20px;">Refrescar</button>
+        </div>
+        <p id="adm-impacto-estado" class="mensaje"></p>
+        <div id="adm-impacto-contenido" class="oculto">
+          <h3>Puntaje mostrado vs real por jugador</h3>
+          <table id="adm-tabla-impacto">
+            <thead>
+              <tr>
+                <th>Jugador</th>
+                <th>Puntos mostrados</th>
+                <th>Puntos reales</th>
+                <th>Diferencia</th>
+                <th>Posición</th>
+                <th>Racha</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+          <h3 style="margin-top: 16px;">Últimas respuestas afectadas</h3>
+          <ul id="adm-lista-respuestas" class="lista-afectadas"></ul>
+        </div>
+      </div>
     </section>
   </main>
 

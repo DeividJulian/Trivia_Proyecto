@@ -18,6 +18,8 @@ RUTAS_ADMIN = [
     ("post", "/api/admin/sabotajes/tiempo_estricto/activar"),
     ("post", "/api/admin/sabotajes/tiempo_estricto/desactivar"),
     ("post", "/api/admin/sabotajes/reparar"),
+    ("get", "/api/admin/partidas"),
+    ("get", "/api/admin/partidas/123456/impacto"),
 ]
 
 
@@ -142,6 +144,82 @@ def test_el_log_registra_la_activacion(cliente, caplog):
         cliente.post("/api/admin/sabotajes/racha_no_suma/activar", headers=ADMIN)
 
     assert "Sabotaje ACTIVADO: racha_no_suma" in caplog.text
+
+
+def test_listar_partidas_admin(cliente, partida_creada):
+    pin = partida_creada["pin"]
+    cliente.post(f"/api/partidas/{pin}/jugadores", json={"nombre": "Ana"})
+
+    respuesta = cliente.get("/api/admin/partidas", headers=ADMIN)
+    assert respuesta.status_code == 200
+    partidas = respuesta.json()
+    assert any(p["pin"] == pin for p in partidas)
+    partida_info = next(p for p in partidas if p["pin"] == pin)
+    assert partida_info["estado"] == "LOBBY"
+    assert "Ana" in partida_info["jugadores"]
+
+
+def test_ver_impacto_partida_inexistente_responde_404(cliente):
+    respuesta = cliente.get("/api/admin/partidas/999999/impacto", headers=ADMIN)
+    assert respuesta.status_code == 404
+
+
+def test_impacto_sin_sabotajes_mostrados_igual_a_reales(cliente, partida_creada, reloj):
+    """Sin sabotajes, puntos mostrados == reales para todos (diferencia 0)."""
+    pin, token = partida_creada["pin"], partida_creada["token_host"]
+    cliente.post(f"/api/partidas/{pin}/jugadores", json={"nombre": "Ana"})
+    cliente.post(f"/api/partidas/{pin}/iniciar", headers={"X-Host-Token": token})
+
+    reloj.avanzar(1.0)
+    cliente.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Ana", "opcion": 0})
+
+    respuesta = cliente.get(f"/api/admin/partidas/{pin}/impacto", headers=ADMIN)
+    assert respuesta.status_code == 200
+    datos = respuesta.json()
+    assert datos["sabotajes_activos"] == []
+    assert len(datos["jugadores"]) == 1
+    jugador = datos["jugadores"][0]
+    assert jugador["jugador"] == "Ana"
+    assert jugador["puntos_mostrados"] == jugador["puntos_reales"]
+    assert jugador["diferencia"] == 0
+    assert jugador["posicion_mostrada"] == jugador["posicion_real"] == 1
+    assert len(datos["respuestas"]) == 1
+    assert datos["respuestas"][0]["diferencia"] == 0
+
+
+def test_impacto_con_respuesta_lenta(monkeypatch):
+    """Con respuesta_lenta, segundos_extra ≈ retardo y la diferencia es negativa (pérdida de bono)."""
+    import time
+
+    from app.dominio.gestor import GestorPartidas
+    from tests.conftest import crear_preguntas
+
+    monkeypatch.setattr(sabotajes, "RETARDO_RESPUESTA_LENTA_S", 0.1)
+    sabotajes.activar("respuesta_lenta")
+
+    gestor_real = GestorPartidas(reloj=time.monotonic, cargador=lambda _c: crear_preguntas())
+    app = crear_app(gestor=gestor_real, config=Configuracion(admin_token=TOKEN_ADMIN_PRUEBA))
+
+    with TestClient(app) as c:
+        p_info = c.post("/api/partidas").json()
+        pin, token = p_info["pin"], p_info["token_host"]
+        c.post(f"/api/partidas/{pin}/jugadores", json={"nombre": "Ana"})
+        c.post(f"/api/partidas/{pin}/iniciar", headers={"X-Host-Token": token})
+
+        resp = c.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Ana", "opcion": 0})
+        assert resp.status_code == 200
+
+        datos = c.get(f"/api/admin/partidas/{pin}/impacto", headers=ADMIN).json()
+        assert "respuesta_lenta" in datos["sabotajes_activos"]
+        assert len(datos["respuestas"]) == 1
+        r = datos["respuestas"][0]
+        assert r["segundos_extra"] >= 0.08
+        assert r["diferencia"] < 0
+        assert "respuesta_lenta" in r["nota"]
+
+        jugador = datos["jugadores"][0]
+        assert jugador["diferencia"] < 0
+        assert jugador["desglose"]["respuesta_lenta"] < 0
 
 
 # --- Ejecución de pruebas desde el panel --------------------------------------------------------
