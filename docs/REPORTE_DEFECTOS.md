@@ -76,3 +76,31 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo el flujo local de commits. |
 | Regresión ejecutada | `pytest -q` → `1 passed` |
 | Estado | **Cerrado** |
+
+### DEF-004 – Ruff S105 confunde un valor de prueba con una contraseña
+| Campo | Valor |
+|---|---|
+| Detectado por | Ruff, regla S105 (pre-commit) en `tests/componente/test_config.py` |
+| Severidad | Baja |
+| Pasos para reproducir | 1. `ruff check tests/componente/test_config.py` |
+| Resultado esperado / obtenido | Esperado: sin hallazgos. Obtenido: `S105 Possible hardcoded password assigned to: "admin_token"` en la línea `assert config.admin_token == "secreto"` |
+| Causa encontrada (debugging) | S105 marca cualquier literal comparado con un nombre que parece credencial. Aquí es un valor inventado que la prueba pone con `monkeypatch.setenv` para comprobar que se lee del entorno; no es un secreto real ni se usa fuera de la prueba. |
+| Corrección | `# noqa: S105` **solo en esa línea**, con el motivo y el número del DEF. No se ignora S105 en ningún otro lugar. |
+| Re-ejecución (confirmación) | `ruff check .` → `All checks passed!` |
+| Análisis de impacto | Solo `tests/componente/test_config.py`. |
+| Regresión ejecutada | `pytest -q` → `8 passed` |
+| Estado | **Riesgo aceptado** |
+
+### DEF-005 – Ruff S105/S106 en los tokens usados por las pruebas de sistema
+| Campo | Valor |
+|---|---|
+| Detectado por | Ruff, reglas S105 y S106 (pre-commit) en `tests/sistema/test_seguridad.py` |
+| Severidad | Baja |
+| Pasos para reproducir | 1. Escribir `crear_app(config=Configuracion(admin_token="demo"))` en una prueba. 2. `ruff check .` |
+| Resultado esperado / obtenido | Esperado: sin hallazgos. Obtenido: 5 hallazgos `S106 Possible hardcoded password assigned to argument: "admin_token"` / `S105` |
+| Causa encontrada (debugging) | Las pruebas necesitan un token conocido para crear la app; cada literal repetido parece una credencial para Ruff. Repetir `# noqa` en cada prueba esconde el motivo y ensucia el código. |
+| Corrección | Se crea `tests/valores_prueba.py` con `TOKEN_ADMIN_PRUEBA` y `OTRO_TOKEN_PRUEBA`, cada uno con **un** `# noqa: S105` justificado. Las pruebas usan esas constantes y ya no tienen literales con aspecto de credencial. |
+| Re-ejecución (confirmación) | `ruff check .` → `All checks passed!` |
+| Análisis de impacto | Solo `tests/`. Las pruebas futuras del panel admin reutilizan las mismas constantes. |
+| Regresión ejecutada | `pytest -q` → `12 passed` |
+| Estado | **Riesgo aceptado** |
