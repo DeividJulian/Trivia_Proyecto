@@ -32,7 +32,8 @@ class ResponderEntrada(BaseModel):
     """Respuesta de un jugador a la pregunta abierta."""
 
     nombre: Nombre
-    opcion: int = Field(ge=0, le=3, description="Índice de la opción elegida (0 a 3).")
+    # strict=True: true, "2" o 1.0 se rechazan; antes true se convertía en 1 y sumaba puntos (DEF-009).
+    opcion: int = Field(ge=0, le=3, strict=True, description="Índice de la opción elegida (entero de 0 a 3).")
 
 
 class ResultadoRespuesta(BaseModel):
