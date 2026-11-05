@@ -85,9 +85,10 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 
 ## Estado actual
 
-- **Fases terminadas:** 0 a 9 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
+- **Fases terminadas:** 0 a 10 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
 - **CI:** existe un CI mínimo (`.github/workflows/ci.yml`, Ruff + pytest) desde antes de la Fase 9
   para que se viera el rojo de v2; en la Fase 15 se amplía a las 8 compuertas.
-- **Siguiente:** Fase 10 (`feature/impacto`): análisis de impacto automatizado.
-- **Pruebas:** 182 en verde, cobertura 99 %. **Defectos:** DEF-001 a DEF-011.
+- **Fase 10 terminada:** `app/calidad/impacto.py` y `scripts/regresion_por_impacto.py`.
+- **Siguiente:** Fase 11 (`feature/saboteador`).
+- **Pruebas:** 203 en verde, cobertura 99 %. **Defectos:** DEF-001 a DEF-012.
 - **Pendiente del usuario:** instalar la extensión "SonarQube for IDE" en VS Code.

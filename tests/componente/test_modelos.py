@@ -4,7 +4,7 @@ import pytest
 
 from app.dominio.modelos import EstadoPartida, Jugador, Pregunta
 
-pytestmark = pytest.mark.componente
+pytestmark = [pytest.mark.componente, pytest.mark.preguntas]
 
 OPCIONES = ("A", "B", "C", "D")
 

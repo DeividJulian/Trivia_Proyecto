@@ -6,7 +6,7 @@ import pytest
 
 from app.dominio.preguntas import CATEGORIAS, cargar_preguntas
 
-pytestmark = pytest.mark.componente
+pytestmark = [pytest.mark.componente, pytest.mark.preguntas]
 
 PREGUNTA_VALIDA = {"texto": "¿?", "opciones": ["A", "B", "C", "D"], "correcta": 2, "tiempo_limite": 10}
 

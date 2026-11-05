@@ -1,0 +1,33 @@
+# Hallazgos de Ruff en scripts/regresion_por_impacto.py, mostrados ignorando los noqa
+# Fecha: 2026-11-04
+$ ruff check scripts --ignore-noqa
+
+E402 Module level import not at top of file
+  --> scripts\regresion_por_impacto.py:21:1
+   |
+19 | sys.path.insert(0, str(RAIZ))
+20 |
+21 | from app.calidad.impacto import planificar_regresion  # noqa: E402 - necesita RAIZ en sys.path
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: Move module level imports to top of file
+
+S603 `subprocess` call: check for execution of untrusted input
+  --> scripts\regresion_por_impacto.py:29:14
+   |
+27 |     if git is None:
+28 |         raise SystemExit("No se encontró git en el PATH.")
+29 |     salida = subprocess.run(  # noqa: S603 - comando fijo, sin shell; base es un nombre de rama de git
+   |              ^^^^^^^^^^^^^^
+30 |         [git, "diff", "--name-only", base],
+31 |         cwd=RAIZ,
+   |
+
+S603 `subprocess` call: check for execution of untrusted input
+  --> scripts\regresion_por_impacto.py:60:12
+   |
+58 |     if args.solo_ver:
+59 |         return 0
+60 |     return subprocess.call(comando, cwd=RAIZ)  # noqa: S603 - ejecuta pytest con argumentos propios
+   |            ^^^^^^^^^^^^^^^
+
+Found 3 errors.
