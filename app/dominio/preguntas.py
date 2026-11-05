@@ -28,7 +28,12 @@ def cargar_preguntas(
         ruta = CATEGORIAS[categoria]
     ruta = Path(ruta)
     with ruta.open(encoding="utf-8") as archivo:
-        datos = json.load(archivo)
+        try:
+            datos = json.load(archivo)
+        except json.JSONDecodeError as error:
+            raise ValueError(
+                f"{ruta.name} no es un JSON válido (línea {error.lineno}, columna {error.colno})."
+            ) from error
     if not isinstance(datos, list) or not datos:
         raise ValueError(f"{ruta.name} debe contener una lista de preguntas no vacía.")
 
