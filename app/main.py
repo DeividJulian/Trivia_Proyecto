@@ -2,11 +2,14 @@
 
 import logging
 from dataclasses import replace
-from typing import Any
 
 from fastapi import FastAPI, Request, Response
 
+from app.api import rutas, ws
+from app.api.errores import registrar_manejadores
 from app.config import VERSION, Configuracion, cargar_configuracion
+from app.dominio.gestor import GestorPartidas
+from app.tiempo_real.conexiones import GestorConexiones
 
 __all__ = ["VERSION", "app", "crear_app"]
 
@@ -24,7 +27,7 @@ CABECERAS_SEGURIDAD = {
 
 
 def crear_app(
-    gestor: Any = None,
+    gestor: GestorPartidas | None = None,
     admin_token: str | None = None,
     config: Configuracion | None = None,
 ) -> FastAPI:
@@ -40,9 +43,16 @@ def crear_app(
     if not config.admin_token:
         logger.warning("ADMIN_TOKEN no está configurado: el panel de administrador queda bloqueado.")
 
+    if gestor is None:
+        gestor = GestorPartidas(max_partidas=config.max_partidas, ttl_minutos=config.partida_ttl_minutos)
+
     app = FastAPI(title="TestQuiz – El Saboteador", version=VERSION)
     app.state.config = config
     app.state.gestor = gestor
+    app.state.conexiones = GestorConexiones()
+    registrar_manejadores(app)
+    app.include_router(rutas.router)
+    app.include_router(ws.router)
 
     @app.middleware("http")
     async def cabeceras_seguridad(request: Request, call_next) -> Response:
