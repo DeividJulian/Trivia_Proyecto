@@ -2,6 +2,7 @@
 
 import pytest
 
+from app.dominio import sabotajes
 from app.dominio.modelos import Pregunta
 from app.dominio.partida import Partida
 
@@ -32,6 +33,20 @@ def crear_preguntas(cantidad: int = 3, limite: float = LIMITE) -> list[Pregunta]
         )
         for i in range(cantidad)
     ]
+
+
+@pytest.fixture(autouse=True)
+def restaurar_sabotajes():
+    """Cada prueba deja los sabotajes como los encontró.
+
+    No los apaga todos: verificar_mutantes.py ejecuta la suite con SABOTAJES=<clave> y ese
+    mutante debe seguir activo en todas las pruebas.
+    """
+    antes = sabotajes.activos()
+    yield
+    sabotajes.desactivar_todos()
+    for clave in antes:
+        sabotajes.activar(clave)
 
 
 @pytest.fixture
