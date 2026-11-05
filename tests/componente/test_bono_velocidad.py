@@ -1,8 +1,6 @@
 """Pruebas de componente del bono por velocidad (SOLICITUD_CAMBIO_001).
 
-Se escriben ANTES de implementar el cambio (primero la prueba). Mientras la función no existe,
-quedan marcadas como fallo esperado (xfail estricto): si alguna pasara antes de tiempo, pytest
-lo reportaría como error.
+Se escribieron ANTES de implementar el cambio (primero la prueba).
 """
 
 import pytest
@@ -11,11 +9,7 @@ from app.dominio import puntaje
 
 LIMITE = 20.0
 
-pytestmark = [
-    pytest.mark.componente,
-    pytest.mark.puntaje,
-    pytest.mark.xfail(strict=True, raises=AttributeError, reason="SC-001 pendiente: bono por velocidad"),
-]
+pytestmark = [pytest.mark.componente, pytest.mark.puntaje]
 
 
 @pytest.mark.parametrize(
