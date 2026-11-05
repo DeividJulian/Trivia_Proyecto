@@ -50,3 +50,13 @@ def test_empates_mal(sin_sabotajes):
     sabotajes.activar("empates_mal")
 
     assert [f.nombre for f in ordenar_ranking(jugadores)] == ["Ana", "Beto"]
+
+
+def test_no_guarda_respuesta(sin_sabotajes, partida_con_jugadores):
+    sabotajes.activar("no_guarda_respuesta")
+    partida_con_jugadores.iniciar()
+
+    partida_con_jugadores.responder("Ana", 0)
+    partida_con_jugadores.responder("Ana", 0)  # sin el mutante esto sería un error
+
+    assert partida_con_jugadores.respuestas == {}
