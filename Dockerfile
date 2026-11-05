@@ -20,6 +20,8 @@ COPY pyproject.toml ./
 COPY app ./app
 COPY data ./data
 COPY tests ./tests
+# Algunas pruebas de componente importan performance/verificar_umbrales.py y analizar_resultados.py (DEF-017).
+COPY performance ./performance
 
 USER 10001
 

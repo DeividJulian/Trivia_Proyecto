@@ -15,6 +15,6 @@ coverage.xml
 htmlcov/
 reportes/
 docs/
-performance/
+performance/resultados/
 scripts/
 *.md
