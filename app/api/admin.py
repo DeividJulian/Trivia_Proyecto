@@ -1,12 +1,15 @@
 """Panel de administrador del modo Saboteador."""
 
+import asyncio
 import logging
 import secrets
 from dataclasses import asdict
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from pydantic import BaseModel, Field
 
+from app.calidad import ejecutor
 from app.dominio import sabotajes
 from app.dominio.sabotajes import Sabotaje
 
@@ -87,3 +90,34 @@ async def desactivar(clave: str) -> dict[str, Any]:
     sabotajes.desactivar(_validar_clave(clave))
     logger.warning("Sabotaje desactivado: %s", clave)
     return _estado()
+
+
+Nivel = Literal["componente", "integracion", "sistema", "aceptacion"]
+
+
+class EjecutarPruebasEntrada(BaseModel):
+    """Niveles a ejecutar (por defecto todos). No se aceptan argumentos libres de pytest."""
+
+    niveles: list[Nivel] | None = Field(default=None, description="Vacío = todos los niveles.")
+
+
+@router.post("/pruebas", responses={409: {"description": "Ya hay una ejecución de pruebas en curso."}})
+async def ejecutar_pruebas(request: Request, entrada: EjecutarPruebasEntrada | None = None) -> dict[str, Any]:
+    """Ejecuta la suite con los sabotajes activos y devuelve el tablero de dominó.
+
+    Un candado impide dos ejecuciones a la vez (cada una lanza un proceso de pytest).
+    """
+    candado: asyncio.Lock = request.app.state.candado_pruebas
+    if candado.locked():
+        raise HTTPException(status.HTTP_409_CONFLICT, "Ya hay una ejecución de pruebas en curso.")
+    async with candado:
+        argumentos = ["-m", " or ".join(entrada.niveles)] if entrada and entrada.niveles else []
+        activos = sabotajes.activos()
+        logger.warning("Ejecutando pruebas con sabotajes: %s", ", ".join(activos) or "ninguno")
+        ejecucion = await asyncio.to_thread(ejecutor.ejecutar_pruebas, activos, argumentos)
+    return {
+        "sabotajes": ejecucion.sabotajes,
+        "codigo_salida": ejecucion.codigo_salida,
+        "duracion_s": ejecucion.duracion_s,
+        "tablero": ejecutor.armar_tablero(ejecucion.resultados),
+    }
