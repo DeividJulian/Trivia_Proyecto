@@ -2,7 +2,9 @@
 
 import pytest
 
+from app.dominio.errores import ErrorPartida
 from app.dominio.modelos import EstadoPartida
+from app.dominio.partida import Partida
 
 pytestmark = [pytest.mark.integracion, pytest.mark.partida]
 
@@ -67,3 +69,109 @@ def test_estado_publico_en_lobby_no_tiene_pregunta(partida_con_jugadores):
     assert estado["estado"] == "LOBBY"
     assert estado["pregunta"] is None
     assert estado["jugadores"] == ["Ana", "Beto", "Caro"]
+
+
+# --- Respuestas inválidas -----------------------------------------------------------------------
+
+
+def test_no_se_puede_responder_dos_veces(partida_con_jugadores):
+    partida = partida_con_jugadores
+    partida.iniciar()
+    partida.responder("Ana", 0)
+
+    with pytest.raises(ErrorPartida, match="ya respondió"):
+        partida.responder("Ana", 1)
+    assert partida.jugadores["Ana"].puntos == partida.puntos_ronda["Ana"]
+
+
+def test_no_se_puede_responder_en_lobby(partida_con_jugadores):
+    with pytest.raises(ErrorPartida, match="pregunta abierta"):
+        partida_con_jugadores.responder("Ana", 0)
+
+
+def test_no_se_puede_responder_en_resultados(partida_con_jugadores):
+    partida = partida_con_jugadores
+    partida.iniciar()
+    partida.siguiente()
+
+    with pytest.raises(ErrorPartida, match="pregunta abierta"):
+        partida.responder("Ana", 0)
+
+
+def test_jugador_desconocido_no_puede_responder(partida_con_jugadores):
+    partida_con_jugadores.iniciar()
+
+    with pytest.raises(ErrorPartida, match="no está en la partida"):
+        partida_con_jugadores.responder("Intruso", 0)
+
+
+@pytest.mark.parametrize("opcion", [-1, 4])
+def test_opcion_fuera_de_rango(partida_con_jugadores, opcion):
+    partida_con_jugadores.iniciar()
+
+    with pytest.raises(ErrorPartida, match="entre 0 y 3"):
+        partida_con_jugadores.responder("Ana", opcion)
+
+
+def test_no_se_puede_iniciar_sin_jugadores(partida):
+    with pytest.raises(ErrorPartida, match="al menos un jugador"):
+        partida.iniciar()
+
+
+def test_no_se_puede_iniciar_dos_veces(partida_con_jugadores):
+    partida_con_jugadores.iniciar()
+
+    with pytest.raises(ErrorPartida, match="ya fue iniciada"):
+        partida_con_jugadores.iniciar()
+
+
+def test_no_se_puede_avanzar_una_partida_finalizada(partida_con_jugadores):
+    partida = partida_con_jugadores
+    partida.iniciar()
+    while partida.estado != EstadoPartida.FINALIZADA:
+        partida.siguiente()
+
+    with pytest.raises(ErrorPartida, match="No se puede avanzar"):
+        partida.siguiente()
+
+
+# --- Unirse ------------------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("nombre", ["", "   ", "x" * 21])
+def test_nombre_invalido(partida, nombre):
+    with pytest.raises(ErrorPartida, match="entre 1 y 20"):
+        partida.unirse(nombre)
+
+
+@pytest.mark.parametrize("nombre", ["x", "x" * 20])
+def test_nombre_en_los_limites_es_valido(partida, nombre):
+    assert partida.unirse(nombre).nombre == nombre
+
+
+def test_nombre_repetido_sin_distinguir_mayusculas(partida):
+    partida.unirse("Ana")
+
+    with pytest.raises(ErrorPartida, match="Ya hay un jugador"):
+        partida.unirse("  ana ")
+
+
+def test_no_se_puede_unir_con_la_partida_iniciada(partida_con_jugadores):
+    partida_con_jugadores.iniciar()
+
+    with pytest.raises(ErrorPartida, match="ya comenzó"):
+        partida_con_jugadores.unirse("Tarde")
+
+
+def test_limite_de_jugadores(reloj, preguntas):
+    partida = Partida(pin="000001", preguntas=preguntas, reloj=reloj, max_jugadores=2)
+    partida.unirse("Ana")
+    partida.unirse("Beto")
+
+    with pytest.raises(ErrorPartida, match="llena"):
+        partida.unirse("Caro")
+
+
+def test_partida_sin_preguntas_no_se_crea(reloj):
+    with pytest.raises(ValueError, match="al menos una pregunta"):
+        Partida(pin="000002", preguntas=[], reloj=reloj)
