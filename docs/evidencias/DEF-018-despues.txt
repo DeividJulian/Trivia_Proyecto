@@ -1,0 +1,19 @@
+# DEF-018 – Después de la corrección (commit 6114c5e: la imagen final no incluye pip)
+# Fecha: 2026-11-05
+
+$ trivy config Dockerfile
+│   Target   │    Type    │ Misconfigurations │
+│ Dockerfile │ dockerfile │         0         │
+
+$ trivy fs --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --skip-dirs .venv .
+│      Target      │    Type    │ Vulnerabilities │ Secrets │ Misconfigurations │
+│ requirements.txt │    pip     │        0        │    -    │         -         │
+│ Dockerfile       │ dockerfile │        -        │    -    │         0         │
+
+## Regresión
+$ pytest -q
+254 passed, 1 warning in 2.54s
+$ python scripts\verificar_mutantes.py
+Mutantes detectados: 6/6 (100 %)  -  RNF-07 exige 100 %
+
+Pendiente: confirmar con 'trivy image' en el CI (Docker no está instalado en esta máquina).

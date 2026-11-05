@@ -1,0 +1,12 @@
+# DEF-017 – Simulación del contenido de la imagen (lo que copia el Dockerfile: pyproject.toml, app, data, tests)
+# Fecha: 2026-11-04 (Docker no está instalado en la máquina: se reproduce copiando los mismos archivos)
+$ pytest -q -p no:cacheprovider   # dentro de la carpeta simulada
+
+=================================== ERRORS ====================================
+________ ERROR collecting tests/componente/test_analizar_resultados.py ________
+ImportError while importing test module 'C:\Users\COREi5\AppData\Local\Temp\claude\7c9a856f599ad393\4e96c9c5-81e3-45b5-bc39-a330766daa42\scratchpad\imagen\tests\componente\test_analizar_resultados.py'.
+E   ModuleNotFoundError: No module named 'performance'
+_____________ ERROR collecting tests/componente/test_umbrales.py ______________
+ImportError while importing test module 'C:\Users\COREi5\AppData\Local\Temp\claude\7c9a856f599ad393\4e96c9c5-81e3-45b5-bc39-a330766daa42\scratchpad\imagen\tests\componente\test_umbrales.py'.
+E   ModuleNotFoundError: No module named 'performance'
+ERROR tests/componente/test_analizar_resultados.py
