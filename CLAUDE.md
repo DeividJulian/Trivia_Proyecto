@@ -108,4 +108,4 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 - **Validación local de Fase 15:** 290 passed, 2 pruebas de humo omitidas sin `APP_URL`, cobertura
   97.53 %, mutantes 6/6, Ruff/format limpios; Locust 50 usuarios/60 s: p95 9 ms y 0 % fallos.
   Entorno local Python 3.11.9 (CI objetivo 3.12); Docker daemon y Trivy no disponibles localmente.
-  **Defectos:** DEF-001 a DEF-023.
+  **Defectos:** DEF-001 a DEF-024.

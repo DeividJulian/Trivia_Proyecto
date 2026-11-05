@@ -353,3 +353,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo legibilidad de la prueba del reporte. |
 | Regresión ejecutada | Suite completa de pytest. |
 | Estado | **Cerrado** |
+
+### DEF-024 – GitHub Actions no resuelve el tag de Trivy sin prefijo v
+| Campo | Valor |
+|---|---|
+| Detectado por | GitHub Actions, preparación del job Trivy en CI |
+| Severidad | Media (bloquea la compuerta de seguridad antes de escanear) |
+| Pasos para reproducir | Ejecutar el workflow en `feature/ci` con `aquasecurity/trivy-action@0.36.0`. |
+| Resultado esperado / obtenido | Esperado: inicia los escaneos. Obtenido: `Unable to resolve action ... unable to find version '0.36.0'` (`DEF-024-antes.txt`). |
+| Causa encontrada (debugging) | El tag publicado por la acción incluye el prefijo `v`; el workflow usaba `0.36.0`. |
+| Corrección | Se cambia la referencia en los tres pasos a `aquasecurity/trivy-action@v0.36.0`. |
+| Re-ejecución (confirmación) | Pendiente reejecutar el workflow con la referencia corregida. |
+| Análisis de impacto | Solo la ejecución de análisis Trivy en el CI. |
+| Regresión ejecutada | Pendiente del workflow de GitHub Actions. |
+| Estado | **En corrección** |
