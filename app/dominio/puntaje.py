@@ -42,11 +42,9 @@ def calcular_puntos(
     `racha` es la que traía el jugador antes de responder. Una respuesta incorrecta o fuera de
     tiempo da 0 puntos y reinicia la racha. Devuelve la tupla (puntos, nueva_racha).
     """
-    a_tiempo = es_respuesta_a_tiempo(tiempo_respuesta, tiempo_limite)
-    nueva_racha = sumar_racha(racha, opcion_correcta and a_tiempo)
-    bono = calcular_bono_velocidad(tiempo_respuesta, tiempo_limite)
-    if not opcion_correcta:
-        return bono, nueva_racha
-    if not a_tiempo:
-        return 0, nueva_racha
-    return PUNTOS_BASE + bono + calcular_bono_racha(nueva_racha), nueva_racha
+    acerto = opcion_correcta and es_respuesta_a_tiempo(tiempo_respuesta, tiempo_limite)
+    nueva_racha = sumar_racha(racha, acerto)
+    if not acerto:
+        return 0, nueva_racha  # incorrecta o tarde: 0, sin bono de ningún tipo (DEF-011)
+    bono_velocidad = calcular_bono_velocidad(tiempo_respuesta, tiempo_limite)
+    return PUNTOS_BASE + bono_velocidad + calcular_bono_racha(nueva_racha), nueva_racha
