@@ -14,6 +14,8 @@ from app.api.esquemas import (
     UnirseEntrada,
 )
 from app.dominio.gestor import GestorPartidas
+from app.dominio.partida import Partida
+from app.tiempo_real.conexiones import GestorConexiones
 
 router = APIRouter(prefix="/api/partidas", tags=["partidas"])
 
@@ -24,7 +26,17 @@ def obtener_gestor(request: Request) -> GestorPartidas:
     return request.app.state.gestor
 
 
+def obtener_conexiones(request: Request) -> GestorConexiones:
+    return request.app.state.conexiones
+
+
 Gestor = Annotated[GestorPartidas, Depends(obtener_gestor)]
+Conexiones = Annotated[GestorConexiones, Depends(obtener_conexiones)]
+
+
+async def difundir_estado(conexiones: GestorConexiones, partida: Partida) -> None:
+    """Envía el nuevo estado público a todos los sockets de la partida."""
+    await conexiones.difundir(partida.pin, {"tipo": "estado", "datos": partida.estado_publico()})
 
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=PartidaCreada)
@@ -46,10 +58,11 @@ async def ver_partida(pin: str, gestor: Gestor) -> dict[str, Any]:
     status_code=status.HTTP_201_CREATED,
     responses={**RESPUESTAS_404, 409: {"model": Error, "description": "Nombre repetido o partida iniciada."}},
 )
-async def unirse(pin: str, entrada: UnirseEntrada, gestor: Gestor) -> dict[str, Any]:
+async def unirse(pin: str, entrada: UnirseEntrada, gestor: Gestor, conexiones: Conexiones) -> dict[str, Any]:
     """Une un jugador a la partida (solo mientras está en LOBBY)."""
     partida = gestor.obtener(pin)
     jugador = partida.unirse(entrada.nombre)
+    await difundir_estado(conexiones, partida)
     return {"nombre": jugador.nombre, "estado": partida.estado_publico()}
 
 
@@ -62,18 +75,24 @@ RESPUESTAS_HOST = {
 
 
 @router.post("/{pin}/iniciar", responses=RESPUESTAS_HOST)
-async def iniciar(pin: str, gestor: Gestor, x_host_token: TokenHost = None) -> dict[str, Any]:
+async def iniciar(
+    pin: str, gestor: Gestor, conexiones: Conexiones, x_host_token: TokenHost = None
+) -> dict[str, Any]:
     """Inicia la partida (LOBBY → PREGUNTA). Solo el anfitrión."""
     partida = gestor.validar_host(pin, x_host_token)
     partida.iniciar()
+    await difundir_estado(conexiones, partida)
     return partida.estado_publico()
 
 
 @router.post("/{pin}/siguiente", responses=RESPUESTAS_HOST)
-async def siguiente(pin: str, gestor: Gestor, x_host_token: TokenHost = None) -> dict[str, Any]:
+async def siguiente(
+    pin: str, gestor: Gestor, conexiones: Conexiones, x_host_token: TokenHost = None
+) -> dict[str, Any]:
     """Cierra la pregunta abierta o pasa a la siguiente / al final. Solo el anfitrión."""
     partida = gestor.validar_host(pin, x_host_token)
     partida.siguiente()
+    await difundir_estado(conexiones, partida)
     return partida.estado_publico()
 
 
@@ -85,11 +104,14 @@ async def siguiente(pin: str, gestor: Gestor, x_host_token: TokenHost = None) ->
         409: {"model": Error, "description": "Ya respondió o no hay pregunta abierta."},
     },
 )
-async def responder(pin: str, entrada: ResponderEntrada, gestor: Gestor) -> ResultadoRespuesta:
+async def responder(
+    pin: str, entrada: ResponderEntrada, gestor: Gestor, conexiones: Conexiones
+) -> ResultadoRespuesta:
     """Registra la respuesta de un jugador a la pregunta abierta y devuelve los puntos obtenidos."""
     partida = gestor.obtener(pin)
     puntos = partida.responder(entrada.nombre, entrada.opcion)
     jugador = partida.buscar_jugador(entrada.nombre)
+    await difundir_estado(conexiones, partida)
     return ResultadoRespuesta(
         nombre=jugador.nombre, puntos=puntos, racha=jugador.racha, puntos_totales=jugador.puntos
     )

@@ -5,10 +5,11 @@ from dataclasses import replace
 
 from fastapi import FastAPI, Request, Response
 
-from app.api import rutas
+from app.api import rutas, ws
 from app.api.errores import registrar_manejadores
 from app.config import VERSION, Configuracion, cargar_configuracion
 from app.dominio.gestor import GestorPartidas
+from app.tiempo_real.conexiones import GestorConexiones
 
 __all__ = ["VERSION", "app", "crear_app"]
 
@@ -48,8 +49,10 @@ def crear_app(
     app = FastAPI(title="TestQuiz – El Saboteador", version=VERSION)
     app.state.config = config
     app.state.gestor = gestor
+    app.state.conexiones = GestorConexiones()
     registrar_manejadores(app)
     app.include_router(rutas.router)
+    app.include_router(ws.router)
 
     @app.middleware("http")
     async def cabeceras_seguridad(request: Request, call_next) -> Response:
