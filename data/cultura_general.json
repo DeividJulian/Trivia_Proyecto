@@ -1,0 +1,14 @@
+[
+  {"texto": "¿Cuál es la capital de Colombia?", "opciones": ["Medellín", "Bogotá", "Cali", "Pasto"], "correcta": 1, "tiempo_limite": 15},
+  {"texto": "¿En qué departamento queda la ciudad de Pasto?", "opciones": ["Cauca", "Putumayo", "Nariño", "Huila"], "correcta": 2, "tiempo_limite": 15},
+  {"texto": "¿Qué volcán está junto a la ciudad de Pasto?", "opciones": ["Galeras", "Nevado del Ruiz", "Puracé", "Cumbal"], "correcta": 0, "tiempo_limite": 15},
+  {"texto": "¿Cuál es el planeta más grande del sistema solar?", "opciones": ["Saturno", "Tierra", "Neptuno", "Júpiter"], "correcta": 3, "tiempo_limite": 15},
+  {"texto": "¿Quién escribió «Cien años de soledad»?", "opciones": ["Gabriel García Márquez", "Jorge Isaacs", "Mario Vargas Llosa", "Julio Cortázar"], "correcta": 0, "tiempo_limite": 15},
+  {"texto": "¿Cuál es el océano más grande del planeta?", "opciones": ["Atlántico", "Índico", "Pacífico", "Ártico"], "correcta": 2, "tiempo_limite": 15},
+  {"texto": "¿Cuántos lados tiene un hexágono?", "opciones": ["5", "6", "7", "8"], "correcta": 1, "tiempo_limite": 15},
+  {"texto": "¿Cuál es el símbolo químico del oro?", "opciones": ["Ag", "Go", "Au", "Or"], "correcta": 2, "tiempo_limite": 15},
+  {"texto": "¿En qué año llegó Cristóbal Colón a América?", "opciones": ["1492", "1500", "1810", "1519"], "correcta": 0, "tiempo_limite": 15},
+  {"texto": "¿Qué fiesta de Pasto es Patrimonio Cultural Inmaterial de la Humanidad?", "opciones": ["Feria de las Flores", "Carnaval de Negros y Blancos", "Festival Vallenato", "Feria de Cali"], "correcta": 1, "tiempo_limite": 15},
+  {"texto": "¿Cuál es el río más largo de Colombia?", "opciones": ["Cauca", "Atrato", "Meta", "Magdalena"], "correcta": 3, "tiempo_limite": 15},
+  {"texto": "¿Qué lenguaje de programación usa este backend?", "opciones": ["Java", "Python", "C#", "PHP"], "correcta": 1, "tiempo_limite": 15}
+]
