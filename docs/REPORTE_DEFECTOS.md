@@ -270,3 +270,16 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Despliegue → panel del Saboteador (`POST /api/admin/pruebas`). |
 | Regresión ejecutada | `pytest -q` → `254 passed` |
 | Estado | **Cerrado** |
+
+### DEF-018 – Trivy: setuptools 70.3.0 (CVE-2025-47273, HIGH) dentro de pip
+| Campo | Valor |
+|---|---|
+| Detectado por | Trivy 0.76.1 (`trivy rootfs --scanners vuln .venv/Lib/site-packages`), seguridad / dependencias |
+| Severidad | Alta según Trivy; **real: baja** (ver causa) |
+| Pasos para reproducir | `trivy rootfs --scanners vuln .venv/Lib/site-packages` → `setuptools 70.3.0`: CVE-2025-47273 (HIGH), CVE-2026-59890 (MEDIUM), GHSA-xmj3-9gf7-h52w (LOW) (`DEF-018-antes.txt`) |
+| Causa encontrada (debugging) | `pip show setuptools` → no está instalado. El hallazgo sale del inventario de **pip 26.3** (`pip/_vendor/vendor.txt` y `bom.cdx.json`: `setuptools==70.3.0`): pip solo incluye `pkg_resources` de ese setuptools. La CVE-2025-47273 está en `setuptools.package_index`, que pip **no** incluye. Es un falso positivo en ejecución, pero la imagen `python:3.12-slim` también trae pip, así que el gate de `trivy image` del CI fallaría por lo mismo. `trivy fs` del repositorio y `trivy config` del Dockerfile salieron limpios (0 HIGH/CRITICAL, 0 secretos, 0 malas configuraciones). |
+| Corrección | Mantenimiento **adaptativo/preventivo**: commit `fix(docker): la imagen final no incluye pip ... (DEF-018)`: tras instalar las dependencias se desinstala pip (la app no lo usa en ejecución y se reduce la superficie de ataque). En el entorno local de desarrollo se acepta el riesgo: no se despliega y se actualizará pip cuando cambie su setuptools interno. |
+| Re-ejecución (confirmación) | `trivy config Dockerfile` → 0; `trivy fs ... --severity HIGH,CRITICAL` → 0 (`DEF-018-despues.txt`). **Pendiente** `trivy image` en el CI (sin Docker local). |
+| Análisis de impacto | Solo la imagen (despliegue). La app no importa pip. |
+| Regresión ejecutada | `pytest -q` → `254 passed`; `verificar_mutantes.py` → 6/6 |
+| Estado | **Cerrado en la imagen** (confirmar en CI) / **Riesgo aceptado** en el entorno local |
