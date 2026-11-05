@@ -3,8 +3,10 @@
 import asyncio
 import logging
 from dataclasses import replace
+from pathlib import Path
 
 from fastapi import FastAPI, Request, Response
+from fastapi.staticfiles import StaticFiles
 
 from app.api import admin, rutas, ws
 from app.api.errores import registrar_manejadores
@@ -13,6 +15,8 @@ from app.dominio.gestor import GestorPartidas
 from app.tiempo_real.conexiones import GestorConexiones
 
 __all__ = ["VERSION", "app", "crear_app"]
+
+DIRECTORIO_FRONT = Path(__file__).resolve().parent / "static"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -69,6 +73,10 @@ def crear_app(
     def salud() -> dict:
         """Indica que el servicio está en pie y qué versión corre."""
         return {"estado": "ok", "version": VERSION}
+
+    # El front de demostración se monta al final: las rutas de la API y /docs tienen prioridad.
+    if DIRECTORIO_FRONT.is_dir():
+        app.mount("/", StaticFiles(directory=DIRECTORIO_FRONT, html=True), name="front")
 
     return app
 
