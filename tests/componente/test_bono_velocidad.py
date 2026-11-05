@@ -36,3 +36,13 @@ def test_respuesta_correcta_inmediata_suma_base_mas_500():
 def test_respuesta_correcta_a_mitad_de_tiempo_con_racha():
     assert puntaje.calcular_bono_velocidad(10.0, LIMITE) == 250
     assert puntaje.calcular_puntos(True, 10.0, LIMITE, racha=1) == (1000 + 250 + 100, 2)
+
+
+@pytest.mark.parametrize("tiempo", [0.0, 1.0, 10.0])
+def test_respuesta_incorrecta_y_rapida_no_recibe_bono(tiempo):
+    """Caso que faltaba en las pruebas nuevas y que dejó pasar DEF-011."""
+    assert puntaje.calcular_puntos(False, tiempo, LIMITE, racha=3) == (0, 0)
+
+
+def test_respuesta_correcta_pero_tarde_no_recibe_bono():
+    assert puntaje.calcular_puntos(True, 20.5, LIMITE, racha=3) == (0, 0)
