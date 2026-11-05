@@ -75,6 +75,8 @@ class Presentador(HttpUser):
             if iniciada.status_code == 409:  # nadie se unió
                 iniciada.success()
                 return
+            if iniciada.status_code != 200:  # DEF-015: si no se inició, avanzar solo genera 409 falsos
+                return
         estado = "PREGUNTA"
         while estado != "FINALIZADA":
             self.wait_seconds(SEGUNDOS_POR_PREGUNTA)
