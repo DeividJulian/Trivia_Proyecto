@@ -212,7 +212,9 @@ async function responder(opcion, numero) {
   document.querySelectorAll("#jug-opciones button").forEach((b) => (b.disabled = true));
   try {
     const resultado = await api("POST", `/api/partidas/${jugador.pin}/respuestas`, { nombre: jugador.nombre, opcion });
-    $("jug-mensaje").textContent = resultado.puntos > 0 ? `¡Correcto! +${resultado.puntos} puntos` : "Respuesta enviada (0 puntos)";
+    // No se dice "¡Correcto!": la correcta se revela en los resultados (y con un sabotaje activo
+    // una respuesta incorrecta podría sumar puntos).
+    $("jug-mensaje").textContent = `Respuesta enviada: +${resultado.puntos} puntos`;
     $("jug-puntos").textContent = resultado.puntos_totales;
     $("jug-racha").textContent = resultado.racha;
   } catch (error) {
@@ -249,12 +251,23 @@ function pintarSabotajes(datos) {
     li.classList.toggle("activo", sabotaje.activo);
     const info = document.createElement("div");
     const titulo = document.createElement("strong");
-    titulo.textContent = `${sabotaje.nombre} (${sabotaje.modulo})${sabotaje.activo ? " – ACTIVO" : ""}`;
-    const descripcion = document.createElement("small");
-    descripcion.textContent = sabotaje.descripcion;
-    const nivel = document.createElement("small");
-    nivel.textContent = `Lo detecta: ${sabotaje.nivel_que_lo_detecta}`;
-    info.append(titulo, descripcion, nivel);
+    titulo.textContent = `${sabotaje.nombre} (módulo ${sabotaje.modulo})${sabotaje.activo ? " – ACTIVO" : ""}`;
+    const detalle = document.createElement("dl");
+    detalle.className = "detalle-sabotaje";
+    [
+      ["Qué sabotea", sabotaje.que_sabotea],
+      ["Lo correcto", sabotaje.comportamiento_correcto],
+      ["Con el sabotaje", sabotaje.comportamiento_saboteado],
+      ["Cómo notarlo", sabotaje.como_notarlo],
+      ["Prueba que lo detecta", sabotaje.nivel_que_lo_detecta],
+    ].forEach(([etiqueta, texto]) => {
+      const dt = document.createElement("dt");
+      dt.textContent = etiqueta;
+      const dd = document.createElement("dd");
+      dd.textContent = texto;
+      detalle.append(dt, dd);
+    });
+    info.append(titulo, detalle);
     const boton = document.createElement("button");
     boton.textContent = sabotaje.activo ? "Desactivar" : "Activar";
     boton.className = sabotaje.activo ? "secundario" : "primario";

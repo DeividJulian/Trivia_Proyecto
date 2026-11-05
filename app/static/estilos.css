@@ -125,3 +125,9 @@ th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--borde); 
   position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
   background: var(--texto); color: #fff; padding: 10px 16px; border-radius: 8px; max-width: 90%;
 }
+
+.detalle-sabotaje { margin: 8px 0 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; }
+.detalle-sabotaje dt { color: var(--suave); font-weight: 600; font-size: 0.85rem; }
+.detalle-sabotaje dd { margin: 0; font-size: 0.9rem; }
+@media (max-width: 520px) { .detalle-sabotaje { grid-template-columns: 1fr; } .detalle-sabotaje dd { margin-bottom: 6px; } }
+.sabotajes li { align-items: flex-start; }
