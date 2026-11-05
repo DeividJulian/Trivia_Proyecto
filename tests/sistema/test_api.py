@@ -38,3 +38,23 @@ def test_gestor_inyectado_vacio_se_respeta(gestor):
     app = crear_app(gestor=gestor)
 
     assert app.state.gestor is gestor
+
+
+def test_unirse_a_una_partida(cliente, partida_creada):
+    pin = partida_creada["pin"]
+
+    respuesta = cliente.post(f"/api/partidas/{pin}/jugadores", json={"nombre": "  Ana "})
+
+    assert respuesta.status_code == 201
+    assert respuesta.json()["nombre"] == "Ana"
+    assert cliente.get(f"/api/partidas/{pin}").json()["jugadores"] == ["Ana"]
+
+
+def test_unirse_con_nombre_repetido_responde_409(cliente, partida_creada):
+    url = f"/api/partidas/{partida_creada['pin']}/jugadores"
+    cliente.post(url, json={"nombre": "Ana"})
+
+    respuesta = cliente.post(url, json={"nombre": "ana"})
+
+    assert respuesta.status_code == 409
+    assert "Ya hay un jugador" in respuesta.json()["detail"]
