@@ -69,6 +69,16 @@ _registrar(
     )
 )
 
+_registrar(
+    Sabotaje(
+        clave="no_guarda_respuesta",
+        nombre="No guarda la respuesta",
+        modulo="partida",
+        descripcion="La partida suma puntos pero no registra la respuesta: se puede responder varias veces.",
+        nivel_que_lo_detecta="integración (partida) y sistema (409 al responder dos veces)",
+    )
+)
+
 # --- Estado: qué sabotajes están activos -------------------------------------------------------
 
 _activos: set[str] = set()
