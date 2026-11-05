@@ -8,6 +8,20 @@ from app.dominio.partida import Partida
 
 LIMITE = 20.0
 
+MARCADORES_MODULO = ("puntaje", "ranking", "partida", "gestor", "api", "preguntas", "sabotajes")
+MARCADORES_NIVEL = ("componente", "integracion", "sistema", "integracion_sistemas", "aceptacion")
+
+
+@pytest.fixture(autouse=True)
+def _marcadores_en_junit(request, record_property):
+    """Guarda módulo y nivel de cada prueba en el JUnit XML: el tablero de dominó los necesita."""
+    for nombre in MARCADORES_MODULO:
+        if request.node.get_closest_marker(nombre):
+            record_property("modulo", nombre)
+    for nombre in MARCADORES_NIVEL:
+        if request.node.get_closest_marker(nombre):
+            record_property("nivel", nombre)
+
 
 class RelojFalso:
     """Reloj controlable: reemplaza a time.monotonic para avanzar el tiempo sin esperar."""
