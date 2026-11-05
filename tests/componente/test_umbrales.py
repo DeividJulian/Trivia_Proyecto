@@ -2,7 +2,7 @@
 
 import pytest
 
-from performance.verificar_umbrales import Resumen, evaluar, leer_agregado
+from performance.verificar_umbrales import Resumen, evaluar, leer_agregado, supera_quiebre
 
 pytestmark = [pytest.mark.componente, pytest.mark.no_funcional]
 
@@ -39,3 +39,16 @@ def test_umbrales_con_valores_limite(p95, fallos, cumple_p95, cumple_fallos):
     resultados = evaluar(Resumen(peticiones=1000, fallos=fallos, p95_ms=p95, mediana_ms=1, rps=1))
 
     assert [cumple for *_, cumple in resultados] == [cumple_p95, cumple_fallos]
+
+
+@pytest.mark.parametrize(
+    ("fallos_pct", "p95_ms", "quiebre"),
+    [
+        (5.0, 2000.0, False),  # justo en los límites: todavía no es quiebre
+        (5.01, 100.0, True),
+        (0.0, 2000.1, True),
+        (0.5, 300.0, False),
+    ],
+)
+def test_supera_quiebre_con_valores_limite(fallos_pct, p95_ms, quiebre):
+    assert supera_quiebre(fallos_pct, p95_ms) is quiebre
