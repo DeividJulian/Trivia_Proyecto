@@ -144,10 +144,10 @@ main { padding: 20px 28px 40px; display: grid; gap: 20px; }
 
 .grafica svg { display: block; width: 100%; height: auto; overflow: visible; }
 .grafica .vacio { color: var(--texto-3); margin: 24px 0; }
-svg text { fill: var(--texto-2); font-size: 15px; font-family: inherit; }
-svg .nombre { fill: var(--texto); font-size: 17px; font-weight: 600; }
+svg text { fill: var(--texto-2); font-size: 18px; font-family: inherit; }
+svg .nombre { fill: var(--texto); font-size: 20px; font-weight: 600; }
 svg .valor { fill: var(--texto); font-variant-numeric: tabular-nums; }
-svg .diferencia { fill: var(--texto); font-weight: 700; font-size: 16px; }
+svg .diferencia { fill: var(--texto); font-weight: 700; font-size: 19px; }
 svg .eje { stroke: var(--borde); stroke-width: 1; }
 svg .rejilla { stroke: var(--rejilla); stroke-width: 1; }
 svg .barra-real { fill: var(--real); }
@@ -177,4 +177,6 @@ svg .punto-acumulado { fill: var(--linea); stroke: var(--superficie); stroke-wid
   .cifra { font-size: 2.4rem; }
   input, select { min-width: 0; width: 100%; }
   .controles, .controles label { width: 100%; }
+  .tabla th, .tabla td { white-space: nowrap; }
+  .tabla td.nota { min-width: 0; }
 }

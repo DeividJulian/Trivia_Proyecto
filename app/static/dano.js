@@ -144,8 +144,8 @@ function pintarJugadores(jugadores) {
     return;
   }
   const ancho = 640;
-  const izquierda = 150;
-  const derecha = 130;
+  const izquierda = 190; // nombres de hasta 20 caracteres
+  const derecha = 240; // espacio para el valor de la barra y la columna de diferencia sin que se monten
   const alto_barra = 20;
   const alto_fila = 2 * alto_barra + 2 + 26;
   const arriba = 8;
@@ -268,8 +268,8 @@ function pintarSabotajes(resumen, activos) {
     return;
   }
   const ancho = 640;
-  const izquierda = 210;
-  const derecha = 190;
+  const izquierda = 240; // cabe "No guarda la respuesta" en letra grande
+  const derecha = 200;
   const alto_fila = 44;
   const alto = filas.length * alto_fila;
   const maximo = Math.max(1, ...filas.map((f) => Math.abs(f.puntos_de_diferencia)));
