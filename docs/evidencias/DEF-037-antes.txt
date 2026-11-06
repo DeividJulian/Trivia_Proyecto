@@ -22,3 +22,33 @@ Diagnóstico: es_proceso() acepta cualquier proceso que tenga "locust" en CUALQU
 (rutas de logs, comandos de consola, código de python -c). Como main() deja de buscar en cuanto encuentra
 algo, si una consola con "locust" en su comando existe antes que Locust, el monitor mide esa consola toda
 la corrida.
+
+Prueba de regresión contra el código SIN la corrección (2026-11-06):
+pytest -q tests/componente/test_monitor_cpu.py -k es_proceso
+>       assert es_proceso(cmdline, "locust") is False
+E       AssertionError: assert True is False
+tests\componente\test_monitor_cpu.py:53: AssertionError
+>       assert es_proceso(cmdline, "locust") is False
+E       AssertionError: assert True is False
+tests\componente\test_monitor_cpu.py:53: AssertionError
+>       assert es_proceso(cmdline, "locust") is False
+E       assert True is False
+tests\componente\test_monitor_cpu.py:53: AssertionError
+>       assert es_proceso(cmdline, "locust") is False
+E       AssertionError: assert True is False
+tests\componente\test_monitor_cpu.py:53: AssertionError
+>       assert es_proceso(cmdline, "locust") is False
+E       AssertionError: assert True is False
+tests\componente\test_monitor_cpu.py:53: AssertionError
+        assert es_proceso(["python.exe", "-m", "uvicorn", "app.main:app"], "uvicorn") is True
+        assert es_proceso(["C:\\p\\.venv\\Scripts\\uvicorn.exe", "app.main:app"], "uvicorn") is True
+>       assert es_proceso(["cmd.exe", "/c", "set ADMIN_TOKEN=demo123 && uvicorn app.main:app"], "uvicorn") is False
+E       AssertionError: assert True is False
+tests\componente\test_monitor_cpu.py:59: AssertionError
+FAILED tests/componente/test_monitor_cpu.py::test_es_proceso_no_confunde_a_quien_solo_menciona_el_nombre[cmdline0]
+FAILED tests/componente/test_monitor_cpu.py::test_es_proceso_no_confunde_a_quien_solo_menciona_el_nombre[cmdline1]
+FAILED tests/componente/test_monitor_cpu.py::test_es_proceso_no_confunde_a_quien_solo_menciona_el_nombre[cmdline2]
+FAILED tests/componente/test_monitor_cpu.py::test_es_proceso_no_confunde_a_quien_solo_menciona_el_nombre[cmdline3]
+FAILED tests/componente/test_monitor_cpu.py::test_es_proceso_no_confunde_a_quien_solo_menciona_el_nombre[cmdline4]
+FAILED tests/componente/test_monitor_cpu.py::test_es_proceso_reconoce_uvicorn_lanzado_como_modulo_o_ejecutable
+6 failed, 6 passed, 13 deselected in 0.52s
