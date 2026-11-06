@@ -167,7 +167,6 @@ def test_impacto_tiempo_estricto_en_el_limite(partida, reloj):
     assert impacto[0]["desglose"]["tiempo_estricto"] == -1000
 
 
-@pytest.mark.xfail(strict=True, reason="DEF-033 abierto: el desglose usa la racha real ya actualizada")
 def test_desglose_con_dos_sabotajes_atribuye_cada_diferencia_a_su_sabotaje(reloj):
     """DEF-033: con racha_no_suma y bono_sin_acierto a la vez, cada diferencia va a su sabotaje."""
     preguntas = [

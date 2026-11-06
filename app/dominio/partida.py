@@ -176,6 +176,7 @@ class Partida:
                     es_correcta, tiempo_real, pregunta.tiempo_limite, jugador.racha_real
                 )
             jugador.puntos_reales += puntos_reales
+            racha_real_anterior = jugador.racha_real  # DEF-033: el desglose usa la racha previa
             jugador.racha_real = racha_real_nueva
             jugador.tiempo_total_real += tiempo_real
             self._respuestas_reales[jugador.nombre] = Respuesta(opcion=opcion, tiempo_respuesta=tiempo_real)
@@ -188,7 +189,7 @@ class Partida:
                     with sabotajes.solo_sabotajes([clave]):
                         t_clave = tiempo if clave == "respuesta_lenta" else tiempo_real
                         pts_clave, _ = calcular_puntos(
-                            es_correcta, t_clave, pregunta.tiempo_limite, jugador.racha_real
+                            es_correcta, t_clave, pregunta.tiempo_limite, racha_real_anterior
                         )
                     diff_clave = pts_clave - puntos_reales
                     if diff_clave != 0:
