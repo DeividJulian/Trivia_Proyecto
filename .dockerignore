@@ -18,3 +18,5 @@ docs/
 performance/resultados/
 scripts/
 *.md
+# Prueba del reporte predespliegue: importa scripts/, que no entra en la imagen. Solo aplica al CI (DEF-026).
+tests/componente/test_reporte_predespliegue.py
