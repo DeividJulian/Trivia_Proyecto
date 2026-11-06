@@ -381,3 +381,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Imagen de despliegue. La aplicación Python y sus dependencias no cambian. |
 | Regresión ejecutada | Pendiente del build y escaneo de imagen en CI, además de la suite completa. |
 | Estado | **Abierto** |
+
+### DEF-026 – La suite no se ejecuta dentro de la imagen Docker (error de recolección)
+| Campo | Valor |
+|---|---|
+| Detectado por | pytest dentro del contenedor (nivel sistema / despliegue), al validar la imagen con Docker local |
+| Severidad | Alta (en el despliegue el panel del Saboteador no puede ejecutar las pruebas: el tablero de dominó queda inservible) |
+| Pasos para reproducir | 1. `docker build -t testquiz:slim .` 2. `docker run --rm -e ADMIN_TOKEN=demo123 testquiz:slim python -m pytest -q -p no:cacheprovider` 3. Con el contenedor en marcha, activar `empates_mal` y llamar `POST /api/admin/pruebas`. |
+| Resultado esperado / obtenido | Esperado: la suite corre y el panel marca Ranking y Partida como CAIDO. Obtenido: `ModuleNotFoundError: No module named 'scripts'` en `tests/componente/test_reporte_predespliegue.py`, `Interrupted: 1 error during collection`, **0 pruebas ejecutadas** (código 2). El panel devolvió `pruebas: 1, fallidas: 1, por_nivel: sin_nivel` y ningún módulo caído (`DEF-026-antes.txt`). |
+| Causa encontrada (debugging) | `test_reporte_predespliegue.py` importa `scripts.reporte_predespliegue`, pero `.dockerignore` excluye `scripts/` (la imagen no lo necesita). Un solo error de recolección hace que pytest interrumpa toda la ejecución. La prueba pertenece al pipeline (evalúa el reporte predespliegue), no al servidor. |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |
