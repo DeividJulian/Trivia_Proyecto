@@ -507,3 +507,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Pendiente |
 | Regresión ejecutada | Pendiente |
 | Estado | **Abierto** |
+
+### DEF-035 – La tabla de posiciones de la ventana de daño desborda en pantallas angostas
+| Campo | Valor |
+|---|---|
+| Detectado por | Playwright (verificación real en navegador, nivel sistema, prueba de usabilidad) con pantalla de 390 px |
+| Severidad | Baja (la ventana se proyecta en pantalla grande; en el celular aparece desplazamiento horizontal) |
+| Pasos para reproducir | 1. Abrir `/dano.html` con una partida real en una pantalla de 390 px. 2. Comparar `scrollWidth` con el ancho visible. |
+| Resultado esperado / obtenido | Esperado: la página no se desplaza a lo ancho. Obtenido: 413 px de documento en 390 px de pantalla; el elemento que se sale es la tabla `tabla-posiciones` (`DEF-035-antes.txt`). A 1600 y 1280 px no hay desborde. |
+| Causa encontrada (debugging) | La tabla de respuestas está dentro de `.tabla-desplazable` (desplazamiento propio), pero la de posiciones no; con cinco columnas no cabe en 390 px menos los márgenes. |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |
