@@ -266,7 +266,7 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Resultado esperado / obtenido | Esperado: la suite completa pasa dentro de la imagen. Obtenido: `ModuleNotFoundError: performance` en `test_umbrales.py` y `test_analizar_resultados.py` |
 | Causa encontrada (debugging) | El `.dockerignore` excluía `performance/` completo y el Dockerfile no lo copiaba, pero dos pruebas de componente importan `performance.verificar_umbrales` y `performance.analizar_resultados`. |
 | Corrección | Commit `fix(docker): la imagen incluye performance/ porque las pruebas lo importan; el panel no podía correr la suite (DEF-017)`: `COPY performance ./performance`; el `.dockerignore` solo excluye `performance/resultados/`. |
-| Re-ejecución (confirmación) | Copia corregida: `pytest -q` → `254 passed`; el ejecutor del panel con `empates_mal` arma el tablero (Ranking y Partida CAIDO) (`DEF-017-despues.txt`). Pendiente confirmar con `docker build` cuando Docker esté disponible (lo hace el job de Trivy en el CI). |
+| Re-ejecución (confirmación) | Copia corregida: `pytest -q` → `254 passed`; el ejecutor del panel con `empates_mal` arma el tablero (Ranking y Partida CAIDO) (`DEF-017-despues.txt`). Confirmado después con Docker real: `docker build` y la suite dentro del contenedor (Bloque 1, ver DEF-026), y en cada ejecución del job de Trivy en el CI. |
 | Análisis de impacto | Despliegue → panel del Saboteador (`POST /api/admin/pruebas`). |
 | Regresión ejecutada | `pytest -q` → `254 passed` |
 | Estado | **Cerrado** |
