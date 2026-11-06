@@ -342,7 +342,7 @@ class Partida:
                 "opciones": list(pregunta.opciones),
                 "tiempo_limite": pregunta.tiempo_limite,
             }
-        if self.estado == EstadoPartida.RESULTADOS:
+        if self.estado == EstadoPartida.RESULTADOS and pregunta is not None:
             estado["correcta"] = pregunta.correcta
             estado["puntos_ronda"] = dict(self.puntos_ronda)
         if self.estado in (EstadoPartida.RESULTADOS, EstadoPartida.FINALIZADA):

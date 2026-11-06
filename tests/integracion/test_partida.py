@@ -249,7 +249,6 @@ def test_empate_en_puntos_lo_gana_quien_respondio_mas_rapido(reloj, preguntas):
     assert partida.jugadores["Lento"].tiempo_total == pytest.approx(10)
 
 
-@pytest.mark.xfail(strict=True, reason="DEF-028 abierto: estado_publico no comprueba la pregunta")
 def test_estado_publico_en_resultados_sin_pregunta_no_falla(partida_con_jugadores):
     """DEF-028: si el índice queda fuera de rango en RESULTADOS, el estado no debe romperse."""
     partida = partida_con_jugadores
