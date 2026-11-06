@@ -1,0 +1,9 @@
+DEF-035, evidencia después.
+Verificación real en navegador: Playwright 1.64.1 + Chromium contra uvicorn local (reloj real), commit edf76f0, 2026-11-06.
+Partida: Ana, Beto y '<b>Eva</b>'; 3 preguntas; racha_no_suma y bono_sin_acierto activos.
+
+proyector_1600x900: ancho del documento=1600 px, ancho visible=1600 px, elementos que se salen=[]
+oscuro_1280x720: ancho del documento=1280 px, ancho visible=1280 px, elementos que se salen=[]
+movil_390: ancho del documento=390 px, ancho visible=390 px, elementos que se salen=[]
+
+Captura: ventana-dano-movil.png. Prueba de regresión: test_las_tablas_se_desplazan_dentro_de_su_panel.

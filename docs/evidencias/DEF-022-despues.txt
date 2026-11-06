@@ -1,0 +1,3 @@
+Comando: .venv\Scripts\python.exe scripts\reporte_predespliegue.py --report-dir reportes --style-result success --tests-result success --mutants-result success --security-result failure --performance-result success --sonar-result pending
+Resultado: el CLI generó reportes\REPORTE_PREDESPLIEGUE.md. Código de salida 1 esperado: el reporte señala Trivy no ejecutado y SonarCloud pendiente, por lo que bloquea el despliegue.
+Cobertura comprobada en el artefacto local: 97.53 %. Mutantes: 6/6. Rendimiento local: p95 9 ms y 0 % de fallos.

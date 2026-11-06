@@ -1,0 +1,24 @@
+# Salida original de pytest guardada al detectar el defecto (antes del commit fix)
+# Fecha: 2026-11-04
+$ pytest -q tests/componente/test_preguntas.py
+
+.....F...                                                                [100%]
+================================== FAILURES ===================================
+___________________ test_json_mal_formado_indica_el_archivo ___________________
+
+tmp_path = WindowsPath('C:/Users/COREi5/AppData/Local/Temp/pytest-of-COREi5/pytest-65/test_json_mal_formado_indica_e0')
+
+    def test_json_mal_formado_indica_el_archivo(tmp_path):
+        ruta = tmp_path / "roto.json"
+        ruta.write_text("[{ esto no es json", encoding="utf-8")
+    
+>       with pytest.raises(ValueError, match="roto.json"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'roto.json'
+E         Actual message: 'Expecting property name enclosed in double quotes: line 1 column 4 (char 3)'
+
+tests\componente\test_preguntas.py:47: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/componente/test_preguntas.py::test_json_mal_formado_indica_el_archivo
+1 failed, 8 passed in 0.43s

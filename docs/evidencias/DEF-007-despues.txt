@@ -1,0 +1,16 @@
+# Re-ejecución (confirmación) y regresión tras la corrección
+# Fecha: 2026-11-04
+$ .venv/Scripts/python -m pytest -p no:cacheprovider -q tests/componente/test_preguntas.py::test_json_mal_formado_indica_el_archivo && .venv/Scripts/python -m pytest -p no:cacheprovider -q -m componente
+
+.                                                                        [100%]
+1 passed in 0.15s
+..........................................................               [100%]
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  D:\Descargas\Trivia_Proyecto\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+58 passed, 5 deselected, 1 warning in 1.36s
+
+(código de salida: 0)

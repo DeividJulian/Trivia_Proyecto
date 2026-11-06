@@ -1,0 +1,12 @@
+# Depuración (debugging) de DEF-011 con sys.settrace: variables de calcular_puntos línea por línea
+# Fecha: 2026-11-04 – versión v2-cambio-con-error
+$ set PYTHONPATH=. && python docs\evidencias\DEF-011-depurar.py
+
+línea  45: a_tiempo = es_respuesta_a_tiempo(tiempo_respuesta, tiempo_limite) | {'opcion_correcta': False, 'tiempo_respuesta': 1.0, 'tiempo_limite': 20.0, 'racha': 4}
+línea  46: nueva_racha = sumar_racha(racha, opcion_correcta and a_tiempo) | {'opcion_correcta': False, 'tiempo_respuesta': 1.0, 'tiempo_limite': 20.0, 'racha': 4, 'a_tiempo': True}
+línea  47: bono = calcular_bono_velocidad(tiempo_respuesta, tiempo_limite) | {'opcion_correcta': False, 'tiempo_respuesta': 1.0, 'tiempo_limite': 20.0, 'racha': 4, 'a_tiempo': True, 'nueva_racha': 0}
+línea  48: if not opcion_correcta:                                      | {'opcion_correcta': False, 'tiempo_respuesta': 1.0, 'tiempo_limite': 20.0, 'racha': 4, 'a_tiempo': True, 'nueva_racha': 0, 'bono': 475}
+línea  49: return bono, nueva_racha                                     | {'opcion_correcta': False, 'tiempo_respuesta': 1.0, 'tiempo_limite': 20.0, 'racha': 4, 'a_tiempo': True, 'nueva_racha': 0, 'bono': 475}
+RETORNA (475, 0)
+
+Esperado (0, 0) para una respuesta incorrecta; obtenido (475, 0)

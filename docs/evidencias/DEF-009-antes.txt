@@ -1,0 +1,148 @@
+# Hallazgo de la sesi√≥n exploratoria 1, convertido en prueba de sistema (falla antes de corregir)
+# Fecha: 2026-11-04
+$ pytest -q tests/sistema/test_validacion_entradas.py -k "entero_estricto"
+
+FFFF                                                                     [100%]
+================================== FAILURES ===================================
+________________ test_opcion_debe_ser_un_entero_estricto[True] ________________
+
+cliente = <starlette.testclient.TestClient object at 0x00000264ED348AD0>
+partida_creada = {'pin': '180750', 'token_host': 'Lr7DB4tNUux36hRoOWPlUPp3x-QrTrE6', 'estado': 'LOBBY'}
+opcion = True
+
+    @pytest.mark.parametrize("opcion", [True, False, "2", 1.0])
+    def test_opcion_debe_ser_un_entero_estricto(cliente, partida_creada, opcion):
+        """DEF-009: true, "2" o 1.0 no son opciones v·lidas; antes true contaba como la opciÛn 1."""
+        pin = partida_creada["pin"]
+        cliente.post(f"/api/partidas/{pin}/jugadores", json={"nombre": "Ana"})
+        cliente.post(f"/api/partidas/{pin}/iniciar", headers={"X-Host-Token": partida_creada["token_host"]})
+    
+        respuesta = cliente.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Ana", "opcion": opcion})
+    
+>       assert respuesta.status_code == 422
+E       assert 200 == 422
+E        +  where 200 = <Response [200 OK]>.status_code
+
+tests\sistema\test_validacion_entradas.py:32: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+2026-11-04 20:45:39,879 INFO [httpx] HTTP Request: POST http://testserver/api/partidas "HTTP/1.1 201 Created"
+----------------------------- Captured log setup ------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas "HTTP/1.1 201 Created"
+---------------------------- Captured stderr call -----------------------------
+2026-11-04 20:45:39,890 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/180750/jugadores "HTTP/1.1 201 Created"
+2026-11-04 20:45:39,900 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/180750/iniciar "HTTP/1.1 200 OK"
+2026-11-04 20:45:39,909 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/180750/respuestas "HTTP/1.1 200 OK"
+------------------------------ Captured log call ------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/180750/jugadores "HTTP/1.1 201 Created"
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/180750/iniciar "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/180750/respuestas "HTTP/1.1 200 OK"
+_______________ test_opcion_debe_ser_un_entero_estricto[False] ________________
+
+cliente = <starlette.testclient.TestClient object at 0x00000264ED34EAD0>
+partida_creada = {'pin': '224187', 'token_host': '8j_pnCuaARN2vQmtXHDLV5fZLycr7UUx', 'estado': 'LOBBY'}
+opcion = False
+
+    @pytest.mark.parametrize("opcion", [True, False, "2", 1.0])
+    def test_opcion_debe_ser_un_entero_estricto(cliente, partida_creada, opcion):
+        """DEF-009: true, "2" o 1.0 no son opciones v·lidas; antes true contaba como la opciÛn 1."""
+        pin = partida_creada["pin"]
+        cliente.post(f"/api/partidas/{pin}/jugadores", json={"nombre": "Ana"})
+        cliente.post(f"/api/partidas/{pin}/iniciar", headers={"X-Host-Token": partida_creada["token_host"]})
+    
+        respuesta = cliente.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Ana", "opcion": opcion})
+    
+>       assert respuesta.status_code == 422
+E       assert 200 == 422
+E        +  where 200 = <Response [200 OK]>.status_code
+
+tests\sistema\test_validacion_entradas.py:32: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+2026-11-04 20:45:40,285 INFO [httpx] HTTP Request: POST http://testserver/api/partidas "HTTP/1.1 201 Created"
+----------------------------- Captured log setup ------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas "HTTP/1.1 201 Created"
+---------------------------- Captured stderr call -----------------------------
+2026-11-04 20:45:40,295 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/224187/jugadores "HTTP/1.1 201 Created"
+2026-11-04 20:45:40,303 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/224187/iniciar "HTTP/1.1 200 OK"
+2026-11-04 20:45:40,312 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/224187/respuestas "HTTP/1.1 200 OK"
+------------------------------ Captured log call ------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/224187/jugadores "HTTP/1.1 201 Created"
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/224187/iniciar "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/224187/respuestas "HTTP/1.1 200 OK"
+_________________ test_opcion_debe_ser_un_entero_estricto[2] __________________
+
+cliente = <starlette.testclient.TestClient object at 0x00000264ED5AA350>
+partida_creada = {'pin': '776968', 'token_host': 'aqEAk4-gOSdPyjAtqQvWkn_Uvhtg7GoG', 'estado': 'LOBBY'}
+opcion = '2'
+
+    @pytest.mark.parametrize("opcion", [True, False, "2", 1.0])
+    def test_opcion_debe_ser_un_entero_estricto(cliente, partida_creada, opcion):
+        """DEF-009: true, "2" o 1.0 no son opciones v·lidas; antes true contaba como la opciÛn 1."""
+        pin = partida_creada["pin"]
+        cliente.post(f"/api/partidas/{pin}/jugadores", json={"nombre": "Ana"})
+        cliente.post(f"/api/partidas/{pin}/iniciar", headers={"X-Host-Token": partida_creada["token_host"]})
+    
+        respuesta = cliente.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Ana", "opcion": opcion})
+    
+>       assert respuesta.status_code == 422
+E       assert 200 == 422
+E        +  where 200 = <Response [200 OK]>.status_code
+
+tests\sistema\test_validacion_entradas.py:32: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+2026-11-04 20:45:40,362 INFO [httpx] HTTP Request: POST http://testserver/api/partidas "HTTP/1.1 201 Created"
+----------------------------- Captured log setup ------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas "HTTP/1.1 201 Created"
+---------------------------- Captured stderr call -----------------------------
+2026-11-04 20:45:40,373 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/776968/jugadores "HTTP/1.1 201 Created"
+2026-11-04 20:45:40,380 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/776968/iniciar "HTTP/1.1 200 OK"
+2026-11-04 20:45:40,388 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/776968/respuestas "HTTP/1.1 200 OK"
+------------------------------ Captured log call ------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/776968/jugadores "HTTP/1.1 201 Created"
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/776968/iniciar "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/776968/respuestas "HTTP/1.1 200 OK"
+________________ test_opcion_debe_ser_un_entero_estricto[1.0] _________________
+
+cliente = <starlette.testclient.TestClient object at 0x00000264ED5C5940>
+partida_creada = {'pin': '203052', 'token_host': 'hs-A4XliRJxWYPl0R7q50qlObefCnOFF', 'estado': 'LOBBY'}
+opcion = 1.0
+
+    @pytest.mark.parametrize("opcion", [True, False, "2", 1.0])
+    def test_opcion_debe_ser_un_entero_estricto(cliente, partida_creada, opcion):
+        """DEF-009: true, "2" o 1.0 no son opciones v·lidas; antes true contaba como la opciÛn 1."""
+        pin = partida_creada["pin"]
+        cliente.post(f"/api/partidas/{pin}/jugadores", json={"nombre": "Ana"})
+        cliente.post(f"/api/partidas/{pin}/iniciar", headers={"X-Host-Token": partida_creada["token_host"]})
+    
+        respuesta = cliente.post(f"/api/partidas/{pin}/respuestas", json={"nombre": "Ana", "opcion": opcion})
+    
+>       assert respuesta.status_code == 422
+E       assert 200 == 422
+E        +  where 200 = <Response [200 OK]>.status_code
+
+tests\sistema\test_validacion_entradas.py:32: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+2026-11-04 20:45:40,435 INFO [httpx] HTTP Request: POST http://testserver/api/partidas "HTTP/1.1 201 Created"
+----------------------------- Captured log setup ------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas "HTTP/1.1 201 Created"
+---------------------------- Captured stderr call -----------------------------
+2026-11-04 20:45:40,444 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/203052/jugadores "HTTP/1.1 201 Created"
+2026-11-04 20:45:40,451 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/203052/iniciar "HTTP/1.1 200 OK"
+2026-11-04 20:45:40,457 INFO [httpx] HTTP Request: POST http://testserver/api/partidas/203052/respuestas "HTTP/1.1 200 OK"
+------------------------------ Captured log call ------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/203052/jugadores "HTTP/1.1 201 Created"
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/203052/iniciar "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/partidas/203052/respuestas "HTTP/1.1 200 OK"
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  D:\Descargas\Trivia_Proyecto\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/sistema/test_validacion_entradas.py::test_opcion_debe_ser_un_entero_estricto[True]
+FAILED tests/sistema/test_validacion_entradas.py::test_opcion_debe_ser_un_entero_estricto[False]
+FAILED tests/sistema/test_validacion_entradas.py::test_opcion_debe_ser_un_entero_estricto[2]
+FAILED tests/sistema/test_validacion_entradas.py::test_opcion_debe_ser_un_entero_estricto[1.0]
+4 failed, 8 deselected, 1 warning in 0.69s
+
+(c√≥digo de salida: 1)

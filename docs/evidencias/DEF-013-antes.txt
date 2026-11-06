@@ -1,0 +1,27 @@
+# Hallazgos de Ruff en app/calidad/ejecutor.py, mostrados ignorando los noqa
+# Fecha: 2026-11-04
+$ ruff check app/calidad --ignore-noqa
+
+S314 Using `xml` to parse untrusted data is known to be vulnerable to XML attacks; use `defusedxml` equivalents
+  --> app\calidad\ejecutor.py:54:12
+   |
+52 | def leer_junit(ruta: Path) -> list[ResultadoPrueba]:
+53 |     """Lee el JUnit XML de pytest (con las propiedades módulo y nivel que agrega el conftest)."""
+54 |     raiz = ET.parse(ruta).getroot()  # noqa: S314 - XML generado localmente por pytest, no es entrada externa
+   |            ^^^^^^^^^^^^^^
+55 |     resultados = []
+56 |     for caso in raiz.iter("testcase"):
+   |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> app\calidad\ejecutor.py:131:19
+    |
+129 |         entorno = {**os.environ, "SABOTAJES": ",".join(sabotajes)}
+130 |         inicio = time.perf_counter()
+131 |         proceso = subprocess.run(  # noqa: S603 - ejecuta pytest con argumentos propios, sin shell
+    |                   ^^^^^^^^^^^^^^
+132 |             [*comando, *(argumentos or [])],
+133 |             cwd=RAIZ,
+    |
+
+Found 2 errors.

@@ -1,0 +1,14 @@
+# Con los noqa justificados línea por línea
+# Fecha: 2026-11-04
+$ ruff check app/calidad scripts
+All checks passed!
+
+$ ruff check app/calidad scripts --ignore-noqa   # lo que queda aceptado
+app\calidad\ejecutor.py:54:12: S314 Using `xml` to parse untrusted data is known to be vulnerable to XML attacks; use `defusedxml` equivalents
+app\calidad\ejecutor.py:131:19: S603 `subprocess` call: check for execution of untrusted input
+scripts\regresion_por_impacto.py:21:1: E402 Module level import not at top of file
+scripts\regresion_por_impacto.py:29:14: S603 `subprocess` call: check for execution of untrusted input
+scripts\regresion_por_impacto.py:60:12: S603 `subprocess` call: check for execution of untrusted input
+scripts\verificar_mutantes.py:23:1: E402 Module level import not at top of file
+scripts\verificar_mutantes.py:33:15: S603 `subprocess` call: check for execution of untrusted input
+Found 7 errors.

@@ -1,0 +1,9 @@
+SonarQube Cloud, rama feature/sonar, análisis del commit f0f1ed1 (GitHub Actions run 42257204499). API pública:
+GET https://sonarcloud.io/api/issues/search?componentKeys=DeividJulian_Trivia_Proyecto&branch=feature/sonar&rules=javascript:S9383
+
+BUG MAJOR javascript:S9383 app/static/app.js:207
+  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator.
+  impactos: [{'softwareQuality': 'RELIABILITY', 'severity': 'MEDIUM'}]
+  clave: AaGxzdc-J4N3lUY5zV0x
+
+Total: 1

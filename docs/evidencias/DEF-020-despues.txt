@@ -1,0 +1,5 @@
+Comando: .venv\Scripts\ruff.exe check scripts\reporte_predespliegue.py tests\componente\test_reporte_predespliegue.py tests\integracion_sistemas\test_humo.py
+Resultado: All checks passed!
+
+Comando: .venv\Scripts\pytest.exe -q tests\componente\test_reporte_predespliegue.py tests\integracion_sistemas\test_humo.py
+Resultado: 8 passed, 2 skipped (APP_URL no está configurada).

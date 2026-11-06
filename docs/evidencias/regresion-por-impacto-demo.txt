@@ -1,0 +1,15 @@
+# Demostración de la regresión selectiva: copia de trabajo aparte (git worktree) en la que SOLO cambia app/dominio/ranking.py
+# Fecha: 2026-11-04
+$ python scripts\regresion_por_impacto.py --base HEAD
+
+Archivos cambiados respecto de HEAD: 1
+  - app/dominio/ranking.py
+Plan: Cambiaron Ranking; afectados: API, Ranking.
+Comando: pytest -q -m "api or ranking"
+============================== warnings summary ===============================
+D:\Descargas\Trivia_Proyecto\.venv\Lib\site-packages\fastapi\testclient.py:1
+  D:\Descargas\Trivia_Proyecto\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+71 passed, 132 deselected, 1 warning in 1.70s

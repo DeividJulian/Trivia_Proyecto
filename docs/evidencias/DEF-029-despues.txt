@@ -1,0 +1,6 @@
+SonarQube Cloud, rama feature/sonar, re-análisis del commit bce04eb (GitHub Actions run 42262436047, 2026-11-06). API pública.
+
+  [OK] new_coverage real=97.6 umbral LT 80 (umbral sin cambios)
+
+Cobertura del proyecto: coverage=97.6 lines_to_cover=943 uncovered_lines=23
+Las 23 líneas sin cubrir son las mismas que reporta pytest-cov. app/static/** sigue analizado para bugs y code smells (S9383 y S6850 se detectaron y se cerraron en esa carpeta).

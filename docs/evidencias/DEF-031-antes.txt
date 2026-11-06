@@ -1,0 +1,14 @@
+SonarQube Cloud, rama feature/sonar, análisis del commit f0f1ed1 (GitHub Actions run 42257204499). API pública:
+GET https://sonarcloud.io/api/issues/search?componentKeys=DeividJulian_Trivia_Proyecto&branch=feature/sonar&rules=pythonsecurity:S5145
+
+VULNERABILITY MINOR pythonsecurity:S5145 app/api/admin.py:83
+  Log Injection via HTTP request in admin.activar()
+  impactos: [{'softwareQuality': 'SECURITY', 'severity': 'LOW'}]
+  clave: AaGxzdbLJ4N3lUY5zV0s
+
+VULNERABILITY MINOR pythonsecurity:S5145 app/api/admin.py:91
+  Log Injection via HTTP request in admin.desactivar()
+  impactos: [{'softwareQuality': 'SECURITY', 'severity': 'LOW'}]
+  clave: AaGxzdbLJ4N3lUY5zV0r
+
+Total: 2

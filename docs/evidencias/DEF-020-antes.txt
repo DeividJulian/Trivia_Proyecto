@@ -1,0 +1,23 @@
+Comando: .venv\Scripts\ruff.exe check scripts\reporte_predespliegue.py tests\componente\test_reporte_predespliegue.py tests\integracion_sistemas\test_humo.py
+
+S314 Using `xml` to parse untrusted data is known to be vulnerable to XML attacks; use `defusedxml` equivalents
+  --> scripts\reporte_predespliegue.py:35:16
+   |
+33 | def leer_junit(ruta: Path, nombre: str) -> Compuerta:
+34 |     try:
+35 |         raiz = ET.parse(ruta).getroot()
+   |                ^^^^^^^^^^^^^^
+36 |     except FileNotFoundError:
+37 |         return Compuerta(nombre, "FALLIDA", f"falta {ruta.name}")
+   |
+
+S314 Using `xml` to parse untrusted data is known to be vulnerable to XML attacks; use `defusedxml` equivalents
+  --> scripts\reporte_predespliegue.py:51:16
+   |
+49 | def leer_cobertura(ruta: Path) -> Compuerta:
+50 |     try:
+51 |         raiz = ET.parse(ruta).getroot()
+   |                ^^^^^^^^^^^^^^
+52 |         cobertura = float(raiz.attrib["line-rate"]) * 100
+53 |     except FileNotFoundError:
+   |

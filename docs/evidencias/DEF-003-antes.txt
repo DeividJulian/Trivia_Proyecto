@@ -1,0 +1,8 @@
+# Reproducción con la configuración de pre-commit del commit 83c1ed4 (hook 'ruff')
+# Fecha: 2026-11-04
+$ .venv/Scripts/pre-commit run --config precommit_83c1ed4.yaml --all-files
+
+ruff (legacy alias)......................................................Passed
+ruff format..............................................................Passed
+
+(código de salida: 0)

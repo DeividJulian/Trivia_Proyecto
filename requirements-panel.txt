@@ -1,0 +1,5 @@
+# Dependencias de la imagen Docker: la app + lo necesario para que el panel del Saboteador
+# ejecute la suite de pruebas dentro del servidor (POST /api/admin/pruebas).
+-r requirements.txt
+pytest==9.2.0
+httpx==0.28.1

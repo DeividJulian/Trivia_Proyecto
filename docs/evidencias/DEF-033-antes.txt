@@ -1,0 +1,9 @@
+DEF-033, evidencia antes (2026-11-06). Detectado por pytest (sistema) al escribir el contrato de la ventana de daño y reproducido a nivel de integración:
+pytest -q tests/integracion/test_impacto_sabotaje.py::test_desglose_con_dos_sabotajes_atribuye_cada_diferencia_a_su_sabotaje
+E       AssertionError: assert {'respuestas_...rencia': 1050} == {'respuestas_...erencia': 950}
+E         
+E         Differing items:
+E         {'respuestas_afectadas': 3} != {'respuestas_afectadas': 2}
+E         {'puntos_de_diferencia': 1050} != {'puntos_de_diferencia': 950}
+E         Use -v to get more diff
+1 failed in 0.12s

@@ -1,0 +1,20 @@
+# Re-ejecución (confirmación) y regresión tras las DOS correcciones (commits 2ef43b4 y 52a1e20)
+# Fecha: 2026-11-04
+
+## Confirmación 1 (tras 2ef43b4: validar el PIN) -> FALLÓ: el 422 estándar repetía la entrada
+$ pytest -q tests/sistema/test_validacion_entradas.py -k pin_con_formato
+E       assert 455 < 400
+E        +  where 455 = len('{"detail":[{"type":"string_pattern_mismatch","loc":["path","pin"],"msg":"String should match pattern \'^\\\\d{6}$\'",...999999999999999999999999999999999999999999999999999
+E        +    where '{"detail":[{"type":"string_pattern_mismatch","loc":["path","pin"],"msg":"String should match pattern \'^\\\\d{6}$\'",...99999999999999999999999999999999999999999999999999999999999
+FAILED tests/sistema/test_validacion_entradas.py::test_pin_con_formato_invalido_responde_422_sin_repetir_la_entrada[pin3]
+1 failed, 3 passed, 8 deselected, 1 warning in 0.51s
+
+## Confirmación 2 (tras 52a1e20: 422 sin la entrada)
+$ pytest -q tests/sistema/test_validacion_entradas.py -k "pin_con_formato or websocket_con_pin_largo"
+5 passed, 7 deselected, 1 warning in 0.27s
+
+$ pytest -q -m api   # regresión selectiva
+63 passed, 106 deselected, 1 warning in 4.24s
+
+$ pytest -q   # suite completa
+169 passed, 1 warning in 6.58s

@@ -1,0 +1,22 @@
+# Lo que no debe entrar en la imagen
+.venv/
+venv/
+.git/
+.github/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+reportes/
+docs/
+performance/resultados/
+scripts/
+*.md
+# Prueba del reporte predespliegue: importa scripts/, que no entra en la imagen. Solo aplica al CI (DEF-026).
+tests/componente/test_reporte_predespliegue.py

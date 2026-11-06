@@ -1,0 +1,20 @@
+# Actualizaciones de seguridad de lo que está fijado por SHA o por digest.
+# Dependabot propone un PR contra develop con el SHA o el digest nuevo; el PR pasa por todo el
+# pipeline (Trivy incluido) antes de unirse. Dependabot solo lee este archivo desde la rama por
+# defecto (main): empieza a funcionar cuando se integre en main en el cierre.
+version: 2
+updates:
+  - package-ecosystem: docker
+    directory: "/"
+    target-branch: develop
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(docker)"
+  - package-ecosystem: github-actions
+    directory: "/"
+    target-branch: develop
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"

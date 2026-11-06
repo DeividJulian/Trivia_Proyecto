@@ -1,0 +1,112 @@
+﻿Diagnostico DEF-025 (solo diagnostico; el CI NO usa --ignore-unfixed). Fecha: 2026-11-06. Trivy 0.76.1.
+Imagen: testquiz:slim (base python:3.12-slim, Debian 13)
+
+1) trivy image --scanners vuln --severity HIGH,CRITICAL --format json testquiz:slim
+   Total: 46  Por estado: {'affected': 45, 'fix_deferred': 1}  Con FixedVersion: 0
+   Por paquete:
+     bsdutils 1:2.41.5-0+deb13u1 -> 4
+     libacl1 2.3.2-2+b1 -> 1
+     libblkid1 2.41.5-0+deb13u1 -> 4
+     liblastlog2-2 2.41.5-0+deb13u1 -> 4
+     libmount1 2.41.5-0+deb13u1 -> 4
+     libncursesw6 6.5+20250216-2 -> 1
+     libsmartcols1 2.41.5-0+deb13u1 -> 4
+     libsqlite3-0 3.46.1-7+deb13u2 -> 1
+     libsystemd0 257.13-1~deb13u1 -> 1
+     libtinfo6 6.5+20250216-2 -> 1
+     libudev1 257.13-1~deb13u1 -> 1
+     libuuid1 2.41.5-0+deb13u1 -> 4
+     login 1:4.16.0-2+really2.41.5-0+deb13u1 -> 4
+     mount 2.41.5-0+deb13u1 -> 4
+     ncurses-base 6.5+20250216-2 -> 1
+     ncurses-bin 6.5+20250216-2 -> 1
+     perl-base 5.40.1-6+deb13u1 -> 1
+     util-linux 2.41.5-0+deb13u1 -> 4
+     zlib1g 1:1.3.dfsg+really1.3.1-1+b1 -> 1
+   Con estado fix_deferred: [('CVE-2026-9538', 'perl-base')]
+
+2) trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed testquiz:slim
+
+Report Summary
+
+┌──────────────────────────────────────────────────────────────────────────────────┬────────────┬─────────────────┐
+│                                      Target                                      │    Type    │ Vulnerabilities │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ testquiz:slim (debian 13.7)                                                      │   debian   │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/annotated_doc-0.0.5.dist-info/METADATA    │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/annotated_types-0.8.0.dist-info/METADATA  │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/anyio-4.16.0.dist-info/METADATA           │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/certifi-2026.10.23.dist-info/METADATA     │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/click-8.5.0.dist-info/METADATA            │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/fastapi-0.162.0.dist-info/METADATA        │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/h11-0.16.0.dist-info/METADATA             │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/httpcore-1.0.9.dist-info/METADATA         │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/httptools-0.9.0.dist-info/METADATA        │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/httpx-0.28.1.dist-info/METADATA           │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/idna-3.20.dist-info/METADATA              │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/iniconfig-2.3.1.dist-info/METADATA        │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/opentelemetry_api-1.45.2.dist-info/METAD- │ python-pkg │        0        │
+│ ATA                                                                              │            │                 │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/packaging-26.3.dist-info/METADATA         │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/pluggy-1.7.0.dist-info/METADATA           │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/pydantic-2.14.2.dist-info/METADATA        │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/pydantic_core-2.50.2.dist-info/METADATA   │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/pygments-2.21.0.dist-info/METADATA        │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/pytest-9.2.0.dist-info/METADATA           │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/python_dotenv-1.2.4.dist-info/METADATA    │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/pyyaml-6.0.3.dist-info/METADATA           │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/starlette-1.10.0.dist-info/METADATA       │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/typing_extensions-4.16.0.dist-info/METAD- │ python-pkg │        0        │
+│ ATA                                                                              │            │                 │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/typing_inspection-0.4.5.dist-info/METADA- │ python-pkg │        0        │
+│ TA                                                                               │            │                 │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/uvicorn-0.54.0.dist-info/METADATA         │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/uvloop-0.23.0.dist-info/METADATA          │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/watchfiles-1.3.0.dist-info/METADATA       │ python-pkg │        0        │
+├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┤
+│ usr/local/lib/python3.12/site-packages/websockets-17.4.dist-info/METADATA        │ python-pkg │        0        │
+└──────────────────────────────────────────────────────────────────────────────────┴────────────┴─────────────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+
+3) Documentación oficial de Trivy v0.76.1 (github.com/aquasecurity/trivy, tag v0.76.1)
+   docs/guide/coverage/os/alpine.md:
+     |       Unfixed vulnerabilities        |     -     |      (no soportado)
+     Estados soportados para Alpine: Fixed ✓, Affected ✓; Under Investigation, Will Not Fix,
+     Fix Deferred y End of Life: no soportados.
+   docs/guide/coverage/os/debian.md:
+     |       Unfixed vulnerabilities        |     ✓     |
+     Estados soportados para Debian incluyen Affected ✓ y Fix Deferred ✓.
+
+Conclusión: en slim ninguna de las 46 tenía versión corregida (con --ignore-unfixed el resultado es 0),
+así que actualizar paquetes con apt no las resolvía. En Alpine, Trivy solo informa vulnerabilidades
+que ya tienen parche: el 0 de testquiz:alpine significa "sin hallazgos reportados", no "riesgo cero".

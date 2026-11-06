@@ -18,9 +18,39 @@ Exposición: 9 de noviembre de 2026.
 | Integrante | Rol principal |
 |---|---|
 | Deivid Julián Alvarado | Desarrollo backend y automatización de pruebas |
-| Integrante 2 | Plan de pruebas, aceptación y pruebas exploratorias |
-| Integrante 3 | Rendimiento, seguridad y despliegue |
+| Juan Maya | Plan de pruebas, aceptación, impacto del sabotaje y corrección de calidad |
+| Jack Limas | Rendimiento, seguridad, integración continua y despliegue |
 
 ## Tecnologías
 
 Python 3.12 · FastAPI · Pydantic v2 · Uvicorn · WebSockets
+
+## Ejecutar en local (CMD de Windows)
+
+```cmd
+cd D:\Descargas\Trivia_Proyecto
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements-dev.txt
+set ADMIN_TOKEN=demo123
+uvicorn app.main:app --port 8000 --timeout-keep-alive 75
+```
+
+- Front de demostración: <http://127.0.0.1:8000/>
+  - **Profesor:** crea la partida, muestra el PIN, inicia y avanza las preguntas.
+  - **Jugador:** se une con el PIN (abrir en otra pestaña o en el celular, misma red) y responde.
+  - **Saboteador:** con el token `demo123` activa mutantes, ejecuta las pruebas (tablero de dominó) y monitorea el **Impacto del sabotaje en tiempo real** (puntos mostrados vs reales por jugador, diferencias acumuladas, posiciones alteradas y últimas respuestas afectadas con su causa).
+- Documentación de la API: <http://127.0.0.1:8000/docs>
+- Contratos y variables de entorno: [docs/API.md](docs/API.md).
+- Pruebas: `pytest -q` · mutantes: `python scripts\verificar_mutantes.py`
+
+## CI y despliegue
+
+El workflow ejecuta Ruff, pruebas separadas por nivel con cobertura, mutantes, Trivy sobre el
+repositorio/configuración/imagen y carga con Locust. En el repositorio de GitHub se deben definir
+el secreto `RENDER_DEPLOY_HOOK` y la variable `APP_URL` para activar despliegue y humo. Render
+usa el blueprint [render.yaml](render.yaml), con `autoDeploy: false`.
+
+La integración SonarCloud se aplazó hasta el final. Hasta agregar y aprobar esa compuerta, el
+reporte de predespliegue debe indicar **NO DESPLEGAR** y el job no publica un release.
+El informe `REPORTE_PREDESPLIEGUE.md` se genera como artefacto del pipeline de `main`.

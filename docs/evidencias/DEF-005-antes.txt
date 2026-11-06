@@ -1,0 +1,55 @@
+# Reproducción: la prueba de seguridad escrita con literales, como la versión original antes de corregir
+# Fecha: 2026-11-04
+$ .venv/Scripts/python -m ruff check --isolated --select S105,S106 tests/sistema/_reproduccion_def005.py
+
+S106 Possible hardcoded password assigned to argument: "admin_token"
+  --> tests\sistema\_reproduccion_def005.py:15:57
+   |
+14 | def test_respuestas_incluyen_cabeceras_de_seguridad():
+15 |     cliente = TestClient(crear_app(config=Configuracion(admin_token="demo")))
+   |                                                         ^^^^^^^^^^^^^^^^^^
+16 |
+17 |     respuesta = cliente.get("/salud")
+   |
+
+S106 Possible hardcoded password assigned to argument: "admin_token"
+  --> tests\sistema\_reproduccion_def005.py:25:57
+   |
+24 | def test_cabeceras_tambien_en_rutas_inexistentes():
+25 |     cliente = TestClient(crear_app(config=Configuracion(admin_token="demo")))
+   |                                                         ^^^^^^^^^^^^^^^^^^
+26 |
+27 |     respuesta = cliente.get("/no-existe")
+   |
+
+S106 Possible hardcoded password assigned to argument: "admin_token"
+  --> tests\sistema\_reproduccion_def005.py:42:21
+   |
+41 | def test_admin_token_explicito_reemplaza_al_de_la_configuracion():
+42 |     app = crear_app(admin_token="otro", config=Configuracion(admin_token="demo"))
+   |                     ^^^^^^^^^^^^^^^^^^
+43 |
+44 |     assert app.state.config.admin_token == "otro"
+   |
+
+S106 Possible hardcoded password assigned to argument: "admin_token"
+  --> tests\sistema\_reproduccion_def005.py:42:62
+   |
+41 | def test_admin_token_explicito_reemplaza_al_de_la_configuracion():
+42 |     app = crear_app(admin_token="otro", config=Configuracion(admin_token="demo"))
+   |                                                              ^^^^^^^^^^^^^^^^^^
+43 |
+44 |     assert app.state.config.admin_token == "otro"
+   |
+
+S105 Possible hardcoded password assigned to: "admin_token"
+  --> tests\sistema\_reproduccion_def005.py:44:44
+   |
+42 |     app = crear_app(admin_token="otro", config=Configuracion(admin_token="demo"))
+43 |
+44 |     assert app.state.config.admin_token == "otro"
+   |                                            ^^^^^^
+
+Found 5 errors.
+
+(código de salida: 1)

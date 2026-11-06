@@ -16,3 +16,7 @@ __pycache__/
 coverage.xml
 htmlcov/
 reportes/
+
+# Resultados de Locust: los CSV no se suben (las gráficas y reportes finales sí)
+performance/resultados/*.csv
+performance/resultados/*.log

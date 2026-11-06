@@ -1,0 +1,112 @@
+[
+  {
+    "texto": "Según ISTQB, ¿cuál es la diferencia entre un error (equivocación) y un defecto?",
+    "opciones": [
+      "Son exactamente lo mismo",
+      "El error es una acción humana; el defecto es la imperfección que queda en el producto",
+      "El defecto es una acción humana; el error está en el código",
+      "El error solo ocurre en producción"
+    ],
+    "correcta": 1,
+    "tiempo_limite": 20
+  },
+  {
+    "texto": "¿Qué principio de ISTQB dice que las pruebas exhaustivas son imposibles?",
+    "opciones": [
+      "Las pruebas muestran la presencia de defectos",
+      "La paradoja del pesticida",
+      "Las pruebas exhaustivas son imposibles",
+      "Agrupación de defectos"
+    ],
+    "correcta": 2,
+    "tiempo_limite": 20
+  },
+  {
+    "texto": "La «paradoja del pesticida» indica que...",
+    "opciones": [
+      "Repetir siempre las mismas pruebas deja de encontrar defectos nuevos",
+      "Los defectos se concentran en pocos módulos",
+      "Probar pronto ahorra dinero",
+      "Las pruebas dependen del contexto"
+    ],
+    "correcta": 0,
+    "tiempo_limite": 20
+  },
+  {
+    "texto": "¿Qué técnica de caja negra prueba los valores en los extremos de una partición?",
+    "opciones": [
+      "Tabla de decisión",
+      "Partición de equivalencia",
+      "Análisis de valores límite",
+      "Prueba de transición de estados"
+    ],
+    "correcta": 2,
+    "tiempo_limite": 20
+  },
+  {
+    "texto": "¿Qué nivel de prueba verifica la interacción entre componentes o sistemas?",
+    "opciones": [
+      "Prueba de componente",
+      "Prueba de integración",
+      "Prueba de aceptación",
+      "Prueba alfa"
+    ],
+    "correcta": 1,
+    "tiempo_limite": 20
+  },
+  {
+    "texto": "Una revisión de código sin ejecutarlo es un ejemplo de...",
+    "opciones": [
+      "Prueba dinámica",
+      "Prueba de carga",
+      "Prueba estática",
+      "Prueba de regresión"
+    ],
+    "correcta": 2,
+    "tiempo_limite": 20
+  },
+  {
+    "texto": "¿Qué tipo de prueba se repite tras un cambio para comprobar que no se dañó lo que ya funcionaba?",
+    "opciones": [
+      "Prueba de confirmación",
+      "Prueba de regresión",
+      "Prueba exploratoria",
+      "Prueba de humo"
+    ],
+    "correcta": 1,
+    "tiempo_limite": 20
+  },
+  {
+    "texto": "En las pruebas de mutación, un mutante «muerto» es aquel que...",
+    "opciones": [
+      "No compila",
+      "Hace que al menos una prueba falle",
+      "Pasa todas las pruebas",
+      "Se borró del código"
+    ],
+    "correcta": 1,
+    "tiempo_limite": 20
+  },
+  {
+    "texto": "¿Qué técnica de caja blanca exige ejecutar cada rama de decisión al menos una vez?",
+    "opciones": [
+      "Cobertura de sentencias",
+      "Cobertura de decisiones",
+      "Partición de equivalencia",
+      "Prueba basada en la experiencia"
+    ],
+    "correcta": 1,
+    "tiempo_limite": 20
+  },
+  {
+    "texto": "¿Quiénes realizan normalmente las pruebas de aceptación de usuario?",
+    "opciones": [
+      "Solo los desarrolladores",
+      "Los usuarios o representantes del negocio",
+      "Un compilador",
+      "El equipo de infraestructura"
+    ],
+    "correcta": 1,
+    "tiempo_limite": 20
+  }
+]

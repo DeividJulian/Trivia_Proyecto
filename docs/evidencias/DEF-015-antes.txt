@@ -1,0 +1,35 @@
+# Hallazgos de la prueba de estrÃ©s local (quiebre_local) antes de corregir
+# Fecha: 2026-11-04 â€“ servidor: uvicorn app.main:app --port 8000 (keep-alive por defecto: 5 s)
+$ locust -f performance\punto_quiebre.py --host http://127.0.0.1:8000 --headless --csv performance\resultados\quiebre_local --csv-full-history
+
+## performance/resultados/quiebre_local_failures.csv
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,POST /iniciar,"ConnectionResetError(10054, 'Se ha forzado la interrupción de una conexión existente por el host remoto', None, 10054, None)",12,2026-11-05T03:08:18Z,2026-11-05T03:13:15Z
+POST,POST /iniciar,"ConnectionAbortedError(10053, 'Se ha anulado una conexión establecida por el software en su equipo host', None, 10053, None)",5,2026-11-05T03:06:57Z,2026-11-05T03:13:22Z
+POST,POST /siguiente,HTTPError('409 Client Error: Conflict for url: POST /siguiente'),21,2026-11-05T03:07:00Z,2026-11-05T03:13:25Z
+POST,POST /iniciar,RemoteDisconnected('Remote end closed connection without response'),4,2026-11-05T03:09:50Z,2026-11-05T03:13:15Z
+
+## Escalones
+Escalón 1: 50 usuarios, 821 peticiones, fallos 0.24 %, p95 7 ms
+Escalón 2: 100 usuarios, 1685 peticiones, fallos 0.00 %, p95 7 ms
+Escalón 3: 150 usuarios, 2592 peticiones, fallos 0.00 %, p95 11 ms
+Escalón 4: 200 usuarios, 3394 peticiones, fallos 0.00 %, p95 15 ms
+Escalón 5: 250 usuarios, 4274 peticiones, fallos 0.05 %, p95 15 ms
+Escalón 6: 300 usuarios, 4978 peticiones, fallos 0.08 %, p95 16 ms
+Escalón 7: 350 usuarios, 5729 peticiones, fallos 0.00 %, p95 20 ms
+Escalón 8: 400 usuarios, 6435 peticiones, fallos 0.03 %, p95 21 ms
+Escalón 9: 450 usuarios, 7452 peticiones, fallos 0.00 %, p95 27 ms
+Escalón 10: 500 usuarios, 8056 peticiones, fallos 0.02 %, p95 26 ms
+Escalón 11: 550 usuarios, 9004 peticiones, fallos 0.00 %, p95 41 ms
+Escalón 12: 600 usuarios, 9563 peticiones, fallos 0.02 %, p95 50 ms
+Escalón 13: 650 usuarios, 9856 peticiones, fallos 0.02 %, p95 88 ms
+Escalón 14: 700 usuarios, 10920 peticiones, fallos 0.02 %, p95 67 ms
+Escalón 15: 750 usuarios, 12105 peticiones, fallos 0.02 %, p95 55 ms
+CPU usage above 90%! This may constrain your throughput and may even give inconsistent response time measurements! See https://docs.locust.io/en/stable/running-distributed.html for how to distribute the load over multiple CPU cores or machines
+Escalón 16: 800 usuarios, 12673 peticiones, fallos 0.03 %, p95 80 ms
+Escalón 17: 850 usuarios, 12617 peticiones, fallos 0.02 %, p95 140 ms
+Escalón 18: 900 usuarios, 12494 peticiones, fallos 0.02 %, p95 220 ms
+Escalón 19: 950 usuarios, 14595 peticiones, fallos 0.03 %, p95 130 ms
+Escalón 20: 1000 usuarios, 14054 peticiones, fallos 0.07 %, p95 170 ms
+Se alcanzó QUIEBRE_MAXIMO=1000 sin llegar al punto de quiebre.
+CPU usage was too high at some point during the test! See https://docs.locust.io/en/stable/running-distributed.html for how to distribute the load over multiple CPU cores or machines
