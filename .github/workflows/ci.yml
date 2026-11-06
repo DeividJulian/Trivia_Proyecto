@@ -76,7 +76,7 @@ jobs:
         with:
           fetch-depth: 0 # Sonar necesita el historial para calcular el código nuevo y los autores
       - name: Descargar la cobertura del job de pruebas
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: evidencias-pruebas
           path: reportes
@@ -250,35 +250,35 @@ jobs:
       - name: Descargar evidencia de pruebas
         if: always()
         continue-on-error: true
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: evidencias-pruebas
           path: reportes
       - name: Descargar evidencia de Sonar
         if: always()
         continue-on-error: true
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: evidencias-sonar
           path: reportes
       - name: Descargar evidencia de mutantes
         if: always()
         continue-on-error: true
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: evidencias-mutantes
           path: reportes
       - name: Descargar evidencia de Trivy
         if: always()
         continue-on-error: true
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: evidencias-trivy
           path: reportes
       - name: Descargar evidencia de rendimiento
         if: always()
         continue-on-error: true
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: evidencias-rendimiento
           path: reportes/performance
@@ -361,7 +361,7 @@ jobs:
       - name: Ejecutar pruebas de humo
         run: pytest -q -m integracion_sistemas
       - name: Descargar reporte de predespliegue
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: REPORTE_PREDESPLIEGUE
           path: reportes
