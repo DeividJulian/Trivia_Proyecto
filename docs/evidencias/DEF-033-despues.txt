@@ -1,0 +1,11 @@
+DEF-033, evidencia después (2026-11-06), tras d5de874.
+
+== pytest -q tests/integracion/test_impacto_sabotaje.py
+6 passed in 0.04s
+
+== Escenario de la demo por HTTP (racha_no_suma + bono_sin_acierto; Ana acierta en el límite, Beto falla rápido)
+  P1 Beto  mostrados=  475 reales=    0 dif= +475  recibió +475 que no le correspondían (bono_sin_acierto)
+  P1 Ana   mostrados= 1000 reales= 1000 dif=   +0  correcta
+  P2 Beto  mostrados=  475 reales=    0 dif= +475  recibió +475 que no le correspondían (bono_sin_acierto)
+  P2 Ana   mostrados= 1000 reales= 1100 dif= -100  perdió 100 pts por racha no sumada (racha_no_suma)
+  resumen_por_sabotaje: {"racha_no_suma": {"respuestas_afectadas": 1, "puntos_de_diferencia": -100}, "bono_sin_acierto": {"respuestas_afectadas": 2, "puntos_de_diferencia": 950}}

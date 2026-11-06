@@ -488,11 +488,11 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Pasos para reproducir | 1. Activar `racha_no_suma` y `bono_sin_acierto`. 2. Ana responde bien 2 preguntas en el límite y Beto responde mal y rápido. 3. Leer `resumen_por_sabotaje()` e `impacto_por_jugador()`. |
 | Resultado esperado / obtenido | Esperado: `bono_sin_acierto` 2 respuestas / +950 y `racha_no_suma` 1 respuesta / −100. Obtenido: `bono_sin_acierto` 3 / +1050 y `racha_no_suma` 0 / 0; los −100 de Ana aparecen como +100 de `bono_sin_acierto` (`DEF-033-antes.txt`). La nota de la respuesta sí era correcta. |
 | Causa encontrada (debugging) | En `Partida.responder`, cuando hay más de un sabotaje activo se recalcula la respuesta con cada sabotaje por separado (`solo_sabotajes([clave])`). Ese cálculo usa `jugador.racha_real`, pero esa racha ya se actualizó unas líneas antes con el acierto actual. Con la racha adelantada un paso, `bono_sin_acierto` "suma" 100 puntos de racha que no le tocan y `racha_no_suma` da diferencia 0. Con un solo sabotaje no pasa, porque ahí se usa la diferencia total. |
-| Corrección | Pendiente |
-| Re-ejecución (confirmación) | Pendiente |
-| Análisis de impacto | Pendiente |
-| Regresión ejecutada | Pendiente |
-| Estado | **Abierto** |
+| Corrección | Mantenimiento **correctivo**: commit `fix(partida): el desglose por sabotaje usa la racha real previa (DEF-033)` (`d5de874`). Antes se subió la prueba con `xfail(strict=True)` (`769b4fe`). No cambia cómo se calculan los puntos mostrados ni los reales. |
+| Re-ejecución (confirmación) | La prueba `test_desglose_con_dos_sabotajes_atribuye_cada_diferencia_a_su_sabotaje` pasa sin `xfail`; el escenario por HTTP da `bono_sin_acierto` 2 / +950 y `racha_no_suma` 1 / −100 (`DEF-033-despues.txt`). |
+| Análisis de impacto | `Partida.responder` (solo la rama con más de un sabotaje activo), `impacto_por_jugador`, `resumen_por_sabotaje`, `GET /api/admin/partidas/{pin}/impacto`, el panel y la ventana de daño. |
+| Regresión ejecutada | `pytest -q` → 320 passed, 3 skipped; `python scripts/verificar_mutantes.py` → 6/6. |
+| Estado | **Cerrado** (la verificación en navegador encontró además DEF-034) |
 
 ### DEF-034 – Con dos sabotajes, el desglose por sabotaje no suma la diferencia total
 | Campo | Valor |
@@ -502,11 +502,11 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Pasos para reproducir | 1. Activar `racha_no_suma` y `bono_sin_acierto`. 2. Un jugador acierta 3 preguntas seguidas. 3. Comparar `impacto_por_jugador()[...]["diferencia"]` con la suma de su `desglose`. |
 | Resultado esperado / obtenido | Esperado: la suma del desglose de cada jugador es igual a su diferencia. Obtenido: Ana perdió −300 (−100 y −200), pero `racha_no_suma` suma −200 (`DEF-034-antes.txt`). |
 | Causa encontrada (debugging) | Con más de un sabotaje, cada respuesta se recalcula con cada sabotaje por separado partiendo de la racha **real** anterior. Eso mide solo el efecto en esa respuesta, no el acumulado: con `racha_no_suma` la racha mostrada se quedó en 0 desde la pregunta 2, así que en la pregunta 3 el daño es −200, pero el cálculo aislado (racha real 2 → 2) da −100. DEF-033 corrigió que se usara la racha ya actualizada; esto es lo que faltaba. |
-| Corrección | Pendiente |
-| Re-ejecución (confirmación) | Pendiente |
-| Análisis de impacto | Pendiente |
-| Regresión ejecutada | Pendiente |
-| Estado | **Abierto** |
+| Corrección | Mantenimiento **correctivo**: commit `fix(partida): el desglose por sabotaje acumula la racha de cada sabotaje (DEF-034)` (`2ea0ea1`), tras la prueba con `xfail(strict=True)` (`4dffac4`). La partida guarda por jugador una racha sombra por sabotaje activo: la que ese sabotaje habría dejado él solo; arranca en la racha real al activarse, se descarta al desactivarse y se reinicia cuando el jugador no responde (igual que la racha real). Puntos mostrados y reales sin cambios. |
+| Re-ejecución (confirmación) | `test_desglose_con_dos_sabotajes_suma_la_diferencia_total` pasa; Playwright con la partida real: Ana −300 y desglose −300, Eva +422 = +422, Beto +1453 = +1453 (`DEF-034-despues.txt`). |
+| Análisis de impacto | Igual que DEF-033. Costo: la complejidad ciclomática de `Partida.responder` sube de D (29) a E (33) (Radon); queda en la deuda técnica de `ANALISIS_ADICIONAL.md`. |
+| Regresión ejecutada | `pytest -q` → 322 passed, 3 skipped; mutantes 6/6; las 6 pruebas de `test_impacto_sabotaje.py` en verde. |
+| Estado | **Cerrado** |
 
 ### DEF-035 – La tabla de posiciones de la ventana de daño desborda en pantallas angostas
 | Campo | Valor |
@@ -516,8 +516,8 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Pasos para reproducir | 1. Abrir `/dano.html` con una partida real en una pantalla de 390 px. 2. Comparar `scrollWidth` con el ancho visible. |
 | Resultado esperado / obtenido | Esperado: la página no se desplaza a lo ancho. Obtenido: 413 px de documento en 390 px de pantalla; el elemento que se sale es la tabla `tabla-posiciones` (`DEF-035-antes.txt`). A 1600 y 1280 px no hay desborde. |
 | Causa encontrada (debugging) | La tabla de respuestas está dentro de `.tabla-desplazable` (desplazamiento propio), pero la de posiciones no; con cinco columnas no cabe en 390 px menos los márgenes. |
-| Corrección | Pendiente |
-| Re-ejecución (confirmación) | Pendiente |
-| Análisis de impacto | Pendiente |
-| Regresión ejecutada | Pendiente |
-| Estado | **Abierto** |
+| Corrección | Commit `fix(front): la tabla de posiciones se desplaza dentro de su panel en movil (DEF-035)` (`3b65147`): la tabla va dentro de `.tabla-desplazable`. Prueba de regresión `test_las_tablas_se_desplazan_dentro_de_su_panel`. |
+| Re-ejecución (confirmación) | Playwright: 390 px de documento en 390 px de pantalla y ningún elemento fuera del borde; 1600 y 1280 px igual (`DEF-035-despues.txt`, `ventana-dano-movil.png`). |
+| Análisis de impacto | Solo `app/static/dano.html`. |
+| Regresión ejecutada | `pytest -q` → 322 passed, 3 skipped; `node --check app/static/dano.js`. |
+| Estado | **Cerrado** |

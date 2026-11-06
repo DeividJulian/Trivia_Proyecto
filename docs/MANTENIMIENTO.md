@@ -78,6 +78,9 @@ y no era un defecto real: se documenta y se silencia **solo esa línea**, nunca 
 | DEF-030 | SonarQube Cloud (S9383) | Promesa sin manejar explícitamente en el front | Preventivo | `void actualizarMarcador()` | `node --check`; Sonar: FIXED | [antes](evidencias/DEF-030-antes.txt) · [despues](evidencias/DEF-030-despues.txt) |
 | DEF-031 | SonarQube Cloud (S5145) | El log registraba la clave tal como llegaba en la URL | Preventivo | Registrar la clave del catálogo; pruebas de seguridad | Sonar: FIXED (2 casos) | [antes](evidencias/DEF-031-antes.txt) · [despues](evidencias/DEF-031-despues.txt) |
 | DEF-032 | SonarQube Cloud (S6850) | Títulos vacíos en el HTML (accesibilidad) | Perfectivo | Texto inicial en los 3 títulos | Sonar: FIXED (3 casos) | [antes](evidencias/DEF-032-antes.txt) · [despues](evidencias/DEF-032-despues.txt) |
+| DEF-033 | pytest (contrato de la ventana de daño) | Con dos sabotajes, la diferencia se atribuía al sabotaje equivocado | Correctivo | El desglose usa la racha real previa; prueba primero con `xfail` | Prueba en verde; mutantes 6/6 | [antes](evidencias/DEF-033-antes.txt) · [despues](evidencias/DEF-033-despues.txt) |
+| DEF-034 | Playwright (navegador real) | Con dos sabotajes, el desglose no sumaba la diferencia total (−200 de −300) | Correctivo | Racha sombra por sabotaje; prueba primero con `xfail` | Desglose = diferencia en los 3 jugadores reales | [antes](evidencias/DEF-034-antes.txt) · [despues](evidencias/DEF-034-despues.txt) |
+| DEF-035 | Playwright (navegador real) | La tabla de posiciones desbordaba en el celular | Perfectivo | Tabla con desplazamiento propio | 390 px sin desborde; prueba de regresión | [antes](evidencias/DEF-035-antes.txt) · [despues](evidencias/DEF-035-despues.txt) |
 
 ## Mantenimiento preventivo sin defecto previo (Bloque 2)
 

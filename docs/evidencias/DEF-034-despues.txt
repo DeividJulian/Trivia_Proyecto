@@ -1,0 +1,21 @@
+DEF-034, evidencia después.
+Verificación real en navegador: Playwright 1.64.1 + Chromium contra uvicorn local (reloj real), commit edf76f0, 2026-11-06.
+Partida: Ana, Beto y '<b>Eva</b>'; 3 preguntas; racha_no_suma y bono_sin_acierto activos.
+
+  P1 Beto       correcta=False mostrados=  484 reales=    0 dif= +484  recibió +484 que no le correspondían (bono_sin_acierto)
+  P1 Ana        correcta=True  mostrados= 1447 reales= 1447 dif=   +0  correcta
+  P1 <b>Eva</b> correcta=True  mostrados= 1421 reales= 1421 dif=   +0  correcta
+  P2 Beto       correcta=False mostrados=  485 reales=    0 dif= +485  recibió +485 que no le correspondían (bono_sin_acierto)
+  P2 Ana        correcta=True  mostrados= 1447 reales= 1547 dif= -100  perdió 100 pts por racha no sumada (racha_no_suma)
+  P2 <b>Eva</b> correcta=False mostrados=  422 reales=    0 dif= +422  recibió +422 que no le correspondían (bono_sin_acierto)
+  P3 Beto       correcta=False mostrados=  484 reales=    0 dif= +484  recibió +484 que no le correspondían (bono_sin_acierto)
+  P3 Ana        correcta=True  mostrados= 1447 reales= 1647 dif= -200  perdió 200 pts por racha no sumada (racha_no_suma)
+  P3 <b>Eva</b> correcta=True  mostrados= 1422 reales= 1422 dif=   +0  correcta
+
+  Ana        diferencia= -300  suma del desglose= -300  desglose={'racha_no_suma': -300}
+  <b>Eva</b> diferencia= +422  suma del desglose= +422  desglose={'bono_sin_acierto': 422}
+  Beto       diferencia=+1453  suma del desglose=+1453  desglose={'bono_sin_acierto': 1453}
+
+  resumen_por_sabotaje: {'racha_no_suma': {'respuestas_afectadas': 2, 'puntos_de_diferencia': -300}, 'bono_sin_acierto': {'respuestas_afectadas': 4, 'puntos_de_diferencia': 1875}}
+
+En cada jugador la suma del desglose es igual a su diferencia. pytest: test_desglose_con_dos_sabotajes_suma_la_diferencia_total pasa.
