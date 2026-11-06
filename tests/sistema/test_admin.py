@@ -126,6 +126,26 @@ def test_sabotaje_inexistente_responde_404(cliente):
     assert respuesta.status_code == 404
 
 
+@pytest.mark.seguridad
+def test_clave_con_salto_de_linea_no_llega_al_log(cliente, caplog):
+    """DEF-031: una clave con salto de línea se rechaza y no se escribe en el log."""
+    with caplog.at_level("WARNING"):
+        respuesta = cliente.post("/api/admin/sabotajes/x%0AFALSO%20LOG/activar", headers=ADMIN)
+
+    assert respuesta.status_code == 404
+    assert "FALSO LOG" not in caplog.text
+
+
+@pytest.mark.seguridad
+def test_el_log_registra_la_clave_del_catalogo(cliente, caplog):
+    """DEF-031: lo que se registra es la clave del catálogo."""
+    with caplog.at_level("WARNING"):
+        respuesta = cliente.post("/api/admin/sabotajes/empates_mal/activar", headers=ADMIN)
+
+    assert respuesta.status_code == 200
+    assert "Sabotaje ACTIVADO: empates_mal" in caplog.text
+
+
 def test_activar_un_sabotaje_cambia_el_juego_de_verdad(cliente, partida_creada, reloj):
     """El mutante activado desde el panel afecta a una partida real (efecto visible en la demo)."""
     cliente.post("/api/admin/sabotajes/bono_sin_acierto/activar", headers=ADMIN)
