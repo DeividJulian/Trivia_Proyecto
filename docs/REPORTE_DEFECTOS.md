@@ -521,3 +521,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo `app/static/dano.html`. |
 | Regresión ejecutada | `pytest -q` → 322 passed, 3 skipped; `node --check app/static/dano.js`. |
 | Estado | **Cerrado** |
+
+### DEF-036 – El monitor de CPU se cuelga si Docker deja de responder
+| Campo | Valor |
+|---|---|
+| Detectado por | Ejecución de la prueba de carga REST + WebSocket contra el contenedor (no funcional), revisando por qué el CSV de CPU tenía 2 muestras |
+| Severidad | Baja (herramienta de prueba: se pierden los datos de CPU, no afecta a la aplicación) |
+| Pasos para reproducir | 1. Lanzar `python performance\monitor_cpu.py salida.csv --contenedor <nombre>`. 2. Que el motor de Docker deje de responder durante la medición. |
+| Resultado esperado / obtenido | Esperado: el monitor sigue escribiendo una fila cada 2 s (con CPU del servidor -1 si Docker no responde). Obtenido: 2 filas en 42 minutos (`DEF-036-antes.txt`). |
+| Causa encontrada (debugging) | `_cpu_contenedor` llama a `subprocess.run(["docker", "stats", "--no-stream", ...])` sin `timeout`: si Docker no contesta, el monitor espera indefinidamente. |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |
