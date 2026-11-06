@@ -199,3 +199,81 @@ el p95 de cada escalón es el mayor de su ventana (criterio conservador); por es
   corrida se le agregó un vigilante: si se pasa del tiempo previsto, se detiene y queda inválida.
 - Esta sección **no** se compara con la del 2026-11-04 (otra máquina, solo REST, uvicorn local), donde
   la degradación empezó en 850 usuarios y no hubo quiebre hasta 1000.
+
+## Punto de quiebre contra Render (2026-11-06, portátil de Jack)
+
+Medición contra el servicio **desplegado**: `https://testquiz-el-saboteador.onrender.com`, plan
+**free**, commit `70dc913` (el de `main`, release v1.0.200). Antes de medir se despertó el servicio
+y se comprobó que `/salud` respondía ese commit.
+
+### Qué cambia respecto a local y contenedor
+
+| | uvicorn local / contenedor | Render free |
+|---|---|---|
+| CPU del servidor | Los núcleos del portátil (12 hilos) | **0,1 CPU** (una décima de núcleo) |
+| Memoria | La del portátil / 3,9 GB de WSL2 | **512 MB** |
+| Red | `127.0.0.1` (< 1 ms) | Internet + TLS: **139 ms** la petición más rápida de toda la prueba |
+| Generador | Misma máquina que el servidor | Otra máquina (este portátil): el servidor no compite con Locust por la CPU |
+
+### Cómo se midió
+
+| Dato | Valor |
+|---|---|
+| Comando | `set QUIEBRE_INICIO=10 && set QUIEBRE_INCREMENTO=10 && set QUIEBRE_SEGUNDOS_ESCALON=20` y `locust -f performance\punto_quiebre.py --host https://testquiz-el-saboteador.onrender.com --headless --csv performance\resultados\quiebre_render --csv-full-history` |
+| Análisis | `python performance\analizar_resultados.py quiebre_render` → [reporte](../performance/resultados/quiebre_render_reporte.md) y [gráfica](../performance/resultados/quiebre_render_grafica.png) |
+| CPU del generador | `performance\monitor_cpu.py` cada 2 s. La CPU del servidor de Render no se puede medir desde aquí |
+| Parada | `punto_quiebre.py` detuvo la prueba en el primer escalón que superó el quiebre: no se siguió golpeando el servicio |
+| REST + WebSocket | Una sola corrida corta: 50 usuarios, 90 s (`locustfile_ws.py`) |
+
+### Resultado: REST, escalones de 10 usuarios
+
+![p95 y CPU del generador: uvicorn local, contenedor y Render](../performance/resultados/comparacion_quiebre_render.png)
+
+| Escenario | Degradación sostenida (p95 ≥ 500 ms) | Punto de quiebre | Máximo de peticiones/s | Fallos | Locust saturado |
+|---|---|---|---|---|---|
+| REST · uvicorn local | 250 usuarios | 600 usuarios | 273 | 0 % | nunca |
+| REST · contenedor Alpine | 500 usuarios | 800 usuarios | 384 | 0 % | desde 700 |
+| **REST · Render free** | **90 usuarios** | **220 usuarios** (p95 2200 ms) | **90** | **0 %** | **nunca (máx. 44 % por escalón)** |
+
+- Por escalón (tabla completa en `performance/resultados/comparacion_quiebre_render.md`): de 50 a 80
+  usuarios el p95 está entre 310 y 490 ms (cumple RNF-01); desde 90 usuarios ya no baja de 500 ms.
+  `punto_quiebre.py` paró en 220 usuarios; con el criterio conservador de las tablas (el mayor p95 de
+  la ventana), el escalón de 210 ya marca 2100 ms.
+- **Techo de ~87 peticiones por segundo.** Desde 140 usuarios, añadir usuarios ya no aumenta las
+  peticiones atendidas (87–90 por segundo): solo crece la cola y con ella el p95. Es el límite de la
+  décima de CPU.
+- **El límite es de Render, no del generador.** Locust nunca pasó del 44 % de su núcleo por escalón
+  ni registró avisos de CPU, y Render respondía menos peticiones que el contenedor con la misma carga.
+- **Con 10–30 usuarios el p95 sale alto (900–1200 ms)** aunque la mediana es de 210–340 ms: en esos
+  escalones hay pocas peticiones (unas 6 por segundo), así que unas pocas lentas (conexiones TLS nuevas
+  al entrar usuarios) dominan el p95. Por eso `analizar_resultados.py` marca "degradado" desde 10;
+  la degradación **sostenida** empieza en 90.
+
+### Resultado: REST + WebSocket, 50 usuarios, 90 s
+
+| Escenario | Peticiones REST | p95 REST (ms) | Mediana (ms) | Fallos | WS conexiones (fallidas) | WS mensajes (por s) | Difusión p50 / p95 (ms) |
+|---|---|---|---|---|---|---|---|
+| REST + WS · Render free | 3069 | 420 | 210 | 0 % | 48 (0) | 17 311 (240) | 90 / 252 |
+
+**Con la carga de una clase (50 usuarios con su WebSocket abierto) Render free cumple RNF-01 y
+RNF-02**: p95 de 420 ms y 0 % de fallos, aunque con menos margen que en local (38 ms) por la red y
+la décima de CPU. La CPU del generador de esta corrida no es válida (**DEF-037**: el monitor midió
+una consola en lugar de Locust); Locust no registró avisos de CPU.
+
+### El servicio después de la prueba
+
+- `/salud` respondió `{"estado":"ok","version":"1.0.0","commit":"70dc913…"}` al terminar cada corrida
+  (18:37 y 18:47).
+- **No hubo reinicio:** una partida centinela creada después del quiebre seguía en `LOBBY` al final, y
+  en el quiebre no hubo ningún fallo (un reinicio borra las partidas en memoria y habría dado 404).
+
+### Conclusiones
+
+1. **Para la exposición, Render free alcanza:** con 50 usuarios cumple los requisitos, incluido el
+   WebSocket. El margen real es de unos **80 usuarios** con p95 < 500 ms.
+2. **El cuello de botella es la CPU del plan, no el código:** la misma imagen aguantó 800 usuarios en
+   el contenedor del portátil. Mejora propuesta: un plan con más CPU o varias instancias (lo que exige
+   estado compartido, ver "Cuello de botella y mejora propuesta").
+3. **La red suma al menos 139 ms** a cada petición: por eso el p95 en Render nunca baja de 240 ms,
+   aunque el servidor esté libre.
+4. Igual que en local, **0 % de fallos**: el servidor hace cola y no rechaza peticiones.

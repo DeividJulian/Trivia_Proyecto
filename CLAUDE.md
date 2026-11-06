@@ -130,6 +130,9 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 - **Trabajo actual:** `develop` da **APTO PARA DESPLEGAR** (16/16 compuertas, CI run 42293105068). Falta, con
   autorización del equipo: integrar en `main`, crear el servicio con el Blueprint y guardar `RENDER_DEPLOY_HOOK` y
   `APP_URL` (pasos en `docs/GUIA_RENDER.md`, los hace Deivid como dueño del repo), y el humo contra Render.
+- **Quiebre contra Render (2026-11-06, portátil de Jack, commit `70dc913`, release v1.0.200):** escalones de 10;
+  degradación sostenida 90, quiebre 220 (p95 2200 ms), techo ~87 peticiones/s (0,1 CPU), 0 % fallos, Locust ≤ 44 %.
+  REST + WS 50 usuarios: p95 420 ms, difusión p95 252 ms. Sin reinicio. DEF-037 (monitor de CPU midiendo otro proceso).
 - **Demo:** guion de 3 minutos en `docs/GUIA_DEMO.md` (con `bono_sin_acierto` cambia el ganador).
 - **Validación local de Fase 15:** 290 passed, 2 pruebas de humo omitidas sin `APP_URL`, cobertura
   97.53 %, mutantes 6/6, Ruff/format limpios; Locust 50 usuarios/60 s: p95 9 ms y 0 % fallos.
@@ -143,4 +146,4 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
   los `noqa` de Ruff; Radon: CC media A, `Partida.responder` D (29) y 4 funciones C quedan como deuda técnica
   (sin refactor antes de la exposición); Vulture: DEF-027 y falsos positivos documentados; pip-audit: 0.
   Las 4 herramientas se instalan solo en local, no están en `requirements` ni en el CI.
-  **Defectos:** DEF-001 a DEF-036. `Partida.responder` está en complejidad E (33): refactor pendiente tras la exposición.
+  **Defectos:** DEF-001 a DEF-037. `Partida.responder` está en complejidad E (33): refactor pendiente tras la exposición.
