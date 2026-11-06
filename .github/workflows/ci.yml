@@ -61,7 +61,7 @@ jobs:
           --cov=app --cov-report=xml:reportes/coverage.xml --cov-fail-under=85
       - name: Guardar evidencias de pruebas
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: evidencias-pruebas
           path: reportes/
@@ -107,7 +107,7 @@ jobs:
           cat reportes/sonar/quality-gate.json
       - name: Guardar evidencia de Sonar
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: evidencias-sonar
           path: reportes/sonar/quality-gate.json
@@ -133,7 +133,7 @@ jobs:
           python scripts/verificar_mutantes.py | tee reportes/mutantes.txt
       - name: Guardar evidencia de mutantes
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: evidencias-mutantes
           path: reportes/mutantes.txt
@@ -199,7 +199,7 @@ jobs:
           test "$IMAGE_RESULT" = success
       - name: Guardar evidencias Trivy
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: evidencias-trivy
           path: reportes/trivy-*.json
@@ -229,7 +229,7 @@ jobs:
           python performance/verificar_umbrales.py reportes/performance/run_stats.csv
       - name: Guardar evidencias de rendimiento
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: evidencias-rendimiento
           path: reportes/performance/
@@ -302,7 +302,7 @@ jobs:
             --sonar-result "$SONAR"
       - name: Guardar reporte de predespliegue
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: REPORTE_PREDESPLIEGUE
           path: reportes/REPORTE_PREDESPLIEGUE.md
