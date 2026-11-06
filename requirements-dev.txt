@@ -4,5 +4,8 @@ pytest==9.2.0
 pytest-cov==7.1.0
 httpx==0.28.1
 locust==2.47.0
+# Rendimiento con WebSocket: cliente de WebSocket para Locust y muestreo de CPU del generador.
+websocket-client==1.9.2
+psutil==7.2.2
 matplotlib==3.11.2
 pre-commit==4.7.0

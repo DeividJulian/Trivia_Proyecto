@@ -1,0 +1,23 @@
+DEF-036, evidencia antes (2026-11-06). Corrida carga_ws_docker (REST + WebSocket contra el contenedor),
+orquestada con performance\monitor_cpu.py --contenedor testquiz-carga --intervalo 2.
+
+Datos observados (los archivos de esa corrida se descartaron por inválidos; se copian aquí los valores leídos):
+- Inicio 14:28:47, fin 15:10:31: la corrida de 2 minutos duró 42 minutos.
+- carga_ws_docker_cpu.csv: 86 bytes, solo 2 muestras:
+    t,generador,servidor,sistema
+    1793993334.0,0.0,29.9,20.1
+    1793993337.4,31.7,6.6,26.5
+  Con --intervalo 2 debía tener unas 60 muestras en 2 minutos; en 42 minutos no escribió ninguna más.
+- Locust: 92 peticiones REST con tiempos de ~2 485 000 ms; eventos de WebSocket solo en los primeros
+  10 s (29 conexiones, 326 mensajes) y luego nada hasta el segundo 2480.
+
+Diagnóstico: Docker Desktop dejó de responder (RAM libre de la máquina ~0,6-0,7 GB de 7,7 GB). La llamada
+`docker stats --no-stream` del monitor no tiene tiempo límite, así que el monitor quedó bloqueado los
+41 minutos y perdió toda la medición de CPU. Reproducción controlada posterior (30 WebSockets contra el
+contenedor y contra uvicorn local): el servidor siguió respondiendo; el congelamiento no se repitió.
+
+
+Prueba de regresión contra el código SIN la corrección (2026-11-06):
+pytest -q tests/componente/test_monitor_cpu.py -k cuelga
+E       subprocess.TimeoutExpired: Command '['docker', 'stats', '--no-stream', '--format', '{{.CPUPerc}}', 'testquiz-carga']' timed out after None seconds
+1 failed, 16 deselected in 0.09s

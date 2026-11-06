@@ -102,8 +102,13 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
   `RENDER_DEPLOY_HOOK` como secreto y `APP_URL` como variable del repositorio.
 - **Saboteador:** 6 mutantes en `app/dominio/sabotajes.py`; `scripts/verificar_mutantes.py` → 6/6.
   El ejecutor del panel lanza pytest dentro del servidor: la imagen Docker necesita `tests/`, `pytest` y `httpx`.
-- **Rendimiento local:** RNF-01/02 cumplen; degradación 850 usuarios; quiebre no alcanzado hasta 1000.
-  El servidor debe correr con `--timeout-keep-alive 75` (DEF-014). Usar `127.0.0.1`, no `localhost`.
+- **Rendimiento:** medición del 2026-11-04 (portátil de Deivid, solo REST): degradación 850, sin quiebre
+  hasta 1000. Medición del 2026-11-06 (portátil de Jack, `docs/RESULTADOS_RENDIMIENTO.md`): REST vs. REST +
+  WebSocket (`performance/locustfile_ws.py`, `punto_quiebre_ws.py`) en uvicorn local y en el contenedor;
+  quiebre 600/550 (local) y 800/750 (contenedor), 0 % fallos. CPU con `performance/monitor_cpu.py` y
+  comparación con `comparar_escenarios.py`. Las métricas de WebSocket van a `*_ws_eventos.csv`, no al p95 de
+  Locust. No comparar mediciones de máquinas distintas. Servidor con `--timeout-keep-alive 75` (DEF-014);
+  usar `127.0.0.1`, no `localhost`. `psutil` se importa dentro de las funciones (la imagen no lo trae).
 - **Seguridad / imagen:** base `python:3.12-alpine` (DEF-025): `trivy image`, `trivy fs` y `trivy config` en 0
   HIGH/CRITICAL; la imagen quita pip (DEF-018) y corre como uid 10001. `test_reporte_predespliegue.py` está en
   `.dockerignore` porque importa `scripts/` (DEF-026): dentro del contenedor corren 277 pruebas; en el CI, 290.
@@ -135,4 +140,4 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
   los `noqa` de Ruff; Radon: CC media A, `Partida.responder` D (29) y 4 funciones C quedan como deuda técnica
   (sin refactor antes de la exposición); Vulture: DEF-027 y falsos positivos documentados; pip-audit: 0.
   Las 4 herramientas se instalan solo en local, no están en `requirements` ni en el CI.
-  **Defectos:** DEF-001 a DEF-035. `Partida.responder` está en complejidad E (33): refactor pendiente tras la exposición.
+  **Defectos:** DEF-001 a DEF-036. `Partida.responder` está en complejidad E (33): refactor pendiente tras la exposición.
