@@ -395,3 +395,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Imagen Docker y panel del Saboteador en el despliegue (`app/calidad/ejecutor.py` lanza pytest dentro del servidor). La suite del CI no cambia: el job de pruebas sigue ejecutando las 13 pruebas del reporte. |
 | Regresión ejecutada | Contenedor en marcha: panel con `empates_mal` → `pruebas: 279, fallidas: 4, caidos: Partida, Ranking, en_riesgo: API, Gestor`; tras `reparar` → 0 fallidas. Local: `pytest -q` → 290 passed, 2 skipped. |
 | Estado | **Cerrado** |
+
+### DEF-027 – Constante sin uso y engañosa en el script de carga
+| Campo | Valor |
+|---|---|
+| Detectado por | Vulture 2.16 (análisis estático de código muerto), `performance/locustfile.py` |
+| Severidad | Baja (mantenibilidad; no cambia el comportamiento) |
+| Pasos para reproducir | 1. `vulture app scripts performance` 2. Buscar `MAX_JUGADORES` en el repositorio. |
+| Resultado esperado / obtenido | Esperado: el script de carga no declara límites que no usa. Obtenido: `unused variable 'MAX_JUGADORES_POR_PARTIDA'` (`= 40`), mientras el límite real del juego es `MAX_JUGADORES_POR_DEFECTO = 50` en `app/dominio/partida.py` (`DEF-027-antes.txt`). |
+| Causa encontrada (debugging) | La constante quedó de la primera versión del script: el reparto de jugadores se cambió en DEF-016 (elegir al azar entre partidas abiertas y buscar otra si responde 409 por partida llena) y nadie la volvió a leer. Quien la vea creería que el juego admite 40 jugadores por partida. |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |
