@@ -1,7 +1,8 @@
 name: CI
 
-# Jobs numerados por etapa. La etapa 3 (SonarCloud) se añadirá al final; mientras falte, el reporte
-# predespliegue da NO DESPLEGAR y bloquea el despliegue y el release.
+# Jobs numerados por etapa: 1 estilo, 2 pruebas, 3 SonarCloud, 4 mutantes, 5 Trivy, 6 rendimiento,
+# 7 reporte y despliegue, 8 humo y release. El reporte predespliegue bloquea el despliegue si una
+# compuerta falla.
 on:
   push:
   pull_request:
@@ -66,9 +67,55 @@ jobs:
           path: reportes/
           if-no-files-found: error
 
+  sonar:
+    name: 3 - Sonar
+    needs: pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0 # Sonar necesita el historial para calcular el código nuevo y los autores
+      - name: Descargar la cobertura del job de pruebas
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: evidencias-pruebas
+          path: reportes
+      - name: Ubicar coverage.xml donde lo espera sonar-project.properties
+        run: cp reportes/coverage.xml coverage.xml
+      - name: Análisis de SonarQube Cloud (falla si el Quality Gate falla)
+        uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65 # v8.4.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Guardar el estado del Quality Gate
+        if: always()
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mkdir -p reportes/sonar
+          estado_sonar="SIN_ANALISIS"
+          analisis=""
+          if [ -f .scannerwork/report-task.txt ]; then
+            tarea=$(grep '^ceTaskId=' .scannerwork/report-task.txt | cut -d= -f2)
+            analisis=$(curl --silent --fail -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/ce/task?id=$tarea"               | jq -r '.task.analysisId // empty' || true)
+            if [ -n "$analisis" ]; then
+              estado_sonar=$(curl --silent --fail -u "$SONAR_TOKEN:"                 "https://sonarcloud.io/api/qualitygates/project_status?analysisId=$analisis"                 | jq -r '.projectStatus.status' || echo "SIN_RESPUESTA")
+            fi
+          fi
+          # SonarCloud responde OK/ERROR; el reporte predespliegue espera PASSED para aprobar.
+          if [ "$estado_sonar" = "OK" ]; then quality_gate="PASSED"; else quality_gate="FAILED"; fi
+          jq -n --arg qg "$quality_gate" --arg sonar "$estado_sonar" --arg analisis "$analisis"             --arg commit "$GITHUB_SHA"             '{quality_gate: $qg, estado_sonar: $sonar, analysis_id: $analisis, commit: $commit}'             > reportes/sonar/quality-gate.json
+          cat reportes/sonar/quality-gate.json
+      - name: Guardar evidencia de Sonar
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: evidencias-sonar
+          path: reportes/sonar/quality-gate.json
+          if-no-files-found: error
+
   mutantes:
     name: 4 - Mutantes
-    needs: pruebas
+    needs: sonar
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -190,7 +237,7 @@ jobs:
 
   desplegar:
     name: 7 - Reporte y despliegue
-    needs: [estilo, pruebas, mutantes, seguridad, rendimiento]
+    needs: [estilo, pruebas, sonar, mutantes, seguridad, rendimiento]
     if: always() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -206,6 +253,13 @@ jobs:
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: evidencias-pruebas
+          path: reportes
+      - name: Descargar evidencia de Sonar
+        if: always()
+        continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: evidencias-sonar
           path: reportes
       - name: Descargar evidencia de mutantes
         if: always()
@@ -233,6 +287,7 @@ jobs:
         env:
           ESTILO: ${{ needs.estilo.result }}
           PRUEBAS: ${{ needs.pruebas.result }}
+          SONAR: ${{ needs.sonar.result }}
           MUTANTES: ${{ needs.mutantes.result }}
           SEGURIDAD: ${{ needs.seguridad.result }}
           RENDIMIENTO: ${{ needs.rendimiento.result }}
@@ -244,7 +299,7 @@ jobs:
             --mutants-result "$MUTANTES" \
             --security-result "$SEGURIDAD" \
             --performance-result "$RENDIMIENTO" \
-            --sonar-result pending
+            --sonar-result "$SONAR"
       - name: Guardar reporte de predespliegue
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
