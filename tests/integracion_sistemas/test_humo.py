@@ -6,6 +6,8 @@ import httpx
 import pytest
 
 APP_URL = os.environ.get("APP_URL", "").rstrip("/")
+# SHA que el pipeline acaba de desplegar: confirma que responde la versión nueva, no la anterior.
+COMMIT_ESPERADO = os.environ.get("COMMIT_ESPERADO", "").strip()
 
 pytestmark = [
     pytest.mark.integracion_sistemas,
@@ -38,3 +40,12 @@ def test_panel_admin_desplegado_exige_token():
         respuesta = cliente.get("/api/admin/partidas")
 
     assert respuesta.status_code == 403
+
+
+@pytest.mark.skipif(not COMMIT_ESPERADO, reason="COMMIT_ESPERADO no está configurado.")
+def test_responde_el_commit_recien_desplegado():
+    with httpx.Client(base_url=APP_URL, timeout=10.0) as cliente:
+        salud = cliente.get("/salud")
+
+    assert salud.status_code == 200
+    assert salud.json()["commit"] == COMMIT_ESPERADO

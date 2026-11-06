@@ -6,7 +6,14 @@ from app.config import Configuracion, cargar_configuracion
 
 pytestmark = pytest.mark.componente
 
-VARIABLES = ("ADMIN_TOKEN", "PERMITIR_SABOTAJE", "MAX_PARTIDAS", "PARTIDA_TTL_MINUTOS")
+VARIABLES = (
+    "ADMIN_TOKEN",
+    "PERMITIR_SABOTAJE",
+    "MAX_PARTIDAS",
+    "PARTIDA_TTL_MINUTOS",
+    "RENDER_GIT_COMMIT",
+    "APP_COMMIT",
+)
 
 
 @pytest.fixture(autouse=True)
@@ -61,3 +68,33 @@ def test_permitir_sabotaje_invalido_da_error(monkeypatch):
 
     with pytest.raises(ValueError, match="PERMITIR_SABOTAJE debe ser true o false"):
         cargar_configuracion()
+
+
+def test_commit_por_defecto_es_local():
+    assert cargar_configuracion().commit == "local"
+
+
+def test_commit_se_lee_de_render(monkeypatch):
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "  abc123  ")
+
+    assert cargar_configuracion().commit == "abc123"
+
+
+def test_commit_usa_app_commit_fuera_de_render(monkeypatch):
+    monkeypatch.setenv("APP_COMMIT", "def456")
+
+    assert cargar_configuracion().commit == "def456"
+
+
+def test_commit_de_render_tiene_prioridad(monkeypatch):
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "abc123")
+    monkeypatch.setenv("APP_COMMIT", "def456")
+
+    assert cargar_configuracion().commit == "abc123"
+
+
+def test_commit_vacio_se_ignora(monkeypatch):
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "   ")
+    monkeypatch.setenv("APP_COMMIT", "def456")
+
+    assert cargar_configuracion().commit == "def456"
