@@ -1,0 +1,6 @@
+SonarQube Cloud, rama feature/sonar, re-análisis del commit bce04eb (GitHub Actions run 42262436047, 2026-11-06). API pública.
+GET https://sonarcloud.io/api/issues/search?...&branch=feature/sonar&resolved=true (regla javascript:S9383)
+
+  javascript:S9383 app/static/app.js:None  estado=CLOSED resolución=FIXED  clave: AaGxzdc-J4N3lUY5zV0x
+
+Incidencias abiertas en la rama: 0

@@ -418,11 +418,11 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Pasos para reproducir | 1. Analizar la rama `feature/sonar` con SonarQube Cloud. 2. Ver `app/dominio/partida.py:346`. |
 | Resultado esperado / obtenido | Esperado: no acceder a atributos de un valor que puede ser `None`. Obtenido: `estado["correcta"] = pregunta.correcta` en el estado RESULTADOS, aunque `pregunta` viene de `pregunta_actual`, que devuelve `None` si el índice queda fuera de rango (`DEF-028-antes.txt`). |
 | Causa encontrada (debugging) | El bloque anterior sí comprueba `pregunta is not None`, pero el bloque de RESULTADOS no. Con el flujo normal el índice es válido en RESULTADOS, por eso ninguna prueba lo vio; si el estado y el índice se desalinean, `estado_publico` lanza `AttributeError` y la difusión por WebSocket se cae. |
-| Corrección | Pendiente |
-| Re-ejecución (confirmación) | Pendiente |
-| Análisis de impacto | Pendiente |
-| Regresión ejecutada | Pendiente |
-| Estado | **Abierto** |
+| Corrección | Mantenimiento **correctivo**: commit `fix(partida): estado_publico solo revela la correcta si hay pregunta (DEF-028)` (`abfd30c`). Antes, la prueba `test_estado_publico_en_resultados_sin_pregunta_no_falla` se subió con `xfail(strict=True)` (`test(partida)`), y reproducía `AttributeError: 'NoneType' object has no attribute 'correcta'`. |
+| Re-ejecución (confirmación) | La prueba pasa sin `xfail`; re-análisis de Sonar del commit `bce04eb` (run 42262436047): S2259 `CLOSED/FIXED` (`DEF-028-despues.txt`). |
+| Análisis de impacto | `Partida.estado_publico`, que usan la API (`GET /api/partidas/{pin}`) y la difusión por WebSocket. Con el flujo normal el resultado no cambia: en RESULTADOS siempre hay pregunta. |
+| Regresión ejecutada | `pytest -q` → 302 passed, 3 skipped; mutantes 6/6 en el CI; CI completo en verde. |
+| Estado | **Cerrado** |
 
 ### DEF-029 – La cobertura de Sonar mezcla el front JS sin reporte con el backend
 | Campo | Valor |
@@ -432,11 +432,11 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Pasos para reproducir | 1. Correr la etapa 3 del CI. 2. Consultar `api/measures/component` de la rama y de `app/static/app.js`. |
 | Resultado esperado / obtenido | Esperado: la cobertura de Sonar coincide con la de pytest-cov (97,55 %). Obtenido: 73,5 %; `app/static/app.js` aporta 307 líneas por cubrir con 0 % (`DEF-029-antes.txt`). |
 | Causa encontrada (debugging) | Las rutas de `coverage.xml` sí se resolvieron: las 23 líneas sin cubrir de Python coinciden con pytest-cov. La diferencia (1247 − 940 = 307 líneas) es `app/static/app.js`: `sonar.sources=app` incluye el front de demostración, que no tiene herramienta de cobertura (no hay pruebas unitarias de JS; el front se prueba a nivel de sistema). |
-| Corrección | Pendiente |
-| Re-ejecución (confirmación) | Pendiente |
-| Análisis de impacto | Pendiente |
-| Regresión ejecutada | Pendiente |
-| Estado | **Abierto** |
+| Corrección | Commit `fix(sonar): la cobertura mide el backend y no el front sin reporte (DEF-029)` (`aa4f184`): `sonar.coverage.exclusions=app/static/**`. Se excluye el front **solo de la métrica de cobertura**: Sonar lo sigue analizando (S9383 y S6850 salieron de esa carpeta). El umbral del 80 % no cambia. El front se prueba a nivel de sistema (`tests/sistema/test_front.py`). |
+| Re-ejecución (confirmación) | re-análisis de Sonar del commit `bce04eb` (run 42262436047): `new_coverage` 97,6 % (OK, umbral < 80 sin cambios); 943 líneas por cubrir, 23 sin cubrir, las mismas que pytest-cov (`DEF-029-despues.txt`). |
+| Análisis de impacto | Solo la configuración del análisis. No cambia código ni pruebas. |
+| Regresión ejecutada | CI completo en verde, Quality Gate OK. |
+| Estado | **Cerrado** |
 
 ### DEF-030 – Promesa sin manejar explícitamente en el front (Sonar S9383)
 | Campo | Valor |
@@ -446,11 +446,11 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Pasos para reproducir | Ver `app/static/app.js:207` en el análisis de `feature/sonar`. |
 | Resultado esperado / obtenido | Esperado: toda promesa se espera, se captura o se marca como ignorada a propósito. Obtenido: `actualizarMarcador();` se llama sin `await`, sin `.catch` y sin `void` (`DEF-030-antes.txt`). |
 | Causa encontrada (debugging) | `actualizarMarcador` es `async` y tiene su propio `try/catch`, así que hoy no deja promesas rechazadas; pero la llamada no lo dice y un cambio futuro dentro de la función sí podría dejar un rechazo sin manejar. |
-| Corrección | Pendiente |
-| Re-ejecución (confirmación) | Pendiente |
-| Análisis de impacto | Pendiente |
-| Regresión ejecutada | Pendiente |
-| Estado | **Abierto** |
+| Corrección | Commit `fix(front): la actualizacion del marcador se marca como promesa ignorada a proposito (DEF-030)`: `void actualizarMarcador();` con un comentario que explica que la función captura sus errores. |
+| Re-ejecución (confirmación) | `node --check app/static/app.js` OK; re-análisis de Sonar del commit `bce04eb` (run 42262436047): S9383 `CLOSED/FIXED` (`DEF-030-despues.txt`). |
+| Análisis de impacto | Solo la vista del jugador en `app/static/app.js`. El comportamiento no cambia. |
+| Regresión ejecutada | `pytest -q` (incluye `tests/sistema/test_front.py`) → 302 passed, 3 skipped. |
+| Estado | **Cerrado** |
 
 ### DEF-031 – El log del panel registra la clave tal como llega en la URL (Sonar S5145)
 | Campo | Valor |
@@ -460,11 +460,11 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Pasos para reproducir | Ver `app/api/admin.py:83` y `:91` en el análisis de `feature/sonar`. |
 | Resultado esperado / obtenido | Esperado: el log no escribe datos controlados por el cliente. Obtenido: `logger.warning("Sabotaje ACTIVADO: %s", clave)` con `clave` del path (`DEF-031-antes.txt`). |
 | Causa encontrada (debugging) | Hoy no es explotable: `_validar_clave` responde 404 con cualquier clave fuera del catálogo antes de llegar al log, así que solo se registran las 6 claves conocidas. Pero el valor registrado sigue siendo el texto de la petición; si alguien quitara o cambiara la validación, se podrían inyectar saltos de línea en el log. |
-| Corrección | Pendiente |
-| Re-ejecución (confirmación) | Pendiente |
-| Análisis de impacto | Pendiente |
-| Regresión ejecutada | Pendiente |
-| Estado | **Abierto** |
+| Corrección | Mantenimiento **preventivo**: commit `fix(api): el log del panel registra la clave del catalogo, no la de la URL (DEF-031)` (`b26b8d6`). `_validar_clave` devuelve `sabotaje.clave` del catálogo, y eso es lo que se activa y se registra. Pruebas de seguridad nuevas (`test(api)`): una clave con `%0A` responde 404 y no llega al log, y el log registra la clave del catálogo. Esas pruebas también pasaban antes porque la validación ya existía: son guardas de regresión, no la reproducción de un fallo. |
+| Re-ejecución (confirmación) | re-análisis de Sonar del commit `bce04eb` (run 42262436047): los 2 S5145 `CLOSED/FIXED` (`DEF-031-despues.txt`). No hizo falta marcarlos a mano como falso positivo. |
+| Análisis de impacto | `POST /api/admin/sabotajes/{clave}/activar` y `/desactivar`. Respuesta y efecto iguales; solo cambia de dónde sale el texto del log. |
+| Regresión ejecutada | `pytest -q` → 302 passed, 3 skipped; mutantes 6/6 en el CI. |
+| Estado | **Cerrado** |
 
 ### DEF-032 – Títulos vacíos en el HTML del front (Sonar S6850)
 | Campo | Valor |
@@ -474,8 +474,8 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Pasos para reproducir | Ver `app/static/index.html:47, 53 y 83` en el análisis de `feature/sonar`. |
 | Resultado esperado / obtenido | Esperado: todo título tiene contenido para lectores de pantalla. Obtenido: `<h3 id="prof-texto"></h3>`, `<h3 id="prof-ganador"></h3>` y `<h3 id="jug-texto"></h3>` vacíos (`DEF-032-antes.txt`). |
 | Causa encontrada (debugging) | El JS rellena esos títulos cuando llega el estado de la partida; en el HTML inicial quedan vacíos. |
-| Corrección | Pendiente |
-| Re-ejecución (confirmación) | Pendiente |
-| Análisis de impacto | Pendiente |
-| Regresión ejecutada | Pendiente |
-| Estado | **Abierto** |
+| Corrección | Commit `fix(front): los titulos del HTML tienen texto inicial (DEF-032)`: "Pregunta", "Resultados" y "Pregunta". El JS los reemplaza con `textContent` al llegar el estado, igual que antes. |
+| Re-ejecución (confirmación) | re-análisis de Sonar del commit `bce04eb` (run 42262436047): los 3 S6850 `CLOSED/FIXED` (`DEF-032-despues.txt`). |
+| Análisis de impacto | Solo `app/static/index.html`; los contenedores de esos títulos están ocultos hasta que el JS los rellena. |
+| Regresión ejecutada | `pytest -q` → 302 passed, 3 skipped. |
+| Estado | **Cerrado** |
