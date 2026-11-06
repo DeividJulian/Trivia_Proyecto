@@ -374,13 +374,13 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Detectado por | Trivy `image`, escaneo de seguridad del pipeline |
 | Severidad | Alta |
 | Pasos para reproducir | 1. Construir `testquiz:ci`. 2. Ejecutar Trivy imagen con severidades HIGH/CRITICAL. |
-| Resultado esperado / obtenido | Esperado: 0 HIGH/CRITICAL. Obtenido: 46 HIGH, 0 CRITICAL en paquetes Debian de `python:3.12-slim`; fs y config sin bloqueos (`DEF-025-antes.txt`). |
+| Resultado esperado / obtenido | Esperado: 0 HIGH/CRITICAL. Obtenido: 46 HIGH, 0 CRITICAL en paquetes Debian de `python:3.12-slim`; fs y config sin bloqueos (`DEF-025-antes.txt`, CI). Confirmado en local con Trivy 0.76.1 el 2026-11-05: `Total: 46 (HIGH: 46, CRITICAL: 0)` (`DEF-025-antes-local.txt`); contando todas las severidades, 186 (46 HIGH, 72 MEDIUM, 62 LOW, 6 UNKNOWN). |
 | Causa encontrada (debugging) | La capa base incluía versiones antiguas de util-linux, acl, ncurses, SQLite y zlib con avisos de seguridad publicados para Debian 13. |
-| Corrección | Pendiente. Existe una propuesta local no confirmada de actualizar los paquetes APT de la imagen; no se incluye en este commit ni se considera validada. Jack debe revisar el impacto, reconstruir la imagen y repetir Trivy antes de cerrar el defecto. |
-| Re-ejecución (confirmación) | Pendiente de reconstruir y volver a escanear la imagen en GitHub Actions. |
-| Análisis de impacto | Imagen de despliegue. La aplicación Python y sus dependencias no cambian. |
-| Regresión ejecutada | Pendiente del build y escaneo de imagen en CI, además de la suite completa. |
-| Estado | **Abierto** |
+| Corrección | Mantenimiento **adaptativo**: commit `fix(docker): usa python:3.12-alpine como imagen base (DEF-025)` (`5370e31`). Se cambia la base Debian por Alpine 3.24 y el usuario sin privilegios se crea con `addgroup`/`adduser` de BusyBox (mismo uid/gid 10001, sin home y con `/sbin/nologin`). No se cambió el umbral de Trivy ni se usó `--ignore-unfixed`. |
+| Re-ejecución (confirmación) | `docker build -t testquiz:alpine .` y `trivy image --scanners vuln --severity HIGH,CRITICAL testquiz:alpine` → alpine 3.24.4: **0**; sin filtro de severidad también 0. `trivy fs --scanners vuln,secret,misconfig` → 0; `trivy config` → 0 (`DEF-025-despues.txt`). Tamaño de la imagen: 259 MB → 151 MB. |
+| Análisis de impacto | Solo la imagen de despliegue (`Dockerfile`; Render usa `runtime: docker`). El código de la app no cambia. Riesgo revisado: Alpine usa musl en lugar de glibc; las dependencias (`pydantic-core`, `uvloop`, `httptools`, `watchfiles`) se instalaron desde ruedas musllinux sin compilar. El proceso sigue sin ser root (`id` → uid=10001). |
+| Regresión ejecutada | Dentro del contenedor: `python -m pytest -q` → 277 passed, 2 skipped. Contenedor en marcha: `/salud` 200 con versión 1.0.0, healthcheck `healthy`, panel 403 sin token; con `empates_mal` el ejecutor del panel marcó Ranking y Partida CAIDO (4 fallidas) y tras reparar 0 fallidas (`DEF-026-despues.txt`). Local: `pytest -q` → 290 passed, 2 skipped. Pendiente: confirmar el job Trivy en GitHub Actions. |
+| Estado | **Cerrado** (verificado en local; el CI lo vuelve a comprobar en cada push) |
 
 ### DEF-026 – La suite no se ejecuta dentro de la imagen Docker (error de recolección)
 | Campo | Valor |
@@ -390,8 +390,8 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Pasos para reproducir | 1. `docker build -t testquiz:slim .` 2. `docker run --rm -e ADMIN_TOKEN=demo123 testquiz:slim python -m pytest -q -p no:cacheprovider` 3. Con el contenedor en marcha, activar `empates_mal` y llamar `POST /api/admin/pruebas`. |
 | Resultado esperado / obtenido | Esperado: la suite corre y el panel marca Ranking y Partida como CAIDO. Obtenido: `ModuleNotFoundError: No module named 'scripts'` en `tests/componente/test_reporte_predespliegue.py`, `Interrupted: 1 error during collection`, **0 pruebas ejecutadas** (código 2). El panel devolvió `pruebas: 1, fallidas: 1, por_nivel: sin_nivel` y ningún módulo caído (`DEF-026-antes.txt`). |
 | Causa encontrada (debugging) | `test_reporte_predespliegue.py` importa `scripts.reporte_predespliegue`, pero `.dockerignore` excluye `scripts/` (la imagen no lo necesita). Un solo error de recolección hace que pytest interrumpa toda la ejecución. La prueba pertenece al pipeline (evalúa el reporte predespliegue), no al servidor. |
-| Corrección | Pendiente |
-| Re-ejecución (confirmación) | Pendiente |
-| Análisis de impacto | Pendiente |
-| Regresión ejecutada | Pendiente |
-| Estado | **Abierto** |
+| Corrección | Commit `fix(docker): excluye de la imagen la prueba del reporte predespliegue (DEF-026)` (`1ef6e54`): se agrega `tests/componente/test_reporte_predespliegue.py` a `.dockerignore`. La prueba se sigue ejecutando en el CI (job de pruebas), que sí tiene `scripts/`. No se borró ninguna prueba. |
+| Re-ejecución (confirmación) | `docker run --rm -e ADMIN_TOKEN=demo123 testquiz:alpine python -m pytest -q -p no:cacheprovider` → **277 passed, 2 skipped**, código 0 (`DEF-026-despues.txt`). 277 = 290 de la suite − 13 pruebas del reporte predespliegue. |
+| Análisis de impacto | Imagen Docker y panel del Saboteador en el despliegue (`app/calidad/ejecutor.py` lanza pytest dentro del servidor). La suite del CI no cambia: el job de pruebas sigue ejecutando las 13 pruebas del reporte. |
+| Regresión ejecutada | Contenedor en marcha: panel con `empates_mal` → `pruebas: 279, fallidas: 4, caidos: Partida, Ranking, en_riesgo: API, Gestor`; tras `reparar` → 0 fallidas. Local: `pytest -q` → 290 passed, 2 skipped. |
+| Estado | **Cerrado** |

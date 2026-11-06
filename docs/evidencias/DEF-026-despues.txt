@@ -1,0 +1,21 @@
+﻿Fecha: 2026-11-05. Imagen testquiz:alpine con tests/componente/test_reporte_predespliegue.py en .dockerignore
+
+== docker run --rm -e ADMIN_TOKEN=demo123 testquiz:alpine python -m pytest -q -p no:cacheprovider
+=========================== short test summary info ============================
+SKIPPED [1] tests/integracion_sistemas/test_humo.py:16: APP_URL no está configurada.
+SKIPPED [1] tests/integracion_sistemas/test_humo.py:36: APP_URL no está configurada.
+277 passed, 2 skipped, 1 warning in 8.03s
+Codigo de salida: 0
+
+== docker run --rm testquiz:alpine id
+uid=10001(appuser) gid=10001(appuser) groups=10001(appuser),10001(appuser)
+
+== Contenedor en marcha (docker run -d -p 127.0.0.1:8010:8000 -e ADMIN_TOKEN=***)
+GET /salud -> {"estado":"ok","version":"1.0.0"} HTTP 200
+GET / (front) -> HTTP 200
+GET /api/admin/sabotajes sin token -> HTTP 403
+Healthcheck de Docker: healthy
+
+== Panel: POST /sabotajes/empates_mal/activar y POST /api/admin/pruebas (ejecutor lanza pytest dentro del contenedor)
+sabotajes=empates_mal codigo_salida=1 resumen={"pruebas":279,"fallidas":4,"caidos":["Partida","Ranking"],"en_riesgo":["API","Gestor"],"por_nivel":{"componente":2,"integracion":2}}
+Tras reparar: codigo_salida=0 resumen={"pruebas":279,"fallidas":0,"caidos":[],"en_riesgo":[],"por_nivel":{}}
