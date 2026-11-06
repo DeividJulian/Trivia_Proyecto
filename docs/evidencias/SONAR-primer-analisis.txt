@@ -1,0 +1,39 @@
+Primer análisis de SonarQube Cloud. Rama feature/sonar, commit f0f1ed1, GitHub Actions run 42257204499.
+Fuente: API pública de SonarCloud, consultada el 2026-11-06.
+
+QUALITY GATE: ERROR
+  [ERROR] new_reliability_rating           real=3  umbral GT 1
+  [ERROR] new_security_rating              real=2  umbral GT 1
+  [OK   ] new_maintainability_rating       real=1  umbral GT 1
+  [ERROR] new_coverage                     real=73.5  umbral LT 80
+  [OK   ] new_duplicated_lines_density     real=0.0  umbral GT 3
+  [OK   ] new_security_hotspots_reviewed   real=100.0  umbral LT 100
+
+MÉTRICAS (código total de la rama):
+  bugs                         2
+  code_smells                  3
+  coverage                     73.5
+  duplicated_lines_density     0.0
+  lines_to_cover               1247
+  ncloc                        2022
+  reliability_rating           3.0
+  security_hotspots            0
+  security_hotspots_reviewed   100.0
+  security_rating              2.0
+  sqale_rating                 1.0
+  uncovered_lines              330
+  vulnerabilities              2
+
+INCIDENCIAS: 7
+  BUG           MAJOR  javascript:S9383             app/static/app.js:207  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator.
+  CODE_SMELL    MAJOR  Web:S6850                    app/static/index.html:47  Headings must have content and the content must be accessible by a screen reader.
+  CODE_SMELL    MAJOR  Web:S6850                    app/static/index.html:53  Headings must have content and the content must be accessible by a screen reader.
+  CODE_SMELL    MAJOR  Web:S6850                    app/static/index.html:83  Headings must have content and the content must be accessible by a screen reader.
+  VULNERABILITY MINOR  pythonsecurity:S5145         app/api/admin.py:83  Log Injection via HTTP request in admin.activar()
+  VULNERABILITY MINOR  pythonsecurity:S5145         app/api/admin.py:91  Log Injection via HTTP request in admin.desactivar()
+  BUG           MAJOR  pythonbugs:S2259             app/dominio/partida.py:346  Fix this attribute access on a value that can be 'None'.
+
+SECURITY HOTSPOTS: 0
+
+Cobertura por lenguaje (lines_to_cover / uncovered_lines):
+  app/static/app.js {'coverage': '0.0', 'lines_to_cover': '307', 'uncovered_lines': '307'}
