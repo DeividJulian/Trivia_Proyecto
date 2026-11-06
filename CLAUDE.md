@@ -122,4 +122,9 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
   290 passed, 2 skipped, cobertura 98 %. Confirmado en GitHub Actions (run 42161113908).
 - **Bloque 2 (pipeline, 2026-11-06):** CI run 42168456389 en verde: 299 pruebas (3 omitidas sin `APP_URL`),
   cobertura 97,55 %, mutantes 6/6, Trivy 0/0/0, Locust p95 3 ms y 0 % fallos. Local: 296 passed, 3 skipped.
-  **Defectos:** DEF-001 a DEF-026.
+- **CI con Trivy v0.76.1** (input `version`, run 42170687291), igual que en local.
+- **Bloque 3 (análisis adicional, 2026-11-06):** `docs/ANALISIS_ADICIONAL.md`. Bandit: 15 avisos ya tratados por
+  los `noqa` de Ruff; Radon: CC media A, `Partida.responder` D (29) y 4 funciones C quedan como deuda técnica
+  (sin refactor antes de la exposición); Vulture: DEF-027 y falsos positivos documentados; pip-audit: 0.
+  Las 4 herramientas se instalan solo en local, no están en `requirements` ni en el CI.
+  **Defectos:** DEF-001 a DEF-027.

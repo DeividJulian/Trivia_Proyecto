@@ -24,7 +24,6 @@ from locust import HttpUser, between, events, task
 ESPERA_LOBBY_S = 5.0
 MAX_ESPERAS_LOBBY = 6  # DEF-016: el presentador espera jugadores hasta 30 s antes de rendirse
 SEGUNDOS_POR_PREGUNTA = 3.0
-MAX_JUGADORES_POR_PARTIDA = 40
 
 _partidas_abiertas: deque[str] = deque()
 _candado = threading.Lock()

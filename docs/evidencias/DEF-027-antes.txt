@@ -1,0 +1,8 @@
+Comando: vulture app scripts performance (vulture 2.16), 2026-11-06
+
+performance\locustfile.py:27: unused variable 'MAX_JUGADORES_POR_PARTIDA' (60% confidence)
+
+== grep -rn MAX_JUGADORES app performance tests
+app/dominio/partida.py:24:MAX_JUGADORES_POR_DEFECTO = 50
+app/dominio/partida.py:39:        max_jugadores: int = MAX_JUGADORES_POR_DEFECTO,
+performance/locustfile.py:27:MAX_JUGADORES_POR_PARTIDA = 40

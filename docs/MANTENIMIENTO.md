@@ -72,6 +72,7 @@ y no era un defecto real: se documenta y se silencia **solo esa línea**, nunca 
 | DEF-024 | GitHub Actions | Tag de Trivy sin prefijo `v` | Correctivo | `trivy-action@v0.36.0` | El job resolvió la acción y escaneó | [antes](evidencias/DEF-024-antes.txt) · [despues](evidencias/DEF-024-despues.txt) |
 | DEF-025 | Trivy image | 46 HIGH en la base Debian de `python:3.12-slim` | Adaptativo | Base `python:3.12-alpine` (las 46 no tenían parche: se dejaron de usar esos paquetes, no se corrigieron) | Trivy image/fs/config: 0 hallazgos reportados (en Alpine Trivy no ve las que no tienen parche); 277 pruebas en el contenedor | [antes](evidencias/DEF-025-antes.txt) · [antes-local](evidencias/DEF-025-antes-local.txt) · [diagnóstico](evidencias/DEF-025-diagnostico-ignore-unfixed.txt) · [despues](evidencias/DEF-025-despues.txt) |
 | DEF-026 | pytest dentro del contenedor | La suite no corría en la imagen; el panel quedaba inservible | Correctivo | Prueba del CI fuera de la imagen (`.dockerignore`) | 277 passed en el contenedor; panel marca CAIDO | [antes](evidencias/DEF-026-antes.txt) · [despues](evidencias/DEF-026-despues.txt) |
+| DEF-027 | Vulture | Constante sin uso que contradecía el límite real de jugadores (40 vs. 50) | Perfectivo | Se borra la constante | Vulture sin el aviso; Locust 20 usuarios: 0 fallos | [antes](evidencias/DEF-027-antes.txt) · [despues](evidencias/DEF-027-despues.txt) |
 
 ## Mantenimiento preventivo sin defecto previo (Bloque 2)
 

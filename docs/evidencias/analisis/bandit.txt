@@ -1,0 +1,192 @@
+Run started:2026-11-06 05:51:19.219346+00:00
+
+Test results:
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: app\calidad\ejecutor.py:9:0
+8	import os
+9	import subprocess
+10	import sys
+
+--------------------------------------------------
+>> Issue: [B405:blacklist] Using xml.etree.ElementTree to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree with the equivalent defusedxml package, or make sure defusedxml.defuse_stdlib() is called.
+   Severity: Low   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b405-import-xml-etree
+   Location: app\calidad\ejecutor.py:13:0
+12	import time
+13	import xml.etree.ElementTree as ET
+14	from dataclasses import dataclass, field
+
+--------------------------------------------------
+>> Issue: [B314:blacklist] Using xml.etree.ElementTree.parse to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.parse with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called
+   Severity: Medium   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b313-b320-xml-bad-elementtree
+   Location: app\calidad\ejecutor.py:54:11
+53	    """Lee el JUnit XML de pytest (con las propiedades módulo y nivel que agrega el conftest)."""
+54	    raiz = ET.parse(ruta).getroot()  # noqa: S314 - XML generado localmente por pytest, no es entrada externa
+55	    resultados = []
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: app\calidad\ejecutor.py:131:18
+130	        inicio = time.perf_counter()
+131	        proceso = subprocess.run(  # noqa: S603 - ejecuta pytest con argumentos propios, sin shell
+132	            [*comando, *(argumentos or [])],
+133	            cwd=RAIZ,
+134	            env=entorno,
+135	            capture_output=True,
+136	            text=True,
+137	            timeout=timeout_s,
+138	            check=False,
+139	        )
+140	        duracion = time.perf_counter() - inicio
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: performance\locustfile.py:48:15
+47	        # DEF-016: elegir al azar reparte a los jugadores entre todas las partidas abiertas
+48	        return random.choice(_partidas_abiertas) if _partidas_abiertas else None  # noqa: S311 - simulación
+49	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: performance\locustfile.py:142:48
+141	            self.pin = None
+142	        elif estado["estado"] == "PREGUNTA" and random.random() < 0.7:  # noqa: S311 - simulación, no seguridad
+143	            self._responder()
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: performance\locustfile.py:146:51
+145	    def _responder(self) -> None:
+146	        cuerpo = {"nombre": self.nombre, "opcion": random.randint(0, 3)}  # noqa: S311 - simulación
+147	        with self.client.post(
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: scripts\regresion_por_impacto.py:14:0
+13	import shutil
+14	import subprocess
+15	import sys
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: scripts\regresion_por_impacto.py:29:13
+28	        raise SystemExit("No se encontró git en el PATH.")
+29	    salida = subprocess.run(  # noqa: S603 - comando fijo, sin shell; base es un nombre de rama de git
+30	        [git, "diff", "--name-only", base],
+31	        cwd=RAIZ,
+32	        capture_output=True,
+33	        text=True,
+34	        check=True,
+35	    )
+36	    return [linea for linea in salida.stdout.splitlines() if linea.strip()]
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: scripts\regresion_por_impacto.py:60:11
+59	        return 0
+60	    return subprocess.call(comando, cwd=RAIZ)  # noqa: S603 - ejecuta pytest con argumentos propios
+61	
+
+--------------------------------------------------
+>> Issue: [B405:blacklist] Using xml.etree.ElementTree to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree with the equivalent defusedxml package, or make sure defusedxml.defuse_stdlib() is called.
+   Severity: Low   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b405-import-xml-etree
+   Location: scripts\reporte_predespliegue.py:7:0
+6	import sys
+7	import xml.etree.ElementTree as ET
+8	from dataclasses import dataclass
+
+--------------------------------------------------
+>> Issue: [B314:blacklist] Using xml.etree.ElementTree.parse to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.parse with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called
+   Severity: Medium   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b313-b320-xml-bad-elementtree
+   Location: scripts\reporte_predespliegue.py:34:15
+33	    try:
+34	        raiz = ET.parse(ruta).getroot()  # noqa: S314 - XML generado por pytest dentro del pipeline
+35	    except FileNotFoundError:
+
+--------------------------------------------------
+>> Issue: [B314:blacklist] Using xml.etree.ElementTree.parse to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.parse with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called
+   Severity: Medium   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b313-b320-xml-bad-elementtree
+   Location: scripts\reporte_predespliegue.py:51:15
+50	    try:
+51	        raiz = ET.parse(ruta).getroot()  # noqa: S314 - XML generado por pytest dentro del pipeline
+52	        cobertura = float(raiz.attrib["line-rate"]) * 100
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: scripts\verificar_mutantes.py:15:0
+14	import os
+15	import subprocess
+16	import sys
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: scripts\verificar_mutantes.py:33:14
+32	    inicio = time.perf_counter()
+33	    proceso = subprocess.run(  # noqa: S603 - ejecuta pytest con argumentos propios, sin shell
+34	        [*comando, *ORDEN_NIVELES],
+35	        cwd=RAIZ,
+36	        env={**os.environ, "SABOTAJES": clave},
+37	        capture_output=True,
+38	        text=True,
+39	        check=False,
+40	    )
+41	    duracion = time.perf_counter() - inicio
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 2202
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 12
+		Medium: 3
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 15
+Files skipped (0):

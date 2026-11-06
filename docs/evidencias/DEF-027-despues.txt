@@ -1,0 +1,8 @@
+﻿Fecha: 2026-11-06
+== vulture app scripts performance | grep MAX_JUGADORES
+(sin resultados: el aviso desapareció)
+
+== Regresión del script: locust -f performance\locustfile.py --host http://127.0.0.1:8021 --headless -u 20 -r 10 -t 30s; verificar_umbrales.py
+Peticiones: 476  fallos: 0  mediana: 5 ms  rps: 17.0
+  [CUMPLE   ] RNF-01 p95     medido     10 ms  umbral < 500 ms
+  [CUMPLE   ] RNF-02 fallos  medido    0.00 %  umbral < 1 %

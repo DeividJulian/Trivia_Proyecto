@@ -1,0 +1,21 @@
+== pip-audit -r requirements.txt
+WARNING:venv:Actual environment location may have moved due to redirects, links or junctions.
+  Requested location: "C:\Users\JACKLI~1\AppData\Local\Temp\tmpb6xb1lkt\Scripts\python.exe"
+  Actual location:    "C:\Users\Jack Limas\AppData\Local\Temp\tmpb6xb1lkt\Scripts\python.exe"
+No known vulnerabilities found
+codigo de salida: 0
+
+== pip-audit -r requirements-panel.txt
+WARNING:venv:Actual environment location may have moved due to redirects, links or junctions.
+  Requested location: "C:\Users\JACKLI~1\AppData\Local\Temp\tmp2er_731x\Scripts\python.exe"
+  Actual location:    "C:\Users\Jack Limas\AppData\Local\Temp\tmp2er_731x\Scripts\python.exe"
+No known vulnerabilities found
+codigo de salida: 0
+
+== pip-audit -r requirements-dev.txt
+WARNING:venv:Actual environment location may have moved due to redirects, links or junctions.
+  Requested location: "C:\Users\JACKLI~1\AppData\Local\Temp\tmpa_3eonj5\Scripts\python.exe"
+  Actual location:    "C:\Users\Jack Limas\AppData\Local\Temp\tmpa_3eonj5\Scripts\python.exe"
+No known vulnerabilities found
+codigo de salida: 0
+
