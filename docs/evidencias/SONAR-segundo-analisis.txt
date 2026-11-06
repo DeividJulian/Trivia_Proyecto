@@ -1,0 +1,34 @@
+SonarQube Cloud, rama feature/sonar, re-análisis del commit bce04eb (GitHub Actions run 42262436047, 2026-11-06). API pública.
+
+QUALITY GATE: OK
+  [OK   ] new_reliability_rating           real=1  umbral GT 1
+  [OK   ] new_security_rating              real=1  umbral GT 1
+  [OK   ] new_maintainability_rating       real=1  umbral GT 1
+  [OK   ] new_coverage                     real=97.6  umbral LT 80
+  [OK   ] new_duplicated_lines_density     real=0.0  umbral GT 3
+  [OK   ] new_security_hotspots_reviewed   real=100.0  umbral LT 100
+
+MÉTRICAS:
+  bugs                         0
+  code_smells                  0
+  coverage                     97.6
+  duplicated_lines_density     0.0
+  lines_to_cover               943
+  ncloc                        2025
+  reliability_rating           1.0
+  security_hotspots            0
+  security_hotspots_reviewed   100.0
+  security_rating              1.0
+  sqale_rating                 1.0
+  uncovered_lines              23
+  vulnerabilities              0
+
+INCIDENCIAS ABIERTAS: 0
+INCIDENCIAS CERRADAS POR SONAR: 7
+  javascript:S9383             app/static/app.js:None  CLOSED/FIXED
+  Web:S6850                    app/static/index.html:None  CLOSED/FIXED
+  Web:S6850                    app/static/index.html:None  CLOSED/FIXED
+  Web:S6850                    app/static/index.html:None  CLOSED/FIXED
+  pythonsecurity:S5145         app/api/admin.py:None  CLOSED/FIXED
+  pythonsecurity:S5145         app/api/admin.py:None  CLOSED/FIXED
+  pythonbugs:S2259             app/dominio/partida.py:None  CLOSED/FIXED

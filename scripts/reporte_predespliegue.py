@@ -124,7 +124,7 @@ def leer_rendimiento(ruta: Path) -> Compuerta:
 
 
 def leer_sonar(ruta: Path, resultado_job: str) -> Compuerta:
-    if resultado_job != "success":
+    if resultado_job == "pending":
         return Compuerta("SonarCloud", "PENDIENTE", "integración diferida; falta Quality Gate aprobado")
     try:
         datos = json.loads(ruta.read_text(encoding="utf-8"))
@@ -133,6 +133,10 @@ def leer_sonar(ruta: Path, resultado_job: str) -> Compuerta:
     except json.JSONDecodeError:
         return Compuerta("SonarCloud", "FALLIDA", f"{ruta.name} no es JSON válido")
 
+    if resultado_job != "success":
+        quality_gate = datos.get("quality_gate", "desconocido")
+        evidencia = f"job de Sonar: {resultado_job}; Quality Gate: {quality_gate}"
+        return Compuerta("SonarCloud", "FALLIDA", evidencia)
     aprobado = datos.get("quality_gate") == "PASSED"
     estado = "APROBADA" if aprobado else "FALLIDA"
     return Compuerta("SonarCloud", estado, f"Quality Gate: {datos.get('quality_gate', 'desconocido')}")

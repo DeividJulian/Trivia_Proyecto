@@ -56,9 +56,11 @@ def _estado() -> dict[str, Any]:
 
 
 def _validar_clave(clave: str) -> str:
-    if clave not in sabotajes.CATALOGO:
+    """Devuelve la clave tal como está en el catálogo, no el texto recibido en la URL (DEF-031)."""
+    sabotaje = sabotajes.CATALOGO.get(clave)
+    if sabotaje is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"No existe el sabotaje '{clave[:40]}'.")
-    return clave
+    return sabotaje.clave
 
 
 @router.get("/sabotajes")
@@ -79,16 +81,18 @@ async def reparar() -> dict[str, Any]:
 @router.post("/sabotajes/{clave}/activar")
 async def activar(clave: str) -> dict[str, Any]:
     """Activa un mutante."""
-    sabotajes.activar(_validar_clave(clave))
-    logger.warning("Sabotaje ACTIVADO: %s", clave)
+    clave_catalogo = _validar_clave(clave)
+    sabotajes.activar(clave_catalogo)
+    logger.warning("Sabotaje ACTIVADO: %s", clave_catalogo)
     return _estado()
 
 
 @router.post("/sabotajes/{clave}/desactivar")
 async def desactivar(clave: str) -> dict[str, Any]:
     """Desactiva un mutante."""
-    sabotajes.desactivar(_validar_clave(clave))
-    logger.warning("Sabotaje desactivado: %s", clave)
+    clave_catalogo = _validar_clave(clave)
+    sabotajes.desactivar(clave_catalogo)
+    logger.warning("Sabotaje desactivado: %s", clave_catalogo)
     return _estado()
 
 

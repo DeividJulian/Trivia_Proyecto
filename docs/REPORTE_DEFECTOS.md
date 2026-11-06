@@ -279,7 +279,7 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Pasos para reproducir | `trivy rootfs --scanners vuln .venv/Lib/site-packages` → `setuptools 70.3.0`: CVE-2025-47273 (HIGH), CVE-2026-59890 (MEDIUM), GHSA-xmj3-9gf7-h52w (LOW) (`DEF-018-antes.txt`) |
 | Causa encontrada (debugging) | `pip show setuptools` → no está instalado. El hallazgo sale del inventario de **pip 26.3** (`pip/_vendor/vendor.txt` y `bom.cdx.json`: `setuptools==70.3.0`): pip solo incluye `pkg_resources` de ese setuptools. La CVE-2025-47273 está en `setuptools.package_index`, que pip **no** incluye. Es un falso positivo en ejecución, pero la imagen `python:3.12-slim` también trae pip, así que el gate de `trivy image` del CI fallaría por lo mismo. `trivy fs` del repositorio y `trivy config` del Dockerfile salieron limpios (0 HIGH/CRITICAL, 0 secretos, 0 malas configuraciones). |
 | Corrección | Mantenimiento **adaptativo/preventivo**: commit `fix(docker): la imagen final no incluye pip ... (DEF-018)`: tras instalar las dependencias se desinstala pip (la app no lo usa en ejecución y se reduce la superficie de ataque). En el entorno local de desarrollo se acepta el riesgo: no se despliega y se actualizará pip cuando cambie su setuptools interno. |
-| Re-ejecución (confirmación) | `trivy config Dockerfile` → 0; `trivy fs ... --severity HIGH,CRITICAL` → 0 (`DEF-018-despues.txt`). **Pendiente** `trivy image` en el CI (sin Docker local). |
+| Re-ejecución (confirmación) | `trivy config Dockerfile` → 0; `trivy fs ... --severity HIGH,CRITICAL` → 0 (`DEF-018-despues.txt`). `trivy image` confirmado después en el CI: imagen sin pip y 0 HIGH/CRITICAL (run 42161113908 con Trivy 0.70.0 y run 42170687291 con Trivy 0.76.1). |
 | Análisis de impacto | Solo la imagen (despliegue). La app no importa pip. |
 | Regresión ejecutada | `pytest -q` → `254 passed`; `verificar_mutantes.py` → 6/6 |
 | Estado | **Cerrado en la imagen** (confirmar en CI) / **Riesgo aceptado** en el entorno local |
@@ -379,7 +379,7 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Corrección | Mantenimiento **adaptativo**: commit `fix(docker): usa python:3.12-alpine como imagen base (DEF-025)` (`5370e31`). Se reemplaza la base Debian por Alpine 3.24 y el usuario sin privilegios se crea con `addgroup`/`adduser` de BusyBox (mismo uid/gid 10001, sin home y con `/sbin/nologin`). Las 46 vulnerabilidades **no se corrigieron**: se dejaron de usar los paquetes Debian que las tenían. No se cambió el umbral de Trivy ni se usó `--ignore-unfixed` en el CI. |
 | Re-ejecución (confirmación) | `docker build -t testquiz:alpine .` y `trivy image --scanners vuln --severity HIGH,CRITICAL testquiz:alpine` → alpine 3.24.4: **0 hallazgos reportados**; sin filtro de severidad también 0. `trivy fs --scanners vuln,secret,misconfig` → 0; `trivy config` → 0 (`DEF-025-despues.txt`). Tamaño de la imagen: 259 MB → 151 MB. **Limitación:** según la documentación de Trivy v0.76.1 (`docs/guide/coverage/os/alpine.md`), para Alpine la detección de *unfixed vulnerabilities* no está soportada, porque los avisos de Alpine solo listan vulnerabilidades con parche. Para Debian sí lo está. Así que el 0 significa que **no hay hallazgos reportados**, no que el riesgo sea cero. Se mitiga repitiendo el escaneo en cada push del CI. |
 | Análisis de impacto | Solo la imagen de despliegue (`Dockerfile`; Render usa `runtime: docker`). El código de la app no cambia. Riesgo revisado: Alpine usa musl en lugar de glibc; las dependencias (`pydantic-core`, `uvloop`, `httptools`, `watchfiles`) se instalaron desde ruedas musllinux sin compilar. El proceso sigue sin ser root (`id` → uid=10001). |
-| Regresión ejecutada | Dentro del contenedor: `python -m pytest -q` → 277 passed, 2 skipped. Contenedor en marcha: `/salud` 200 con versión 1.0.0, healthcheck `healthy`, panel 403 sin token; con `empates_mal` el ejecutor del panel marcó Ranking y Partida CAIDO (4 fallidas) y tras reparar 0 fallidas (`DEF-026-despues.txt`). Local: `pytest -q` → 290 passed, 2 skipped. Pendiente: confirmar el job Trivy en GitHub Actions. |
+| Regresión ejecutada | Dentro del contenedor: `python -m pytest -q` → 277 passed, 2 skipped. Contenedor en marcha: `/salud` 200 con versión 1.0.0, healthcheck `healthy`, panel 403 sin token; con `empates_mal` el ejecutor del panel marcó Ranking y Partida CAIDO (4 fallidas) y tras reparar 0 fallidas (`DEF-026-despues.txt`). Local: `pytest -q` → 290 passed, 2 skipped. Confirmado en GitHub Actions: run 42161113908 (Trivy 0.70.0) y run 42170687291 (Trivy 0.76.1), imagen alpine 3.24.4 con 0 hallazgos. |
 | Estado | **Cerrado** (0 hallazgos reportados en local, con la limitación anterior; el CI lo vuelve a comprobar en cada push) |
 
 ### DEF-026 – La suite no se ejecuta dentro de la imagen Docker (error de recolección)
@@ -408,4 +408,74 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Re-ejecución (confirmación) | `vulture app scripts performance` ya no muestra `MAX_JUGADORES_POR_PARTIDA` (`DEF-027-despues.txt`). |
 | Análisis de impacto | Solo `performance/locustfile.py` (herramienta de prueba). La aplicación y los demás escenarios no lo usaban. |
 | Regresión ejecutada | `pytest -q` → 296 passed, 3 skipped. Locust 20 usuarios / 30 s contra uvicorn local → 476 peticiones, 0 fallos, p95 10 ms (RNF-01 y RNF-02 cumplen). |
+| Estado | **Cerrado** |
+
+### DEF-028 – estado_publico usa la pregunta sin comprobar que exista (Sonar S2259)
+| Campo | Valor |
+|---|---|
+| Detectado por | SonarQube Cloud, regla `pythonbugs:S2259` (bug, confiabilidad MEDIUM), primer análisis de la etapa 3 del CI (run 42257204499) |
+| Severidad | Media |
+| Pasos para reproducir | 1. Analizar la rama `feature/sonar` con SonarQube Cloud. 2. Ver `app/dominio/partida.py:346`. |
+| Resultado esperado / obtenido | Esperado: no acceder a atributos de un valor que puede ser `None`. Obtenido: `estado["correcta"] = pregunta.correcta` en el estado RESULTADOS, aunque `pregunta` viene de `pregunta_actual`, que devuelve `None` si el índice queda fuera de rango (`DEF-028-antes.txt`). |
+| Causa encontrada (debugging) | El bloque anterior sí comprueba `pregunta is not None`, pero el bloque de RESULTADOS no. Con el flujo normal el índice es válido en RESULTADOS, por eso ninguna prueba lo vio; si el estado y el índice se desalinean, `estado_publico` lanza `AttributeError` y la difusión por WebSocket se cae. |
+| Corrección | Mantenimiento **correctivo**: commit `fix(partida): estado_publico solo revela la correcta si hay pregunta (DEF-028)` (`abfd30c`). Antes, la prueba `test_estado_publico_en_resultados_sin_pregunta_no_falla` se subió con `xfail(strict=True)` (`test(partida)`), y reproducía `AttributeError: 'NoneType' object has no attribute 'correcta'`. |
+| Re-ejecución (confirmación) | La prueba pasa sin `xfail`; re-análisis de Sonar del commit `bce04eb` (run 42262436047): S2259 `CLOSED/FIXED` (`DEF-028-despues.txt`). |
+| Análisis de impacto | `Partida.estado_publico`, que usan la API (`GET /api/partidas/{pin}`) y la difusión por WebSocket. Con el flujo normal el resultado no cambia: en RESULTADOS siempre hay pregunta. |
+| Regresión ejecutada | `pytest -q` → 302 passed, 3 skipped; mutantes 6/6 en el CI; CI completo en verde. |
+| Estado | **Cerrado** |
+
+### DEF-029 – La cobertura de Sonar mezcla el front JS sin reporte con el backend
+| Campo | Valor |
+|---|---|
+| Detectado por | SonarQube Cloud, condición `new_coverage` del Quality Gate (73,5 % < 80 %) |
+| Severidad | Media (bloquea el Quality Gate) |
+| Pasos para reproducir | 1. Correr la etapa 3 del CI. 2. Consultar `api/measures/component` de la rama y de `app/static/app.js`. |
+| Resultado esperado / obtenido | Esperado: la cobertura de Sonar coincide con la de pytest-cov (97,55 %). Obtenido: 73,5 %; `app/static/app.js` aporta 307 líneas por cubrir con 0 % (`DEF-029-antes.txt`). |
+| Causa encontrada (debugging) | Las rutas de `coverage.xml` sí se resolvieron: las 23 líneas sin cubrir de Python coinciden con pytest-cov. La diferencia (1247 − 940 = 307 líneas) es `app/static/app.js`: `sonar.sources=app` incluye el front de demostración, que no tiene herramienta de cobertura (no hay pruebas unitarias de JS; el front se prueba a nivel de sistema). |
+| Corrección | Commit `fix(sonar): la cobertura mide el backend y no el front sin reporte (DEF-029)` (`aa4f184`): `sonar.coverage.exclusions=app/static/**`. Se excluye el front **solo de la métrica de cobertura**: Sonar lo sigue analizando (S9383 y S6850 salieron de esa carpeta). El umbral del 80 % no cambia. El front se prueba a nivel de sistema (`tests/sistema/test_front.py`). |
+| Re-ejecución (confirmación) | re-análisis de Sonar del commit `bce04eb` (run 42262436047): `new_coverage` 97,6 % (OK, umbral < 80 sin cambios); 943 líneas por cubrir, 23 sin cubrir, las mismas que pytest-cov (`DEF-029-despues.txt`). |
+| Análisis de impacto | Solo la configuración del análisis. No cambia código ni pruebas. |
+| Regresión ejecutada | CI completo en verde, Quality Gate OK. |
+| Estado | **Cerrado** |
+
+### DEF-030 – Promesa sin manejar explícitamente en el front (Sonar S9383)
+| Campo | Valor |
+|---|---|
+| Detectado por | SonarQube Cloud, regla `javascript:S9383` (bug, confiabilidad MEDIUM) |
+| Severidad | Baja (la función ya captura sus errores por dentro) |
+| Pasos para reproducir | Ver `app/static/app.js:207` en el análisis de `feature/sonar`. |
+| Resultado esperado / obtenido | Esperado: toda promesa se espera, se captura o se marca como ignorada a propósito. Obtenido: `actualizarMarcador();` se llama sin `await`, sin `.catch` y sin `void` (`DEF-030-antes.txt`). |
+| Causa encontrada (debugging) | `actualizarMarcador` es `async` y tiene su propio `try/catch`, así que hoy no deja promesas rechazadas; pero la llamada no lo dice y un cambio futuro dentro de la función sí podría dejar un rechazo sin manejar. |
+| Corrección | Commit `fix(front): la actualizacion del marcador se marca como promesa ignorada a proposito (DEF-030)`: `void actualizarMarcador();` con un comentario que explica que la función captura sus errores. |
+| Re-ejecución (confirmación) | `node --check app/static/app.js` OK; re-análisis de Sonar del commit `bce04eb` (run 42262436047): S9383 `CLOSED/FIXED` (`DEF-030-despues.txt`). |
+| Análisis de impacto | Solo la vista del jugador en `app/static/app.js`. El comportamiento no cambia. |
+| Regresión ejecutada | `pytest -q` (incluye `tests/sistema/test_front.py`) → 302 passed, 3 skipped. |
+| Estado | **Cerrado** |
+
+### DEF-031 – El log del panel registra la clave tal como llega en la URL (Sonar S5145)
+| Campo | Valor |
+|---|---|
+| Detectado por | SonarQube Cloud, regla `pythonsecurity:S5145` (vulnerabilidad, seguridad LOW, análisis de flujo de datos) en `admin.activar()` y `admin.desactivar()` |
+| Severidad | Baja |
+| Pasos para reproducir | Ver `app/api/admin.py:83` y `:91` en el análisis de `feature/sonar`. |
+| Resultado esperado / obtenido | Esperado: el log no escribe datos controlados por el cliente. Obtenido: `logger.warning("Sabotaje ACTIVADO: %s", clave)` con `clave` del path (`DEF-031-antes.txt`). |
+| Causa encontrada (debugging) | Hoy no es explotable: `_validar_clave` responde 404 con cualquier clave fuera del catálogo antes de llegar al log, así que solo se registran las 6 claves conocidas. Pero el valor registrado sigue siendo el texto de la petición; si alguien quitara o cambiara la validación, se podrían inyectar saltos de línea en el log. |
+| Corrección | Mantenimiento **preventivo**: commit `fix(api): el log del panel registra la clave del catalogo, no la de la URL (DEF-031)` (`b26b8d6`). `_validar_clave` devuelve `sabotaje.clave` del catálogo, y eso es lo que se activa y se registra. Pruebas de seguridad nuevas (`test(api)`): una clave con `%0A` responde 404 y no llega al log, y el log registra la clave del catálogo. Esas pruebas también pasaban antes porque la validación ya existía: son guardas de regresión, no la reproducción de un fallo. |
+| Re-ejecución (confirmación) | re-análisis de Sonar del commit `bce04eb` (run 42262436047): los 2 S5145 `CLOSED/FIXED` (`DEF-031-despues.txt`). No hizo falta marcarlos a mano como falso positivo. |
+| Análisis de impacto | `POST /api/admin/sabotajes/{clave}/activar` y `/desactivar`. Respuesta y efecto iguales; solo cambia de dónde sale el texto del log. |
+| Regresión ejecutada | `pytest -q` → 302 passed, 3 skipped; mutantes 6/6 en el CI. |
+| Estado | **Cerrado** |
+
+### DEF-032 – Títulos vacíos en el HTML del front (Sonar S6850)
+| Campo | Valor |
+|---|---|
+| Detectado por | SonarQube Cloud, regla `Web:S6850` (code smell, accesibilidad), 3 casos |
+| Severidad | Baja |
+| Pasos para reproducir | Ver `app/static/index.html:47, 53 y 83` en el análisis de `feature/sonar`. |
+| Resultado esperado / obtenido | Esperado: todo título tiene contenido para lectores de pantalla. Obtenido: `<h3 id="prof-texto"></h3>`, `<h3 id="prof-ganador"></h3>` y `<h3 id="jug-texto"></h3>` vacíos (`DEF-032-antes.txt`). |
+| Causa encontrada (debugging) | El JS rellena esos títulos cuando llega el estado de la partida; en el HTML inicial quedan vacíos. |
+| Corrección | Commit `fix(front): los titulos del HTML tienen texto inicial (DEF-032)`: "Pregunta", "Resultados" y "Pregunta". El JS los reemplaza con `textContent` al llegar el estado, igual que antes. |
+| Re-ejecución (confirmación) | re-análisis de Sonar del commit `bce04eb` (run 42262436047): los 3 S6850 `CLOSED/FIXED` (`DEF-032-despues.txt`). |
+| Análisis de impacto | Solo `app/static/index.html`; los contenedores de esos títulos están ocultos hasta que el JS los rellena. |
+| Regresión ejecutada | `pytest -q` → 302 passed, 3 skipped. |
 | Estado | **Cerrado** |

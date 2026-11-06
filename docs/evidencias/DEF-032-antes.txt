@@ -1,0 +1,19 @@
+SonarQube Cloud, rama feature/sonar, análisis del commit f0f1ed1 (GitHub Actions run 42257204499). API pública:
+GET https://sonarcloud.io/api/issues/search?componentKeys=DeividJulian_Trivia_Proyecto&branch=feature/sonar&rules=Web:S6850
+
+CODE_SMELL MAJOR Web:S6850 app/static/index.html:47
+  Headings must have content and the content must be accessible by a screen reader.
+  impactos: [{'softwareQuality': 'RELIABILITY', 'severity': 'MEDIUM'}, {'softwareQuality': 'MAINTAINABILITY', 'severity': 'LOW'}]
+  clave: AaGxzdc6J4N3lUY5zV0u
+
+CODE_SMELL MAJOR Web:S6850 app/static/index.html:53
+  Headings must have content and the content must be accessible by a screen reader.
+  impactos: [{'softwareQuality': 'RELIABILITY', 'severity': 'MEDIUM'}, {'softwareQuality': 'MAINTAINABILITY', 'severity': 'LOW'}]
+  clave: AaGxzdc6J4N3lUY5zV0v
+
+CODE_SMELL MAJOR Web:S6850 app/static/index.html:83
+  Headings must have content and the content must be accessible by a screen reader.
+  impactos: [{'softwareQuality': 'RELIABILITY', 'severity': 'MEDIUM'}, {'softwareQuality': 'MAINTAINABILITY', 'severity': 'LOW'}]
+  clave: AaGxzdc6J4N3lUY5zV0w
+
+Total: 3

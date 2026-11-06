@@ -1,0 +1,7 @@
+SonarQube Cloud, rama feature/sonar, re-análisis del commit bce04eb (GitHub Actions run 42262436047, 2026-11-06). API pública.
+GET https://sonarcloud.io/api/issues/search?...&branch=feature/sonar&resolved=true (regla pythonsecurity:S5145)
+
+  pythonsecurity:S5145 app/api/admin.py:None  estado=CLOSED resolución=FIXED  clave: AaGxzdbLJ4N3lUY5zV0s
+  pythonsecurity:S5145 app/api/admin.py:None  estado=CLOSED resolución=FIXED  clave: AaGxzdbLJ4N3lUY5zV0r
+
+Incidencias abiertas en la rama: 0

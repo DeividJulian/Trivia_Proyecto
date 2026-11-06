@@ -1,0 +1,16 @@
+SonarQube Cloud, rama feature/sonar, análisis del commit f0f1ed1 (GitHub Actions run 42257204499). API pública:
+GET https://sonarcloud.io/api/issues/search?componentKeys=DeividJulian_Trivia_Proyecto&branch=feature/sonar&rules=pythonbugs:S2259
+
+BUG MAJOR pythonbugs:S2259 app/dominio/partida.py:346
+  Fix this attribute access on a value that can be 'None'.
+  impactos: [{'softwareQuality': 'RELIABILITY', 'severity': 'MEDIUM'}]
+  clave: AaGxzdc0J4N3lUY5zV0t
+
+Total: 1
+Prueba escrita antes de la corrección (DEF-028), 2026-11-06:
+pytest -q tests/integracion/test_partida.py::test_estado_publico_en_resultados_sin_pregunta_no_falla
+tests\integracion\test_partida.py:259: 
+E           AttributeError: 'NoneType' object has no attribute 'correcta'
+app\dominio\partida.py:346: AttributeError
+FAILED tests/integracion/test_partida.py::test_estado_publico_en_resultados_sin_pregunta_no_falla
+1 failed in 0.15s

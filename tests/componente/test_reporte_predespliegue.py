@@ -85,6 +85,18 @@ def test_sonar_diferido_no_se_considera_aprobado(tmp_path):
     assert comprobar_job("Estilo", "success").aprobada
 
 
+@pytest.mark.parametrize("resultado_job", ["failure", "cancelled", "skipped"])
+def test_sonar_con_job_no_exitoso_falla_y_no_queda_pendiente(tmp_path, resultado_job):
+    ruta = tmp_path / "quality-gate.json"
+    ruta.write_text(json.dumps({"quality_gate": "FAILED"}), encoding="utf-8")
+
+    resultado = leer_sonar(ruta, resultado_job)
+
+    assert resultado.estado == "FALLIDA"
+    assert resultado_job in resultado.evidencia
+    assert "FAILED" in resultado.evidencia
+
+
 def test_sonar_aprueba_solo_con_quality_gate_pasado(tmp_path):
     ruta = tmp_path / "quality-gate.json"
     ruta.write_text(json.dumps({"quality_gate": "PASSED"}), encoding="utf-8")

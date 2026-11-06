@@ -73,6 +73,11 @@ y no era un defecto real: se documenta y se silencia **solo esa línea**, nunca 
 | DEF-025 | Trivy image | 46 HIGH en la base Debian de `python:3.12-slim` | Adaptativo | Base `python:3.12-alpine` (las 46 no tenían parche: se dejaron de usar esos paquetes, no se corrigieron) | Trivy image/fs/config: 0 hallazgos reportados (en Alpine Trivy no ve las que no tienen parche); 277 pruebas en el contenedor | [antes](evidencias/DEF-025-antes.txt) · [antes-local](evidencias/DEF-025-antes-local.txt) · [diagnóstico](evidencias/DEF-025-diagnostico-ignore-unfixed.txt) · [despues](evidencias/DEF-025-despues.txt) |
 | DEF-026 | pytest dentro del contenedor | La suite no corría en la imagen; el panel quedaba inservible | Correctivo | Prueba del CI fuera de la imagen (`.dockerignore`) | 277 passed en el contenedor; panel marca CAIDO | [antes](evidencias/DEF-026-antes.txt) · [despues](evidencias/DEF-026-despues.txt) |
 | DEF-027 | Vulture | Constante sin uso que contradecía el límite real de jugadores (40 vs. 50) | Perfectivo | Se borra la constante | Vulture sin el aviso; Locust 20 usuarios: 0 fallos | [antes](evidencias/DEF-027-antes.txt) · [despues](evidencias/DEF-027-despues.txt) |
+| DEF-028 | SonarQube Cloud (S2259) | `estado_publico` usaba la pregunta sin comprobar que existiera | Correctivo | Revelar la correcta solo si hay pregunta; prueba primero con `xfail` estricto | La prueba reprodujo el `AttributeError` y luego pasó; Sonar: FIXED | [antes](evidencias/DEF-028-antes.txt) · [despues](evidencias/DEF-028-despues.txt) |
+| DEF-029 | SonarQube Cloud (Quality Gate) | Cobertura 73,5 %: contaba el front JS sin reporte | Adaptativo | Excluir `app/static/**` solo de la cobertura; umbral del 80 % sin cambios | Cobertura 97,6 %, igual que pytest-cov | [antes](evidencias/DEF-029-antes.txt) · [despues](evidencias/DEF-029-despues.txt) |
+| DEF-030 | SonarQube Cloud (S9383) | Promesa sin manejar explícitamente en el front | Preventivo | `void actualizarMarcador()` | `node --check`; Sonar: FIXED | [antes](evidencias/DEF-030-antes.txt) · [despues](evidencias/DEF-030-despues.txt) |
+| DEF-031 | SonarQube Cloud (S5145) | El log registraba la clave tal como llegaba en la URL | Preventivo | Registrar la clave del catálogo; pruebas de seguridad | Sonar: FIXED (2 casos) | [antes](evidencias/DEF-031-antes.txt) · [despues](evidencias/DEF-031-despues.txt) |
+| DEF-032 | SonarQube Cloud (S6850) | Títulos vacíos en el HTML (accesibilidad) | Perfectivo | Texto inicial en los 3 títulos | Sonar: FIXED (3 casos) | [antes](evidencias/DEF-032-antes.txt) · [despues](evidencias/DEF-032-despues.txt) |
 
 ## Mantenimiento preventivo sin defecto previo (Bloque 2)
 
@@ -85,3 +90,22 @@ No los detectó una prueba: se hicieron para que un fallo futuro no llegue al de
 | `.github/dependabot.yml` (docker y github-actions, contra `develop`) | Que fijar versiones congele también las vulnerabilidades. Dependabot propone el digest o SHA nuevo y el PR pasa por todo el pipeline, Trivy incluido | Adaptativo / preventivo | Solo actúa cuando el archivo llegue a `main` (rama por defecto) |
 | `/salud` informa `commit` y el humo espera ese SHA | Que el humo pase contra la versión **anterior** mientras Render aún despliega (VERSION siempre vale 1.0.0) | Preventivo | Humo contra el contenedor: con el commit correcto 3 passed; con otro commit falla `test_responde_el_commit_recien_desplegado` |
 | El release se crea después del humo | Publicar un release de una versión que no arrancó bien | Preventivo | Orden de los jobs: 7 despliega, 8 corre el humo y luego crea el release |
+
+## SonarQube Cloud: antes y después (rama `feature/sonar`)
+
+| Métrica | Primer análisis (`f0f1ed1`) | Re-análisis (`bce04eb`) |
+|---|---|---|
+| Quality Gate | **ERROR** (confiabilidad, seguridad y cobertura) | **OK** |
+| Bugs | 2 | 0 |
+| Vulnerabilidades | 2 | 0 |
+| Code smells | 3 | 0 |
+| Security hotspots | 0 | 0 |
+| Duplicación | 0,0 % | 0,0 % |
+| Cobertura | 73,5 % | 97,6 % |
+
+Las 7 incidencias las cerró Sonar como **FIXED** al volver a analizar; ninguna se marcó a mano como
+falso positivo. Evidencias: [primer análisis](evidencias/SONAR-primer-analisis.txt) ·
+[re-análisis](evidencias/SONAR-segundo-analisis.txt).
+
+Por qué fallaba en "New Code": `main` sigue en la fase 0, así que para la rama todo el código es
+código nuevo. La solución no fue tocar el umbral, sino corregir las incidencias.
