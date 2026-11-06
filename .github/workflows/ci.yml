@@ -1,6 +1,7 @@
 name: CI
 
-# SonarCloud se añadirá como compuerta 3 al final; el reporte bloquea despliegues mientras tanto.
+# Jobs numerados por etapa. La etapa 3 (SonarCloud) se añadirá al final; mientras falte, el reporte
+# predespliegue da NO DESPLEGAR y bloquea el despliegue y el release.
 on:
   push:
   pull_request:
@@ -66,7 +67,7 @@ jobs:
           if-no-files-found: error
 
   mutantes:
-    name: 4 - Mutantes (SonarCloud diferido)
+    name: 4 - Mutantes
     needs: pruebas
     runs-on: ubuntu-latest
     steps:
@@ -92,7 +93,7 @@ jobs:
           if-no-files-found: warn
 
   seguridad:
-    name: 5 - Trivy
+    name: 5 - Seguridad (Trivy)
     needs: mutantes
     runs-on: ubuntu-latest
     steps:
@@ -185,12 +186,10 @@ jobs:
           if-no-files-found: warn
 
   desplegar:
-    name: 7 - Reporte, despliegue y release
+    name: 7 - Reporte y despliegue
     needs: [estilo, pruebas, mutantes, seguridad, rendimiento]
     if: always() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
@@ -265,22 +264,18 @@ jobs:
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: curl --fail --show-error --silent --request POST "$RENDER_DEPLOY_HOOK"
-      - name: Crear GitHub Release con el reporte
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          VERSION: v1.0.${{ github.run_number }}
-        run: |
-          gh release create "$VERSION" reportes/REPORTE_PREDESPLIEGUE.md \
-            --title "$VERSION" \
-            --notes "Veredicto: APTO PARA DESPLEGAR. Ejecución: $RUN_URL"
 
   humo:
-    name: 8 - Humo en despliegue
+    name: 8 - Humo y release
     needs: desplegar
     if: success() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      APP_URL: ${{ vars.APP_URL }}
+      # VERSION siempre vale 1.0.0; el SHA cambia en cada despliegue y /salud lo informa.
+      COMMIT_ESPERADO: ${{ github.sha }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
@@ -291,14 +286,31 @@ jobs:
       - name: Instalar dependencias
         run: pip install -r requirements-dev.txt
       - name: Exigir APP_URL configurada
-        env:
-          APP_URL: ${{ vars.APP_URL }}
         run: test -n "$APP_URL"
-      - name: Esperar a que el despliegue responda
-        env:
-          APP_URL: ${{ vars.APP_URL }}
-        run: curl --retry 30 --retry-connrefused --retry-delay 10 --retry-max-time 300 --fail "$APP_URL/salud"
+      - name: Esperar a que responda el commit recién desplegado
+        run: |
+          for intento in $(seq 1 60); do
+            commit=$(curl --silent --fail --max-time 10 "$APP_URL/salud"               | python -c 'import json, sys; print(json.load(sys.stdin).get("commit", ""))' || true)
+            if [ "$commit" = "$COMMIT_ESPERADO" ]; then
+              echo "Responde el commit nuevo: $commit"
+              exit 0
+            fi
+            echo "Intento $intento: responde '${commit:-sin respuesta}', se espera $COMMIT_ESPERADO"
+            sleep 15
+          done
+          echo "En 15 minutos el despliegue no respondió el commit $COMMIT_ESPERADO"
+          exit 1
       - name: Ejecutar pruebas de humo
-        env:
-          APP_URL: ${{ vars.APP_URL }}
         run: pytest -q -m integracion_sistemas
+      - name: Descargar reporte de predespliegue
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: REPORTE_PREDESPLIEGUE
+          path: reportes
+      - name: Crear GitHub Release con el reporte (solo tras pasar el humo)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          VERSION: v1.0.${{ github.run_number }}
+        run: |
+          gh release create "$VERSION" reportes/REPORTE_PREDESPLIEGUE.md             --target "$COMMIT_ESPERADO"             --title "$VERSION"             --notes "Veredicto: APTO PARA DESPLEGAR. Humo aprobado contra el commit $COMMIT_ESPERADO. Ejecución: $RUN_URL"
