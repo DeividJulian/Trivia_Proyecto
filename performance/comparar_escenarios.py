@@ -161,7 +161,7 @@ def graficar_quiebre(series: list[tuple[str, list[FilaEscalon]]], destino: Path)
                 label=etiqueta,
             )
     eje_p95.axhline(500, color="#52514e", linewidth=1, linestyle="--")
-    eje_p95.text(eje_p95.get_xlim()[0], 510, " RNF-01: p95 < 500 ms", color="#52514e", fontsize=9)
+    eje_p95.text(eje_p95.get_xlim()[1], 560, "RNF-01: p95 < 500 ms ", color="#52514e", fontsize=9, ha="right")
     eje_p95.set(title="p95 de las peticiones REST", xlabel="Usuarios", ylabel="p95 (ms)")
     eje_cpu.axhline(UMBRAL_SATURACION_PCT, color="#d03b3b", linewidth=1, linestyle="--")
     eje_cpu.text(
