@@ -85,7 +85,8 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 
 ## Estado actual
 
-- **Carpeta del proyecto:** `D:\Descargas\Trivia_Proyecto` (no `D:\Users\User\Trivia_Proyecto`, que está vacía).
+- **Carpeta del proyecto:** depende de la máquina. Deivid: `D:\Descargas\Trivia_Proyecto`; Jack:
+  `C:\Users\Jack Limas\Universidad\Trivia_Proyecto`.
 - **Fases terminadas:** 0 a 13 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
 - **CI:** rama `feature/ci` con etapas de estilo, pruebas por nivel/cobertura, mutantes, Trivy,
   carga y reporte/despliegue/humo. La etapa de SonarCloud se agrega al final como etapa 3; mientras
@@ -96,9 +97,11 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
   El ejecutor del panel lanza pytest dentro del servidor: la imagen Docker necesita `tests/`, `pytest` y `httpx`.
 - **Rendimiento local:** RNF-01/02 cumplen; degradación 850 usuarios; quiebre no alcanzado hasta 1000.
   El servidor debe correr con `--timeout-keep-alive 75` (DEF-014). Usar `127.0.0.1`, no `localhost`.
-- **Seguridad:** `trivy fs` y `trivy config` limpios; la imagen quita pip (DEF-018). `trivy image` queda para el
-  CI (no hay Docker local). Trivy está en
-  `C:\Users\COREi5\AppData\Local\Microsoft\WinGet\Packages\AquaSecurity.Trivy_Microsoft.Winget.Source_8wekyb3d8bbwe\trivy.exe`.
+- **Seguridad / imagen:** base `python:3.12-alpine` (DEF-025): `trivy image`, `trivy fs` y `trivy config` en 0
+  HIGH/CRITICAL; la imagen quita pip (DEF-018) y corre como uid 10001. `test_reporte_predespliegue.py` está en
+  `.dockerignore` porque importa `scripts/` (DEF-026): dentro del contenedor corren 277 pruebas; en el CI, 290.
+  En la máquina de Jack hay Docker Desktop y Trivy 0.76.1 (en el PATH por WinGet); `docker build` se lanza desde
+  CMD o PowerShell (desde Git Bash falla el helper de credenciales de Docker).
 - **Front de demostración:** `app/static/` (HTML, CSS y JS sin dependencias),
   servido por FastAPI en `/`. Vistas: profesor, jugador y Saboteador (con tablero de dominó e impacto del sabotaje en vivo).
 - **Impacto del sabotaje:** evaluación sombra (`sin_sabotajes`, `ranking_real`, `impacto_por_jugador`), endpoints `/api/admin/partidas` e `/impacto` y monitoreo en panel admin.
@@ -107,5 +110,7 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
   final por decisión del equipo; no desplegar hasta tener su Quality Gate aprobado.
 - **Validación local de Fase 15:** 290 passed, 2 pruebas de humo omitidas sin `APP_URL`, cobertura
   97.53 %, mutantes 6/6, Ruff/format limpios; Locust 50 usuarios/60 s: p95 9 ms y 0 % fallos.
-  Entorno local Python 3.11.9 (CI objetivo 3.12); Docker daemon y Trivy no disponibles localmente.
-  **Defectos:** DEF-001 a DEF-024.
+  Entorno local Python 3.11.9 (CI objetivo 3.12).
+- **Bloque 1 (imagen Docker, 2026-11-05):** cerrado en local en la máquina de Jack (Python 3.12.10):
+  290 passed, 2 skipped, cobertura 98 %. Falta confirmarlo en GitHub Actions (Bloque 2).
+  **Defectos:** DEF-001 a DEF-026.
