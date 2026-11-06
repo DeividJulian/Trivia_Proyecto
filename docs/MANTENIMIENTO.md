@@ -72,3 +72,15 @@ y no era un defecto real: se documenta y se silencia **solo esa línea**, nunca 
 | DEF-024 | GitHub Actions | Tag de Trivy sin prefijo `v` | Correctivo | `trivy-action@v0.36.0` | El job resolvió la acción y escaneó | [antes](evidencias/DEF-024-antes.txt) · [despues](evidencias/DEF-024-despues.txt) |
 | DEF-025 | Trivy image | 46 HIGH en la base Debian de `python:3.12-slim` | Adaptativo | Base `python:3.12-alpine` (las 46 no tenían parche: se dejaron de usar esos paquetes, no se corrigieron) | Trivy image/fs/config: 0 hallazgos reportados (en Alpine Trivy no ve las que no tienen parche); 277 pruebas en el contenedor | [antes](evidencias/DEF-025-antes.txt) · [antes-local](evidencias/DEF-025-antes-local.txt) · [diagnóstico](evidencias/DEF-025-diagnostico-ignore-unfixed.txt) · [despues](evidencias/DEF-025-despues.txt) |
 | DEF-026 | pytest dentro del contenedor | La suite no corría en la imagen; el panel quedaba inservible | Correctivo | Prueba del CI fuera de la imagen (`.dockerignore`) | 277 passed en el contenedor; panel marca CAIDO | [antes](evidencias/DEF-026-antes.txt) · [despues](evidencias/DEF-026-despues.txt) |
+
+## Mantenimiento preventivo sin defecto previo (Bloque 2)
+
+No los detectó una prueba: se hicieron para que un fallo futuro no llegue al despliegue.
+
+| Cambio | Riesgo que evita | Tipo | Verificación |
+|---|---|---|---|
+| Acciones de GitHub fijadas por SHA (`trivy-action@ed142fd… # v0.36.0` y las de `actions/*`) | Una etiqueta se puede mover. El 19-03-2026 un atacante reescribió 76 de las 77 etiquetas de `aquasecurity/trivy-action` con malware que roba credenciales (aviso GHSA-69fq-xp46-6x23). Con el SHA se ejecuta siempre el mismo código revisado | Preventivo | Antes de fijarlas se comprobó que `@v4`/`@v5` apuntaban al mismo SHA (sin cambio de comportamiento); CI run 42168456389 en verde |
+| Imagen base fijada por digest (`python:3.12-alpine@sha256:213242b5…`) | Que la misma versión del código produzca imágenes distintas sin que nadie lo note | Preventivo | Build, Trivy (0 hallazgos) y 277 pruebas dentro del contenedor con el digest |
+| `.github/dependabot.yml` (docker y github-actions, contra `develop`) | Que fijar versiones congele también las vulnerabilidades. Dependabot propone el digest o SHA nuevo y el PR pasa por todo el pipeline, Trivy incluido | Adaptativo / preventivo | Solo actúa cuando el archivo llegue a `main` (rama por defecto) |
+| `/salud` informa `commit` y el humo espera ese SHA | Que el humo pase contra la versión **anterior** mientras Render aún despliega (VERSION siempre vale 1.0.0) | Preventivo | Humo contra el contenedor: con el commit correcto 3 passed; con otro commit falla `test_responde_el_commit_recien_desplegado` |
+| El release se crea después del humo | Publicar un release de una versión que no arrancó bien | Preventivo | Orden de los jobs: 7 despliega, 8 corre el humo y luego crea el release |
