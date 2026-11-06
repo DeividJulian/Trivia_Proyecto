@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+# Las acciones se fijan por SHA del commit, no por etiqueta: una etiqueta se puede mover. El 19-03-2026
+# un atacante reescribió 76 de las 77 etiquetas de aquasecurity/trivy-action con malware que roba
+# credenciales (aviso GHSA-69fq-xp46-6x23). El comentario indica la versión a la que corresponde el SHA.
+
 jobs:
   estilo:
     name: 1 - Estilo
@@ -98,7 +102,7 @@ jobs:
       - name: Trivy filesystem
         id: trivy-fs
         continue-on-error: true
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -110,7 +114,7 @@ jobs:
       - name: Trivy configuración
         id: trivy-config
         continue-on-error: true
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: config
           scan-ref: .
@@ -123,7 +127,7 @@ jobs:
       - name: Trivy imagen
         id: trivy-image
         continue-on-error: true
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: image
           image-ref: testquiz:ci
