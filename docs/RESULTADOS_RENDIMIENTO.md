@@ -1,6 +1,13 @@
 # Resultados de rendimiento
 
-Pruebas no funcionales con Locust contra el servidor local (2026-11-04).
+Pruebas no funcionales con Locust.
+
+> Este documento tiene **dos mediciones en máquinas distintas** y no se comparan entre sí:
+> - **2026-11-04, portátil de Deivid** (secciones siguientes): solo REST, uvicorn local.
+> - **2026-11-06, portátil de Jack** (al final, "Rendimiento con WebSocket"): REST contra
+>   REST + WebSocket, con uvicorn local y con el contenedor Alpine.
+
+## Medición del 2026-11-04 (portátil de Deivid)
 
 | Dato | Valor |
 |---|---|
@@ -94,3 +101,101 @@ el script, el reporte habría sido falso: **las herramientas de prueba también 
 Conclusión: con la carga esperada (una clase de 50) el servidor tiene un margen de más de 15
 veces: degrada cerca de 850 usuarios en un portátil y no quiebra hasta 1000. Para más concurrencia
 el siguiente paso es Redis + varias instancias.
+
+## Rendimiento con WebSocket (2026-11-06, portátil de Jack)
+
+En el juego, cada acción (unirse, iniciar, siguiente, responder) se **difunde por WebSocket** a todos
+los jugadores de la partida. La prueba anterior solo usaba REST; esta mide además ese costo.
+
+### Qué representa cada medición
+
+| Medición | Qué es | Qué representa |
+|---|---|---|
+| **uvicorn local** | `uvicorn app.main:app` en el venv de **Windows**, 1 worker | El entorno de desarrollo. **No** es lo que se despliega: en Windows uvicorn no tiene `uvloop` y usa el bucle estándar de asyncio |
+| **contenedor Alpine** | La imagen del `Dockerfile` (`testquiz:carga`) en Docker Desktop (WSL2), puerto reenviado a `127.0.0.1:8000` | **Lo que se despliega** en Render (misma imagen, con `uvloop` y `httptools`), pero en este portátil y pasando por el reenvío de puertos de Docker Desktop |
+| **REST** | `performance/locustfile.py` (sin cambios) | Presentadores y jugadores que solo usan la API |
+| **REST + WS** | `performance/locustfile_ws.py` | Los mismos usuarios, pero cada jugador mantiene `/ws/{pin}` abierto, como el front real |
+
+Ninguna de las dos es Render: el punto de quiebre contra Render queda para el cierre del proyecto.
+
+### Cómo se midió
+
+| Dato | Valor |
+|---|---|
+| Máquina | Intel Core i5-12450H (8 núcleos, 12 hilos), 7,7 GB de RAM, Windows 11; Docker Desktop 4.98 con WSL2 (12 CPU, 3,9 GB) |
+| Generador | Locust 2.47.0 en la **misma** máquina (un solo proceso, un núcleo) |
+| Otros contenedores | Los 19 contenedores de otros proyectos, **pausados** durante las mediciones (`docker pause`) y reanudados al terminar |
+| Condición de memoria | **Entre 0,5 y 1,0 GB de RAM libre** en todas las corridas (medido al inicio y al final de cada una). Es la principal fuente de ruido |
+| CPU | `performance/monitor_cpu.py` cada 2 s: CPU de Locust y del servidor (uvicorn o `docker stats`), en % de un núcleo |
+| WebSocket | Métricas propias en `<prefijo>_ws_eventos.csv` (no se mezclan con el p95 de REST de Locust) |
+| Carga | 50 usuarios, 10 por segundo, 2 minutos |
+| Estrés | Escalones de 50 a 1000 usuarios, +50 cada 20 s (mismos parámetros que la medición anterior) |
+| Análisis | `python performance\comparar_escenarios.py quiebre ...` y `... carga ...` → `performance/resultados/comparacion_*.md` y `.png` |
+
+**Latencia de difusión:** tiempo desde que un jugador envía `POST /respuestas` hasta el primer mensaje
+de estado que recibe por WebSocket después. Solo cuenta si el POST respondió 200: con 409 el servidor
+no difunde nada. Ese sesgo se detectó en una corrida de prueba (p95 de 600 ms en un servidor sin
+carga) y se corrigió antes de medir.
+
+### Carga: 50 usuarios, 2 minutos
+
+| Escenario | Peticiones REST | p95 REST (ms) | Mediana (ms) | Fallos (%) | Peticiones/s | CPU Locust máx. (%) | CPU servidor máx. (%) | WS conexiones (fallidas) | WS mensajes (por s) | Difusión p50 / p95 (ms) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| REST · uvicorn local | 4914 | 56 | 6 | 0,00 | 41,3 | 38 | 20 | — | — | — |
+| REST + WS · uvicorn local | 5015 | 38 | 6 | 0,00 | 42,1 | 43 | 24 | 48 (0) | 17 081 (257) | 14 / 36 |
+| REST · contenedor Alpine | 4978 | 14 | 6 | 0,00 | 41,9 | 37 | 56 | — | — | — |
+| REST + WS · contenedor Alpine | 4701 | 79 | 9 | 0,00 | 39,6 | 48 | 59 | 48 (0) | 18 896 (266) | 22 / 624 |
+
+- **RNF-01 (p95 < 500 ms) y RNF-02 (fallos < 1 %) se cumplen en los cuatro escenarios.**
+- Con 50 usuarios el servidor envía **unos 260 mensajes de WebSocket por segundo**: cada acción se
+  difunde a todos los jugadores de la partida. REST sigue en unas 42 peticiones por segundo.
+- En el contenedor, abrir los WebSockets sube el p95 de REST de 14 a 79 ms, y la difusión tiene un p95
+  de 624 ms. En local la diferencia entre REST y REST + WS queda dentro del ruido (56 y 38 ms).
+
+### Estrés: punto de quiebre
+
+![p95 de REST y CPU del generador por escalón](../performance/resultados/comparacion_quiebre.png)
+
+| Escenario | Degradación sostenida (p95 ≥ 500 ms) | Punto de quiebre (p95 > 2000 ms o fallos > 5 %) | Fallos | Locust saturado (≥ 90 %) desde | Datos fiables hasta |
+|---|---|---|---|---|---|
+| REST · uvicorn local | 250 usuarios | **600 usuarios** | 0 % | nunca (máx. 80 %) | 600 usuarios |
+| REST + WS · uvicorn local | 400 usuarios (picos aislados desde 50) | **550 usuarios** | 0 % | 400 usuarios | **350 usuarios** |
+| REST · contenedor Alpine | 500 usuarios (picos aislados en 150 y 200) | **800 usuarios** | 0 % | 700 usuarios | 650 usuarios |
+| REST + WS · contenedor Alpine | 300 usuarios | **750 usuarios** | 0 % | 650 usuarios | 600 usuarios |
+
+Tablas completas por escalón (p95, fallos, peticiones/s, CPU de Locust y del servidor, mensajes de
+WebSocket por segundo y p95 de difusión): `performance/resultados/comparacion_quiebre.md`.
+El punto de quiebre es el escalón donde `punto_quiebre.py` detuvo la prueba. En las tablas y la gráfica,
+el p95 de cada escalón es el mayor de su ventana (criterio conservador); por eso aparecen picos aislados.
+
+### Qué muestran los datos
+
+1. **Lo que se despliega aguanta más que el entorno de desarrollo.** El contenedor quebró en 800
+   usuarios (REST) frente a 600 de uvicorn en Windows. Explicación probable, no demostrada: en Linux
+   uvicorn usa `uvloop` (verificado dentro de la imagen) y en Windows no está disponible.
+2. **WebSocket adelanta la degradación.** En el contenedor, la degradación sostenida pasa de 500 a
+   **300 usuarios** y el quiebre de 800 a 750. Con 400 usuarios la difusión ya tarda más de 1 s (p95).
+3. **Nunca hubo fallos.** En todos los casos el servidor hace cola (sube la latencia) en lugar de
+   rechazar peticiones. Los 524 y 712 WebSockets abiertos en las pruebas de estrés no tuvieron
+   conexiones fallidas ni cierres inesperados.
+4. **Para la clase (50 usuarios) hay margen:** en el peor caso del contenedor la degradación empieza
+   en 300 usuarios, seis veces la carga esperada.
+
+### Límites de la medición (importante)
+
+- **CPU del generador.** Desde que Locust se satura (columna "Locust saturado desde"), parte de la
+  latencia la pone el generador. El caso más afectado es REST + WS local: sus datos solo son fiables
+  hasta 350 usuarios, así que su quiebre en 550 es orientativo.
+- **Memoria.** Con 0,5 a 1 GB libres hubo picos aislados (p95 de 1300 ms con 50 usuarios en REST + WS
+  local; 4200 ms con 200 en REST contenedor) que no se repiten en el escalón siguiente. Por eso se
+  habla de degradación **sostenida**.
+- **Generador y servidor en la misma máquina**, y en el contenedor el tráfico pasa por el reenvío de
+  puertos de Docker Desktop. Una medición más limpia es contra Render, con el generador en otra máquina.
+- **Incidente descartado.** La primera corrida de carga REST + WS contra el contenedor (14:28) quedó
+  congelada 41 minutos: Docker Desktop dejó de responder (incluso `docker stats`). Se descartó.
+  Una reproducción controlada con 30 WebSockets, contra el contenedor y contra uvicorn, no lo repitió,
+  y la segunda corrida (15:22) terminó normal: se atribuye al entorno, no a la aplicación. El monitor
+  de CPU se quedó colgado esperando a Docker (**DEF-036**, corregido con un tiempo límite), y a cada
+  corrida se le agregó un vigilante: si se pasa del tiempo previsto, se detiene y queda inválida.
+- Esta sección **no** se compara con la del 2026-11-04 (otra máquina, solo REST, uvicorn local), donde
+  la degradación empezó en 850 usuarios y no hubo quiebre hasta 1000.
