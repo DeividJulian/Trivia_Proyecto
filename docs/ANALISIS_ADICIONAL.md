@@ -61,7 +61,7 @@ CC: A 1–5, B 6–10, C 11–20, D 21–30. Ninguna función está en E o F.
 
 | Función | CC | Por qué es compleja | Refactor propuesto (después de la exposición) | Pruebas que la cubren | Prioridad |
 |---|---|---|---|---|---|
-| `Partida.responder` (`app/dominio/partida.py`) | D (29) | Junta validaciones, puntos mostrados, evaluación sombra (puntos reales), desglose por sabotaje y la nota del daño | Extraer `_validar_respuesta`, `_evaluacion_sombra` y `_nota_de_impacto`; dejar `responder` como coordinadora | `tests/integracion/test_partida.py`, `test_impacto_sabotaje.py`, mutantes 6/6 | Media |
+| `Partida.responder` (`app/dominio/partida.py`) | D (29) → **E (33)** tras DEF-033 y DEF-034 | Junta validaciones, puntos mostrados, evaluación sombra (puntos reales), desglose por sabotaje y la nota del daño | Extraer `_validar_respuesta`, `_evaluacion_sombra` y `_nota_de_impacto`; dejar `responder` como coordinadora | `tests/integracion/test_partida.py`, `test_impacto_sabotaje.py`, mutantes 6/6 | Media |
 | `armar_tablero` (`app/calidad/ejecutor.py`) | C (16) | Tres recorridos (contar, marcar CAIDO, propagar EN_RIESGO) dentro de una función | Extraer `_contar_por_modulo` y `_propagar_riesgo` | `tests/componente/test_tablero.py` | Baja |
 | `leer_trivy` (`scripts/reporte_predespliegue.py`) | C (15) | Lectura del JSON con dos errores posibles y tres bucles anidados por tipo de hallazgo | Extraer `_hallazgos_bloqueantes(datos)` | `tests/componente/test_reporte_predespliegue.py` | Baja |
 | `leer_junit` (`app/calidad/ejecutor.py`) | C (12) | Comprensiones con condiciones y el caso `failure`/`error` | Extraer `_resultado_de_caso(caso)` | `tests/componente/test_tablero.py` | Baja |
@@ -71,3 +71,9 @@ Por qué no se refactoriza ahora: `responder` y `armar_tablero` son justo el có
 demo del Saboteador (tablero de dominó y daño por jugador). Un refactor a tres días de la exposición
 es un riesgo de regresión sin beneficio visible para el usuario. La complejidad queda medida,
 explicada y con su plan: es **mantenimiento perfectivo planificado**.
+
+**Actualización (Paso 2, ventana de daño):** las correcciones de DEF-033 y DEF-034 tenían que ir dentro de
+`Partida.responder` y su complejidad subió de D (29) a E (33). Se aceptó ese costo porque el defecto
+afectaba lo que se muestra en la demo, y la corrección quedó cubierta por pruebas escritas antes
+(`xfail` estricto) y por los mutantes 6/6. Esto hace más urgente el refactor propuesto
+(`_validar_respuesta`, `_evaluacion_sombra`, `_nota_de_impacto`) después de la exposición.

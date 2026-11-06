@@ -1,0 +1,311 @@
+Verificación real en navegador: Playwright 1.64.1 + Chromium contra uvicorn local (reloj real), commit edf76f0, 2026-11-06.
+Partida: Ana, Beto y '<b>Eva</b>'; 3 preguntas; racha_no_suma y bono_sin_acierto activos.
+Script fuera del repositorio (no se agrega Playwright a requirements); resultado tal como lo devolvió:
+
+{
+  "alta_jugadores": {
+    "Ana": 201,
+    "Beto": 201,
+    "<b>Eva</b>": 201
+  },
+  "respuestas": [
+    [
+      "Beto",
+      1,
+      false,
+      {
+        "nombre": "Beto",
+        "puntos": 484,
+        "racha": 0,
+        "puntos_totales": 484
+      }
+    ],
+    [
+      "Ana",
+      1,
+      true,
+      {
+        "nombre": "Ana",
+        "puntos": 1447,
+        "racha": 0,
+        "puntos_totales": 1447
+      }
+    ],
+    [
+      "<b>Eva</b>",
+      1,
+      true,
+      {
+        "nombre": "<b>Eva</b>",
+        "puntos": 1421,
+        "racha": 0,
+        "puntos_totales": 1421
+      }
+    ],
+    [
+      "Beto",
+      2,
+      false,
+      {
+        "nombre": "Beto",
+        "puntos": 485,
+        "racha": 0,
+        "puntos_totales": 969
+      }
+    ],
+    [
+      "Ana",
+      2,
+      true,
+      {
+        "nombre": "Ana",
+        "puntos": 1447,
+        "racha": 0,
+        "puntos_totales": 2894
+      }
+    ],
+    [
+      "<b>Eva</b>",
+      2,
+      false,
+      {
+        "nombre": "<b>Eva</b>",
+        "puntos": 422,
+        "racha": 0,
+        "puntos_totales": 1843
+      }
+    ],
+    [
+      "Beto",
+      3,
+      false,
+      {
+        "nombre": "Beto",
+        "puntos": 484,
+        "racha": 0,
+        "puntos_totales": 1453
+      }
+    ],
+    [
+      "Ana",
+      3,
+      true,
+      {
+        "nombre": "Ana",
+        "puntos": 1447,
+        "racha": 0,
+        "puntos_totales": 4341
+      }
+    ],
+    [
+      "<b>Eva</b>",
+      3,
+      true,
+      {
+        "nombre": "<b>Eva</b>",
+        "puntos": 1422,
+        "racha": 0,
+        "puntos_totales": 3265
+      }
+    ]
+  ],
+  "impacto_jugadores": [
+    {
+      "jugador": "Ana",
+      "puntos_reales": 4641,
+      "puntos_mostrados": 4341,
+      "diferencia": -300,
+      "posicion_real": 1,
+      "posicion_mostrada": 1
+    },
+    {
+      "jugador": "<b>Eva</b>",
+      "puntos_reales": 2843,
+      "puntos_mostrados": 3265,
+      "diferencia": 422,
+      "posicion_real": 2,
+      "posicion_mostrada": 2
+    },
+    {
+      "jugador": "Beto",
+      "puntos_reales": 0,
+      "puntos_mostrados": 1453,
+      "diferencia": 1453,
+      "posicion_real": 3,
+      "posicion_mostrada": 3
+    }
+  ],
+  "detalle_respuestas": [
+    [
+      1,
+      "Beto",
+      false,
+      484,
+      0,
+      484,
+      "recibió +484 que no le correspondían (bono_sin_acierto)"
+    ],
+    [
+      1,
+      "Ana",
+      true,
+      1447,
+      1447,
+      0,
+      "correcta"
+    ],
+    [
+      1,
+      "<b>Eva</b>",
+      true,
+      1421,
+      1421,
+      0,
+      "correcta"
+    ],
+    [
+      2,
+      "Beto",
+      false,
+      485,
+      0,
+      485,
+      "recibió +485 que no le correspondían (bono_sin_acierto)"
+    ],
+    [
+      2,
+      "Ana",
+      true,
+      1447,
+      1547,
+      -100,
+      "perdió 100 pts por racha no sumada (racha_no_suma)"
+    ],
+    [
+      2,
+      "<b>Eva</b>",
+      false,
+      422,
+      0,
+      422,
+      "recibió +422 que no le correspondían (bono_sin_acierto)"
+    ],
+    [
+      3,
+      "Beto",
+      false,
+      484,
+      0,
+      484,
+      "recibió +484 que no le correspondían (bono_sin_acierto)"
+    ],
+    [
+      3,
+      "Ana",
+      true,
+      1447,
+      1647,
+      -200,
+      "perdió 200 pts por racha no sumada (racha_no_suma)"
+    ],
+    [
+      3,
+      "<b>Eva</b>",
+      true,
+      1422,
+      1422,
+      0,
+      "correcta"
+    ]
+  ],
+  "desglose": {
+    "Ana": {
+      "racha_no_suma": -300
+    },
+    "<b>Eva</b>": {
+      "bono_sin_acierto": 422
+    },
+    "Beto": {
+      "bono_sin_acierto": 1453
+    }
+  },
+  "resumen_por_sabotaje": {
+    "racha_no_suma": {
+      "respuestas_afectadas": 2,
+      "puntos_de_diferencia": -300
+    },
+    "bono_sin_acierto": {
+      "respuestas_afectadas": 4,
+      "puntos_de_diferencia": 1875
+    }
+  },
+  "proyector_1600x900": {
+    "vivo": "En vivo · actualizado 1:22:05 p. m.",
+    "dano": "2.175",
+    "respuestas": "6",
+    "ganadorReal": "Ana · 4.641 pts",
+    "ganadorMostrado": "Ana · 4.341 pts",
+    "veredicto": "El ganador no cambió, pero los puntos sí",
+    "chips": [
+      "Bono sin acierto",
+      "Racha que no suma"
+    ],
+    "filasRespuestas": 6,
+    "nombreConHtmlComoTexto": true,
+    "elementosB": 0,
+    "almacenLocal": 0,
+    "almacenSesion": 0,
+    "cookies": "",
+    "anchoDoc": 1600,
+    "anchoVentana": 1600,
+    "desbordes": []
+  },
+  "oscuro_1280x720": {
+    "vivo": "En vivo · actualizado 1:22:05 p. m.",
+    "dano": "2.175",
+    "respuestas": "6",
+    "ganadorReal": "Ana · 4.641 pts",
+    "ganadorMostrado": "Ana · 4.341 pts",
+    "veredicto": "El ganador no cambió, pero los puntos sí",
+    "chips": [
+      "Bono sin acierto",
+      "Racha que no suma"
+    ],
+    "filasRespuestas": 6,
+    "nombreConHtmlComoTexto": true,
+    "elementosB": 0,
+    "almacenLocal": 0,
+    "almacenSesion": 0,
+    "cookies": "",
+    "anchoDoc": 1280,
+    "anchoVentana": 1280,
+    "desbordes": []
+  },
+  "movil_390": {
+    "vivo": "En vivo · actualizado 1:22:07 p. m.",
+    "dano": "2.175",
+    "respuestas": "6",
+    "ganadorReal": "Ana · 4.641 pts",
+    "ganadorMostrado": "Ana · 4.341 pts",
+    "veredicto": "El ganador no cambió, pero los puntos sí",
+    "chips": [
+      "Bono sin acierto",
+      "Racha que no suma"
+    ],
+    "filasRespuestas": 6,
+    "nombreConHtmlComoTexto": true,
+    "elementosB": 0,
+    "almacenLocal": 0,
+    "almacenSesion": 0,
+    "cookies": "",
+    "anchoDoc": 390,
+    "anchoVentana": 390,
+    "desbordes": []
+  },
+  "enlace_panel": {
+    "href": "/dano.html",
+    "rel": "noopener noreferrer",
+    "target": "_blank"
+  },
+  "errores_consola": []
+}

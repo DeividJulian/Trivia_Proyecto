@@ -266,7 +266,7 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Resultado esperado / obtenido | Esperado: la suite completa pasa dentro de la imagen. Obtenido: `ModuleNotFoundError: performance` en `test_umbrales.py` y `test_analizar_resultados.py` |
 | Causa encontrada (debugging) | El `.dockerignore` excluía `performance/` completo y el Dockerfile no lo copiaba, pero dos pruebas de componente importan `performance.verificar_umbrales` y `performance.analizar_resultados`. |
 | Corrección | Commit `fix(docker): la imagen incluye performance/ porque las pruebas lo importan; el panel no podía correr la suite (DEF-017)`: `COPY performance ./performance`; el `.dockerignore` solo excluye `performance/resultados/`. |
-| Re-ejecución (confirmación) | Copia corregida: `pytest -q` → `254 passed`; el ejecutor del panel con `empates_mal` arma el tablero (Ranking y Partida CAIDO) (`DEF-017-despues.txt`). Pendiente confirmar con `docker build` cuando Docker esté disponible (lo hace el job de Trivy en el CI). |
+| Re-ejecución (confirmación) | Copia corregida: `pytest -q` → `254 passed`; el ejecutor del panel con `empates_mal` arma el tablero (Ranking y Partida CAIDO) (`DEF-017-despues.txt`). Confirmado después con Docker real: `docker build` y la suite dentro del contenedor (Bloque 1, ver DEF-026), y en cada ejecución del job de Trivy en el CI. |
 | Análisis de impacto | Despliegue → panel del Saboteador (`POST /api/admin/pruebas`). |
 | Regresión ejecutada | `pytest -q` → `254 passed` |
 | Estado | **Cerrado** |
@@ -478,4 +478,46 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Re-ejecución (confirmación) | re-análisis de Sonar del commit `bce04eb` (run 42262436047): los 3 S6850 `CLOSED/FIXED` (`DEF-032-despues.txt`). |
 | Análisis de impacto | Solo `app/static/index.html`; los contenedores de esos títulos están ocultos hasta que el JS los rellena. |
 | Regresión ejecutada | `pytest -q` → 302 passed, 3 skipped. |
+| Estado | **Cerrado** |
+
+### DEF-033 – Con dos sabotajes activos, el daño se atribuye al sabotaje equivocado
+| Campo | Valor |
+|---|---|
+| Detectado por | pytest, nivel sistema: la prueba de contrato de la ventana de daño (`test_ventana_dano.py`) con `racha_no_suma` y `bono_sin_acierto` activos dio 3 respuestas afectadas para `bono_sin_acierto` en vez de 2. Reproducido a nivel de integración |
+| Severidad | Media (el juego y los puntos son correctos, pero el panel y la ventana de daño mostrarían mal "daño por sabotaje" justo en la demo con dos sabotajes) |
+| Pasos para reproducir | 1. Activar `racha_no_suma` y `bono_sin_acierto`. 2. Ana responde bien 2 preguntas en el límite y Beto responde mal y rápido. 3. Leer `resumen_por_sabotaje()` e `impacto_por_jugador()`. |
+| Resultado esperado / obtenido | Esperado: `bono_sin_acierto` 2 respuestas / +950 y `racha_no_suma` 1 respuesta / −100. Obtenido: `bono_sin_acierto` 3 / +1050 y `racha_no_suma` 0 / 0; los −100 de Ana aparecen como +100 de `bono_sin_acierto` (`DEF-033-antes.txt`). La nota de la respuesta sí era correcta. |
+| Causa encontrada (debugging) | En `Partida.responder`, cuando hay más de un sabotaje activo se recalcula la respuesta con cada sabotaje por separado (`solo_sabotajes([clave])`). Ese cálculo usa `jugador.racha_real`, pero esa racha ya se actualizó unas líneas antes con el acierto actual. Con la racha adelantada un paso, `bono_sin_acierto` "suma" 100 puntos de racha que no le tocan y `racha_no_suma` da diferencia 0. Con un solo sabotaje no pasa, porque ahí se usa la diferencia total. |
+| Corrección | Mantenimiento **correctivo**: commit `fix(partida): el desglose por sabotaje usa la racha real previa (DEF-033)` (`d5de874`). Antes se subió la prueba con `xfail(strict=True)` (`769b4fe`). No cambia cómo se calculan los puntos mostrados ni los reales. |
+| Re-ejecución (confirmación) | La prueba `test_desglose_con_dos_sabotajes_atribuye_cada_diferencia_a_su_sabotaje` pasa sin `xfail`; el escenario por HTTP da `bono_sin_acierto` 2 / +950 y `racha_no_suma` 1 / −100 (`DEF-033-despues.txt`). |
+| Análisis de impacto | `Partida.responder` (solo la rama con más de un sabotaje activo), `impacto_por_jugador`, `resumen_por_sabotaje`, `GET /api/admin/partidas/{pin}/impacto`, el panel y la ventana de daño. |
+| Regresión ejecutada | `pytest -q` → 320 passed, 3 skipped; `python scripts/verificar_mutantes.py` → 6/6. |
+| Estado | **Cerrado** (la verificación en navegador encontró además DEF-034) |
+
+### DEF-034 – Con dos sabotajes, el desglose por sabotaje no suma la diferencia total
+| Campo | Valor |
+|---|---|
+| Detectado por | Verificación real en navegador (Playwright contra uvicorn, nivel sistema) de la ventana de daño, y reproducido con pytest a nivel de integración |
+| Severidad | Media (puntos del juego correctos; el "daño por sabotaje" del panel y de la ventana queda corto en la demo con dos sabotajes) |
+| Pasos para reproducir | 1. Activar `racha_no_suma` y `bono_sin_acierto`. 2. Un jugador acierta 3 preguntas seguidas. 3. Comparar `impacto_por_jugador()[...]["diferencia"]` con la suma de su `desglose`. |
+| Resultado esperado / obtenido | Esperado: la suma del desglose de cada jugador es igual a su diferencia. Obtenido: Ana perdió −300 (−100 y −200), pero `racha_no_suma` suma −200 (`DEF-034-antes.txt`). |
+| Causa encontrada (debugging) | Con más de un sabotaje, cada respuesta se recalcula con cada sabotaje por separado partiendo de la racha **real** anterior. Eso mide solo el efecto en esa respuesta, no el acumulado: con `racha_no_suma` la racha mostrada se quedó en 0 desde la pregunta 2, así que en la pregunta 3 el daño es −200, pero el cálculo aislado (racha real 2 → 2) da −100. DEF-033 corrigió que se usara la racha ya actualizada; esto es lo que faltaba. |
+| Corrección | Mantenimiento **correctivo**: commit `fix(partida): el desglose por sabotaje acumula la racha de cada sabotaje (DEF-034)` (`2ea0ea1`), tras la prueba con `xfail(strict=True)` (`4dffac4`). La partida guarda por jugador una racha sombra por sabotaje activo: la que ese sabotaje habría dejado él solo; arranca en la racha real al activarse, se descarta al desactivarse y se reinicia cuando el jugador no responde (igual que la racha real). Puntos mostrados y reales sin cambios. |
+| Re-ejecución (confirmación) | `test_desglose_con_dos_sabotajes_suma_la_diferencia_total` pasa; Playwright con la partida real: Ana −300 y desglose −300, Eva +422 = +422, Beto +1453 = +1453 (`DEF-034-despues.txt`). |
+| Análisis de impacto | Igual que DEF-033. Costo: la complejidad ciclomática de `Partida.responder` sube de D (29) a E (33) (Radon); queda en la deuda técnica de `ANALISIS_ADICIONAL.md`. |
+| Regresión ejecutada | `pytest -q` → 322 passed, 3 skipped; mutantes 6/6; las 6 pruebas de `test_impacto_sabotaje.py` en verde. |
+| Estado | **Cerrado** |
+
+### DEF-035 – La tabla de posiciones de la ventana de daño desborda en pantallas angostas
+| Campo | Valor |
+|---|---|
+| Detectado por | Playwright (verificación real en navegador, nivel sistema, prueba de usabilidad) con pantalla de 390 px |
+| Severidad | Baja (la ventana se proyecta en pantalla grande; en el celular aparece desplazamiento horizontal) |
+| Pasos para reproducir | 1. Abrir `/dano.html` con una partida real en una pantalla de 390 px. 2. Comparar `scrollWidth` con el ancho visible. |
+| Resultado esperado / obtenido | Esperado: la página no se desplaza a lo ancho. Obtenido: 413 px de documento en 390 px de pantalla; el elemento que se sale es la tabla `tabla-posiciones` (`DEF-035-antes.txt`). A 1600 y 1280 px no hay desborde. |
+| Causa encontrada (debugging) | La tabla de respuestas está dentro de `.tabla-desplazable` (desplazamiento propio), pero la de posiciones no; con cinco columnas no cabe en 390 px menos los márgenes. |
+| Corrección | Commit `fix(front): la tabla de posiciones se desplaza dentro de su panel en movil (DEF-035)` (`3b65147`): la tabla va dentro de `.tabla-desplazable`. Prueba de regresión `test_las_tablas_se_desplazan_dentro_de_su_panel`. |
+| Re-ejecución (confirmación) | Playwright: 390 px de documento en 390 px de pantalla y ningún elemento fuera del borde; 1600 y 1280 px igual (`DEF-035-despues.txt`, `ventana-dano-movil.png`). |
+| Análisis de impacto | Solo `app/static/dano.html`. |
+| Regresión ejecutada | `pytest -q` → 322 passed, 3 skipped; `node --check app/static/dano.js`. |
 | Estado | **Cerrado** |

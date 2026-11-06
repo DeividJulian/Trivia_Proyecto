@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ventana de daño</title>
+  <link rel="stylesheet" href="dano.css">
+</head>
+<body>
+  <header class="barra">
+    <div class="titulo">
+      <h1>Ventana de daño del sabotaje</h1>
+      <p class="subtitulo">Lo que el sabotaje le hizo a la partida: puntos reales contra los que se mostraron</p>
+    </div>
+    <form id="controles" class="controles" autocomplete="off">
+      <label>Token de administrador
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Token">
+      </label>
+      <label>Partida
+        <select id="partida">
+          <option value="">Escribe el token…</option>
+        </select>
+      </label>
+      <p id="vivo" class="vivo" role="status" aria-live="polite">Sin conectar</p>
+    </form>
+  </header>
+
+  <main>
+    <p id="aviso" class="aviso oculto" role="alert"></p>
+
+    <section class="tiles" aria-label="Resumen del daño">
+      <article class="tile">
+        <h2>Daño total</h2>
+        <p class="cifra" id="kpi-dano">—</p>
+        <p class="detalle">puntos de diferencia, sumando a todos</p>
+      </article>
+      <article class="tile">
+        <h2>Respuestas afectadas</h2>
+        <p class="cifra" id="kpi-respuestas">—</p>
+        <p class="detalle" id="kpi-respuestas-detalle">de 0 respuestas</p>
+      </article>
+      <article class="tile tile-ganador" id="tile-ganador">
+        <h2>Ganador</h2>
+        <p class="ganador"><span class="etiqueta-serie real">Real</span> <span id="ganador-real">—</span></p>
+        <p class="ganador"><span class="etiqueta-serie mostrado">Mostrado</span> <span id="ganador-mostrado">—</span></p>
+        <p class="veredicto" id="ganador-veredicto"></p>
+      </article>
+      <article class="tile">
+        <h2>Sabotajes activos</h2>
+        <ul class="chips" id="chips-activos"></ul>
+      </article>
+    </section>
+
+    <section class="grilla">
+      <article class="panel">
+        <header class="panel-cabecera">
+          <h2>Puntos por jugador</h2>
+          <ul class="leyenda" aria-label="Leyenda">
+            <li><span class="muestra real"></span>Reales (sin sabotaje)</li>
+            <li><span class="muestra mostrado"></span>Mostrados (con sabotaje)</li>
+          </ul>
+        </header>
+        <div id="grafica-jugadores" class="grafica"></div>
+      </article>
+
+      <article class="panel">
+        <header class="panel-cabecera">
+          <h2>Daño acumulado por pregunta</h2>
+          <ul class="leyenda" aria-label="Leyenda">
+            <li><span class="muestra pregunta"></span>Daño en la pregunta</li>
+            <li><span class="muestra linea"></span>Acumulado</li>
+          </ul>
+        </header>
+        <div id="grafica-preguntas" class="grafica"></div>
+      </article>
+
+      <article class="panel">
+        <header class="panel-cabecera"><h2>Posiciones: reales contra mostradas</h2></header>
+        <div class="tabla-desplazable">
+        <table class="tabla">
+          <thead>
+            <tr><th>Jugador</th><th class="num">Real</th><th class="num">Mostrada</th><th>Cambio</th><th class="num">Diferencia</th></tr>
+          </thead>
+          <tbody id="tabla-posiciones"></tbody>
+        </table>
+        </div>
+      </article>
+
+      <article class="panel">
+        <header class="panel-cabecera"><h2>Daño por sabotaje</h2></header>
+        <div id="grafica-sabotajes" class="grafica"></div>
+      </article>
+    </section>
+
+    <section class="panel ancho">
+      <header class="panel-cabecera"><h2>Respuestas afectadas</h2></header>
+      <div class="tabla-desplazable">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th class="num">Pregunta</th><th>Jugador</th><th>Respuesta</th>
+              <th class="num">Mostrados</th><th class="num">Reales</th><th class="num">Diferencia</th>
+              <th>Sabotaje</th><th>Nota</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-respuestas"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="dano.js"></script>
+</body>
+</html>

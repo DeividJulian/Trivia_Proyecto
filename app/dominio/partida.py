@@ -52,6 +52,8 @@ class Partida:
         self._respuestas_reales: dict[str, Respuesta] = {}
         self.impacto: list[ImpactoRespuesta] = []
         self._impacto_desglose: list[dict[str, int]] = []
+        # DEF-034: por jugador, la racha que cada sabotaje activo habría dejado él solo.
+        self._rachas_sombra: dict[str, dict[str, int]] = {}
         self._inicio_pregunta: float | None = None
         self.ultima_actividad = reloj()
 
@@ -176,23 +178,29 @@ class Partida:
                     es_correcta, tiempo_real, pregunta.tiempo_limite, jugador.racha_real
                 )
             jugador.puntos_reales += puntos_reales
+            racha_real_anterior = jugador.racha_real  # DEF-033: el desglose usa la racha previa
             jugador.racha_real = racha_real_nueva
             jugador.tiempo_total_real += tiempo_real
             self._respuestas_reales[jugador.nombre] = Respuesta(opcion=opcion, tiempo_respuesta=tiempo_real)
 
             diff_total = puntos - puntos_reales
+            # DEF-034: cada sabotaje parte de su propia racha sombra (la que habría dejado él solo);
+            # al activarse arranca desde la racha real. Así el desglose acumula su efecto.
+            sombra = self._rachas_sombra.setdefault(jugador.nombre, {})
+            for clave in [c for c in sombra if c not in activos_actuales]:
+                del sombra[clave]
+            diff_por_clave: dict[str, int] = {}
+            for clave in activos_actuales:
+                with sabotajes.solo_sabotajes([clave]):
+                    t_clave = tiempo if clave == "respuesta_lenta" else tiempo_real
+                    pts_clave, sombra[clave] = calcular_puntos(
+                        es_correcta, t_clave, pregunta.tiempo_limite, sombra.get(clave, racha_real_anterior)
+                    )
+                diff_por_clave[clave] = pts_clave - puntos_reales
             if len(activos_actuales) == 1 and diff_total != 0:
                 desglose_resp[activos_actuales[0]] = diff_total
             elif len(activos_actuales) > 1 and diff_total != 0:
-                for clave in activos_actuales:
-                    with sabotajes.solo_sabotajes([clave]):
-                        t_clave = tiempo if clave == "respuesta_lenta" else tiempo_real
-                        pts_clave, _ = calcular_puntos(
-                            es_correcta, t_clave, pregunta.tiempo_limite, jugador.racha_real
-                        )
-                    diff_clave = pts_clave - puntos_reales
-                    if diff_clave != 0:
-                        desglose_resp[clave] = diff_clave
+                desglose_resp.update({c: d for c, d in diff_por_clave.items() if d != 0})
 
             if "bono_sin_acierto" in activos_actuales and not es_correcta and puntos > 0:
                 nota = f"recibió +{puntos} que no le correspondían (bono_sin_acierto)"
@@ -238,6 +246,8 @@ class Partida:
                 jugador.racha = 0
             if jugador.nombre not in self._respuestas_reales:
                 jugador.racha_real = 0
+                for clave in self._rachas_sombra.get(jugador.nombre, {}):
+                    self._rachas_sombra[jugador.nombre][clave] = 0
         self.estado = EstadoPartida.RESULTADOS
         self._tocar()
 

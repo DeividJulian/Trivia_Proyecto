@@ -112,6 +112,12 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 - **Front de demostración:** `app/static/` (HTML, CSS y JS sin dependencias),
   servido por FastAPI en `/`. Vistas: profesor, jugador y Saboteador (con tablero de dominó e impacto del sabotaje en vivo).
 - **Impacto del sabotaje:** evaluación sombra (`sin_sabotajes`, `ranking_real`, `impacto_por_jugador`), endpoints `/api/admin/partidas` e `/impacto` y monitoreo en panel admin.
+  Con varios sabotajes, el desglose usa una racha sombra por sabotaje (DEF-033, DEF-034): la suma del desglose
+  de cada jugador es igual a su diferencia.
+- **Ventana de daño:** `app/static/dano.html` + `dano.js` + `dano.css` (sin dependencias), enlazada desde el panel.
+  Usa solo `/api/admin/partidas`, `/impacto` y `/sabotajes`; el token no se guarda en el navegador y no hay
+  `innerHTML`. Pruebas en `tests/sistema/test_ventana_dano.py`; capturas `docs/evidencias/ventana-dano-*.png`.
+  Playwright solo está instalado en el venv local (no en `requirements`).
 - **SonarQube Cloud (fase 14):** organization `deividjulian`, projectKey `DeividJulian_Trivia_Proyecto`,
   Automatic Analysis desactivado, `SONAR_TOKEN` como secreto. `sonar-project.properties` en la raíz;
   `app/static/**` excluido solo de la cobertura (DEF-029). Quality Gate OK en `feature/sonar` (0 bugs,
@@ -129,4 +135,4 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
   los `noqa` de Ruff; Radon: CC media A, `Partida.responder` D (29) y 4 funciones C quedan como deuda técnica
   (sin refactor antes de la exposición); Vulture: DEF-027 y falsos positivos documentados; pip-audit: 0.
   Las 4 herramientas se instalan solo en local, no están en `requirements` ni en el CI.
-  **Defectos:** DEF-001 a DEF-032.
+  **Defectos:** DEF-001 a DEF-035. `Partida.responder` está en complejidad E (33): refactor pendiente tras la exposición.

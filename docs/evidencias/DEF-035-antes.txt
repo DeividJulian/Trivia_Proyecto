@@ -1,0 +1,9 @@
+DEF-035, evidencia antes (2026-11-06). Playwright 1.64.1 + Chromium, /dano.html con una partida real (uvicorn local).
+Se mide document.documentElement.scrollWidth contra el ancho de la pantalla y se listan los elementos que pasan el borde
+(excepto los que están dentro de .tabla-desplazable, que tienen desplazamiento propio).
+
+proyector_1600x900: ancho del documento=1600 px, ancho visible=1600 px, elementos que se salen=[]
+oscuro_1280x720: ancho del documento=1280 px, ancho visible=1280 px, elementos que se salen=[]
+movil_390: ancho del documento=413 px, ancho visible=413 px, elementos que se salen=[['TABLE', 'tabla', 413], ['THEAD', '', 413], ['TR', '', 413], ['TH', 'num', 413], ['TBODY', 'tabla-posiciones', 413], ['TR', '', 413], ['TD', 'num', 413], ['TR', '', 413], ['TD', 'num', 413], ['TR', '', 413], ['TD', 'num', 413]]
+
+En móvil (390 px) el documento mide 413 px: la tabla de posiciones empuja la página y aparece desplazamiento horizontal.
