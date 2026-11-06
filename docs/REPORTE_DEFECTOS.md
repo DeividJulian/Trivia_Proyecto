@@ -493,3 +493,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Pendiente |
 | Regresión ejecutada | Pendiente |
 | Estado | **Abierto** |
+
+### DEF-034 – Con dos sabotajes, el desglose por sabotaje no suma la diferencia total
+| Campo | Valor |
+|---|---|
+| Detectado por | Verificación real en navegador (Playwright contra uvicorn, nivel sistema) de la ventana de daño, y reproducido con pytest a nivel de integración |
+| Severidad | Media (puntos del juego correctos; el "daño por sabotaje" del panel y de la ventana queda corto en la demo con dos sabotajes) |
+| Pasos para reproducir | 1. Activar `racha_no_suma` y `bono_sin_acierto`. 2. Un jugador acierta 3 preguntas seguidas. 3. Comparar `impacto_por_jugador()[...]["diferencia"]` con la suma de su `desglose`. |
+| Resultado esperado / obtenido | Esperado: la suma del desglose de cada jugador es igual a su diferencia. Obtenido: Ana perdió −300 (−100 y −200), pero `racha_no_suma` suma −200 (`DEF-034-antes.txt`). |
+| Causa encontrada (debugging) | Con más de un sabotaje, cada respuesta se recalcula con cada sabotaje por separado partiendo de la racha **real** anterior. Eso mide solo el efecto en esa respuesta, no el acumulado: con `racha_no_suma` la racha mostrada se quedó en 0 desde la pregunta 2, así que en la pregunta 3 el daño es −200, pero el cálculo aislado (racha real 2 → 2) da −100. DEF-033 corrigió que se usara la racha ya actualizada; esto es lo que faltaba. |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |

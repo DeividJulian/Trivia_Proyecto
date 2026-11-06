@@ -1,0 +1,24 @@
+DEF-034, evidencia antes (2026-11-06).
+
+1) Verificación real con Playwright contra uvicorn (reloj real), partida con racha_no_suma y bono_sin_acierto:
+  P1 Beto       correcta=False mostrados=  485 reales=    0 dif= +485
+  P1 Ana        correcta=True  mostrados= 1447 reales= 1447 dif=   +0
+  P1 <b>Eva</b> correcta=True  mostrados= 1422 reales= 1422 dif=   +0
+  P2 Beto       correcta=False mostrados=  484 reales=    0 dif= +484
+  P2 Ana        correcta=True  mostrados= 1447 reales= 1547 dif= -100
+  P2 <b>Eva</b> correcta=False mostrados=  422 reales=    0 dif= +422
+  P3 Beto       correcta=False mostrados=  484 reales=    0 dif= +484
+  P3 Ana        correcta=True  mostrados= 1446 reales= 1646 dif= -200
+  P3 <b>Eva</b> correcta=True  mostrados= 1421 reales= 1421 dif=   +0
+  diferencia por jugador: [('Ana', -300), ('<b>Eva</b>', 422), ('Beto', 1453)]
+  desglose por jugador:   {'Ana': {'racha_no_suma': -200}, '<b>Eva</b>': {'bono_sin_acierto': 422}, 'Beto': {'bono_sin_acierto': 1453}}
+  resumen_por_sabotaje:   {'racha_no_suma': {'respuestas_afectadas': 2, 'puntos_de_diferencia': -200}, 'bono_sin_acierto': {'respuestas_afectadas': 4, 'puntos_de_diferencia': 1875}}
+  -> Ana perdió -300, pero racha_no_suma suma -200.
+
+2) Reproducción a nivel de integración:
+pytest -q tests/integracion/test_impacto_sabotaje.py::test_desglose_con_dos_sabotajes_suma_la_diferencia_total
+E           AssertionError: assert -200 == -300
+E            +  where -200 = sum(dict_values([0, -200, 0, 0, 0, 0]))
+E            +    where dict_values([0, -200, 0, 0, 0, 0]) = <built-in method values of dict object at 0x000002CF2AEC3880>()
+E            +      where <built-in method values of dict object at 0x000002CF2AEC3880> = {'tiempo_estricto': 0, 'racha_no_suma': -200, 'bono_sin_acierto': 0, 'empates_mal': 0, ...}.values
+1 failed in 0.19s

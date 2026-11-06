@@ -195,3 +195,35 @@ def test_desglose_con_dos_sabotajes_atribuye_cada_diferencia_a_su_sabotaje(reloj
     assert desglose["Ana"]["racha_no_suma"] == -100
     assert desglose["Ana"]["bono_sin_acierto"] == 0
     assert desglose["Beto"]["bono_sin_acierto"] == 950
+
+
+@pytest.mark.xfail(strict=True, reason="DEF-034 abierto: el desglose no acumula la racha de cada sabotaje")
+def test_desglose_con_dos_sabotajes_suma_la_diferencia_total(reloj):
+    """DEF-034: con racha_no_suma y bono_sin_acierto, el desglose de cada jugador suma su diferencia."""
+    preguntas = [
+        Pregunta(texto=f"P{i}", opciones=("A", "B", "C", "D"), correcta=i, tiempo_limite=20.0)
+        for i in range(3)
+    ]
+    partida = Partida(pin="333333", preguntas=preguntas, reloj=reloj)
+    sabotajes.activar("racha_no_suma")
+    sabotajes.activar("bono_sin_acierto")
+    partida.unirse("Ana")
+    partida.unirse("Beto")
+    partida.iniciar()
+
+    for correcta in range(3):
+        reloj.avanzar(1.0)
+        partida.responder("Beto", 3)  # incorrecta y rápida
+        reloj.avanzar(19.0)
+        partida.responder("Ana", correcta)  # correcta en el límite: 1000, 1100 y 1200 reales
+        partida.siguiente()
+
+    impacto = {fila["jugador"]: fila for fila in partida.impacto_por_jugador()}
+    for fila in impacto.values():
+        assert sum(fila["desglose"].values()) == fila["diferencia"]
+    assert impacto["Ana"]["diferencia"] == -300
+    assert impacto["Ana"]["desglose"]["racha_no_suma"] == -300
+    assert partida.resumen_por_sabotaje()["racha_no_suma"] == {
+        "respuestas_afectadas": 2,
+        "puntos_de_diferencia": -300,
+    }
