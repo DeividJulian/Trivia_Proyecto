@@ -73,3 +73,22 @@ def test_leer_muestras(tmp_path):
     ruta.write_text("t,generador,servidor,sistema\n100.0,12.5,30.0,40.0\n", encoding="utf-8")
 
     assert leer_muestras(ruta) == [{"t": 100.0, "generador": 12.5, "servidor": 30.0, "sistema": 40.0}]
+
+
+def test_cpu_del_contenedor_no_se_cuelga_si_docker_no_responde(monkeypatch):
+    """DEF-036: docker stats sin respuesta -> -1 (sin dato), y el monitor sigue."""
+    import subprocess
+
+    from performance import monitor_cpu
+
+    llamadas = {}
+
+    def docker_colgado(*args, **kwargs):
+        llamadas["timeout"] = kwargs.get("timeout")
+        raise subprocess.TimeoutExpired(cmd=args[0], timeout=kwargs.get("timeout"))
+
+    monkeypatch.setattr(monitor_cpu.shutil, "which", lambda _nombre: "docker")
+    monkeypatch.setattr(monitor_cpu.subprocess, "run", docker_colgado)
+
+    assert monitor_cpu._cpu_contenedor("testquiz-carga") == -1.0
+    assert llamadas["timeout"] == monitor_cpu.TIMEOUT_DOCKER_S
