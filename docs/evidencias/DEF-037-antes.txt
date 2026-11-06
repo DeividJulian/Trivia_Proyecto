@@ -1,0 +1,24 @@
+DEF-037, evidencia antes (2026-11-06). Corrida carga_ws_render (REST + WebSocket contra Render, 50 usuarios, 90 s).
+
+El monitor se lanzó en la misma llamada de PowerShell que Locust, 3 s antes:
+  Start-Process python performance\monitor_cpu.py performance\resultados\carga_ws_render_cpu.csv --duracion 130
+  Start-Sleep 3; .venv\Scripts\locust.exe -f performance\locustfile_ws.py --host https://... (50 usuarios)
+
+carga_ws_render_cpu.csv: 44 muestras; CPU del "generador" máxima 0,8 % (las 3 mayores: 0.0, 0.7, 0.8).
+Con 50 usuarios REST + WS, Locust usó entre 43 y 48 % de su núcleo en las mediciones del Paso 3:
+0,8 % no es Locust.
+
+Reproducción controlada con el código actual (powershell ficticio cuyo comando solo menciona locust en
+un comentario):
+  powershell -NoProfile -Command "Start-Sleep 25; # .venv\Scripts\locust.exe -f performance\locustfile_ws.py"
+  python -c "...from monitor_cpu import _procesos; print(_procesos('locust'))"
+Salida:
+  22060 python.exe C:\...\.venv\Scripts\python.exe -c import sys; sys.path.insert(0,'per...
+  24300 powershell.exe C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -Command Start-Sleep 25; # .venv\Scripts\...
+  30196 tail.exe C:\Program Files\Git\usr\bin\tail.exe -n +1 -F /c/.../performance/resultados/quiebre_render_locust.log
+Ninguno de los tres es el generador de carga: un python -c, una consola y un tail que lee un log.
+
+Diagnóstico: es_proceso() acepta cualquier proceso que tenga "locust" en CUALQUIER parte de un argumento
+(rutas de logs, comandos de consola, código de python -c). Como main() deja de buscar en cuanto encuentra
+algo, si una consola con "locust" en su comando existe antes que Locust, el monitor mide esa consola toda
+la corrida.

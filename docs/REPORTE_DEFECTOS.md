@@ -535,3 +535,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo `performance/monitor_cpu.py` (herramienta de prueba). La aplicación no cambia. |
 | Regresión ejecutada | `pytest -q` → 373 passed, 3 skipped; suite dentro del contenedor → 355 passed, 4 skipped. |
 | Estado | **Cerrado** |
+
+### DEF-037 – El monitor de CPU mide un proceso que no es Locust
+| Campo | Valor |
+|---|---|
+| Detectado por | Ejecución de la prueba de carga REST + WebSocket contra Render (no funcional), al revisar la CPU del generador: 0,8 % con 50 usuarios |
+| Severidad | Baja (herramienta de prueba: la columna de CPU del generador queda inválida; no afecta a la aplicación) |
+| Pasos para reproducir | 1. Tener abierta una consola cuyo comando contenga "locust" (por ejemplo, la misma que va a lanzar Locust). 2. Lanzar `python performance\monitor_cpu.py salida.csv`. 3. Lanzar Locust. |
+| Resultado esperado / obtenido | Esperado: el monitor mide el proceso de Locust. Obtenido: mide la consola (CPU máxima 0,8 %); `_procesos("locust")` devuelve una consola, un `python -c` y un `tail` que lee el log de Locust (`DEF-037-antes.txt`). |
+| Causa encontrada (debugging) | `es_proceso` acepta el patrón en **cualquier parte** de cualquier argumento (`patron in arg`), y `main()` deja de buscar en cuanto encuentra un proceso. |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |
