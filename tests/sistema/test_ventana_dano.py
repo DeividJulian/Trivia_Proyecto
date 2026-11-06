@@ -134,3 +134,12 @@ def test_la_api_entrega_los_campos_que_lee_la_ventana(cliente, partida_creada, r
     ana = next(j for j in impacto["jugadores"] if j["jugador"] == "Ana")
     assert beto["diferencia"] > 0  # recibió bono sin acertar
     assert ana["diferencia"] < 0  # su racha no sumó
+
+
+def test_las_tablas_se_desplazan_dentro_de_su_panel():
+    """DEF-035: en pantallas angostas las tablas no deben empujar la página a lo ancho."""
+    for cuerpo in ("tabla-posiciones", "tabla-respuestas"):
+        inicio = HTML.index(f'id="{cuerpo}"')
+        contenedor = HTML.rfind('<div class="tabla-desplazable">', 0, inicio)
+        cierre = HTML.rfind("</div>", 0, inicio)
+        assert contenedor > cierre, f"{cuerpo} no está dentro de .tabla-desplazable"
