@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 # corre sus pruebas sin tener psutil instalado (ver DEF-017 y DEF-026).
 
 UMBRAL_SATURACION_PCT = 90.0  # el mismo aviso que da Locust ("CPU usage above 90%")
+TIMEOUT_DOCKER_S = 10.0
 
 
 def porcentaje_docker(texto: str) -> float | None:
@@ -111,12 +112,16 @@ def _cpu_contenedor(nombre: str) -> float:
     docker = shutil.which("docker")
     if docker is None:
         return -1.0
-    salida = subprocess.run(  # noqa: S603 - comando fijo de docker, sin shell
-        [docker, "stats", "--no-stream", "--format", "{{.CPUPerc}}", nombre],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    try:
+        salida = subprocess.run(  # noqa: S603 - comando fijo de docker, sin shell
+            [docker, "stats", "--no-stream", "--format", "{{.CPUPerc}}", nombre],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=TIMEOUT_DOCKER_S,  # DEF-036: si Docker no responde, el monitor no debe colgarse
+        )
+    except subprocess.TimeoutExpired:
+        return -1.0
     valor = porcentaje_docker(salida.stdout)
     return -1.0 if valor is None else valor
 
