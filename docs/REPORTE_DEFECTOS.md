@@ -479,3 +479,17 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo `app/static/index.html`; los contenedores de esos títulos están ocultos hasta que el JS los rellena. |
 | Regresión ejecutada | `pytest -q` → 302 passed, 3 skipped. |
 | Estado | **Cerrado** |
+
+### DEF-033 – Con dos sabotajes activos, el daño se atribuye al sabotaje equivocado
+| Campo | Valor |
+|---|---|
+| Detectado por | pytest, nivel sistema: la prueba de contrato de la ventana de daño (`test_ventana_dano.py`) con `racha_no_suma` y `bono_sin_acierto` activos dio 3 respuestas afectadas para `bono_sin_acierto` en vez de 2. Reproducido a nivel de integración |
+| Severidad | Media (el juego y los puntos son correctos, pero el panel y la ventana de daño mostrarían mal "daño por sabotaje" justo en la demo con dos sabotajes) |
+| Pasos para reproducir | 1. Activar `racha_no_suma` y `bono_sin_acierto`. 2. Ana responde bien 2 preguntas en el límite y Beto responde mal y rápido. 3. Leer `resumen_por_sabotaje()` e `impacto_por_jugador()`. |
+| Resultado esperado / obtenido | Esperado: `bono_sin_acierto` 2 respuestas / +950 y `racha_no_suma` 1 respuesta / −100. Obtenido: `bono_sin_acierto` 3 / +1050 y `racha_no_suma` 0 / 0; los −100 de Ana aparecen como +100 de `bono_sin_acierto` (`DEF-033-antes.txt`). La nota de la respuesta sí era correcta. |
+| Causa encontrada (debugging) | En `Partida.responder`, cuando hay más de un sabotaje activo se recalcula la respuesta con cada sabotaje por separado (`solo_sabotajes([clave])`). Ese cálculo usa `jugador.racha_real`, pero esa racha ya se actualizó unas líneas antes con el acierto actual. Con la racha adelantada un paso, `bono_sin_acierto` "suma" 100 puntos de racha que no le tocan y `racha_no_suma` da diferencia 0. Con un solo sabotaje no pasa, porque ahí se usa la diferencia total. |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |

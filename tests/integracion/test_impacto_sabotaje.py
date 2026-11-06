@@ -165,3 +165,34 @@ def test_impacto_tiempo_estricto_en_el_limite(partida, reloj):
 
     impacto = partida.impacto_por_jugador()
     assert impacto[0]["desglose"]["tiempo_estricto"] == -1000
+
+
+@pytest.mark.xfail(strict=True, reason="DEF-033 abierto: el desglose usa la racha real ya actualizada")
+def test_desglose_con_dos_sabotajes_atribuye_cada_diferencia_a_su_sabotaje(reloj):
+    """DEF-033: con racha_no_suma y bono_sin_acierto a la vez, cada diferencia va a su sabotaje."""
+    preguntas = [
+        Pregunta(texto="P1", opciones=("A", "B", "C", "D"), correcta=0, tiempo_limite=20.0),
+        Pregunta(texto="P2", opciones=("A", "B", "C", "D"), correcta=1, tiempo_limite=20.0),
+    ]
+    partida = Partida(pin="222222", preguntas=preguntas, reloj=reloj)
+    sabotajes.activar("racha_no_suma")
+    sabotajes.activar("bono_sin_acierto")
+    partida.unirse("Ana")
+    partida.unirse("Beto")
+    partida.iniciar()
+
+    for correcta in (0, 1):
+        reloj.avanzar(1.0)
+        partida.responder("Beto", 3)  # incorrecta y rápida: bono que no le corresponde
+        reloj.avanzar(19.0)
+        partida.responder("Ana", correcta)  # correcta justo en el límite: sin bono por velocidad
+        partida.siguiente()
+
+    resumen = partida.resumen_por_sabotaje()
+    desglose = {fila["jugador"]: fila["desglose"] for fila in partida.impacto_por_jugador()}
+
+    assert resumen["bono_sin_acierto"] == {"respuestas_afectadas": 2, "puntos_de_diferencia": 950}
+    assert resumen["racha_no_suma"] == {"respuestas_afectadas": 1, "puntos_de_diferencia": -100}
+    assert desglose["Ana"]["racha_no_suma"] == -100
+    assert desglose["Ana"]["bono_sin_acierto"] == 0
+    assert desglose["Beto"]["bono_sin_acierto"] == 950
