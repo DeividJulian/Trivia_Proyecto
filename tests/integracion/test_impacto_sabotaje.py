@@ -197,7 +197,6 @@ def test_desglose_con_dos_sabotajes_atribuye_cada_diferencia_a_su_sabotaje(reloj
     assert desglose["Beto"]["bono_sin_acierto"] == 950
 
 
-@pytest.mark.xfail(strict=True, reason="DEF-034 abierto: el desglose no acumula la racha de cada sabotaje")
 def test_desglose_con_dos_sabotajes_suma_la_diferencia_total(reloj):
     """DEF-034: con racha_no_suma y bono_sin_acierto, el desglose de cada jugador suma su diferencia."""
     preguntas = [
