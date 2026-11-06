@@ -143,3 +143,9 @@ def test_las_tablas_se_desplazan_dentro_de_su_panel():
         contenedor = HTML.rfind('<div class="tabla-desplazable">', 0, inicio)
         cierre = HTML.rfind("</div>", 0, inicio)
         assert contenedor > cierre, f"{cuerpo} no está dentro de .tabla-desplazable"
+
+
+def test_el_dano_total_aclara_que_suma_en_valor_absoluto():
+    """Daño total suma |diferencia|: −300 y +422 cuentan 722, no 122."""
+    assert "valor absoluto" in HTML
+    assert "Math.abs(r.diferencia)" in JS
