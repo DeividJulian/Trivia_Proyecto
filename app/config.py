@@ -17,6 +17,7 @@ class Configuracion:
     permitir_sabotaje: bool = True
     max_partidas: int = 500
     partida_ttl_minutos: int = 30
+    commit: str = "local"
 
 
 def _leer_booleano(nombre: str, por_defecto: bool) -> bool:
@@ -45,6 +46,19 @@ def _leer_entero_positivo(nombre: str, por_defecto: int) -> int:
     return numero
 
 
+def _leer_commit() -> str:
+    """Identifica el despliegue con el SHA del commit.
+
+    VERSION no cambia entre despliegues; el SHA sí. Render define RENDER_GIT_COMMIT en cada
+    despliegue; APP_COMMIT permite indicarlo al correr el contenedor fuera de Render.
+    """
+    for nombre in ("RENDER_GIT_COMMIT", "APP_COMMIT"):
+        valor = os.environ.get(nombre, "").strip()
+        if valor:
+            return valor
+    return "local"
+
+
 def cargar_configuracion() -> Configuracion:
     """Construye la configuración a partir de las variables de entorno.
 
@@ -56,4 +70,5 @@ def cargar_configuracion() -> Configuracion:
         permitir_sabotaje=_leer_booleano("PERMITIR_SABOTAJE", True),
         max_partidas=_leer_entero_positivo("MAX_PARTIDAS", 500),
         partida_ttl_minutos=_leer_entero_positivo("PARTIDA_TTL_MINUTOS", 30),
+        commit=_leer_commit(),
     )

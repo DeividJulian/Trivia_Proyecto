@@ -46,7 +46,8 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
     viene de SonarLint en VS Code, **detenerse** y pedir al usuario una captura antes y después
     (`DEF-00X-antes.png` y `DEF-00X-despues.png`).
 12. **Registro de despliegues (Fase 15):** el pipeline sube `REPORTE_PREDESPLIEGUE.md` como
-    artefacto; el job `desplegar` crea un GitHub Release (v1.0.X) con el reporte adjunto y el enlace
+    artefacto; el job `humo` (8 - Humo y release) crea el GitHub Release (v1.0.X) **solo después** de que
+    el humo confirma que responde el commit recién desplegado, con el reporte adjunto y el enlace
     a la ejecución; `docs/REGISTRO_DESPLIEGUES.md` con fecha, versión, commit, veredicto, enlace al
     pipeline y quién aprobó.
 
@@ -80,23 +81,45 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 | 12 | feature/rendimiento | Locust, umbrales, punto de quiebre y gráficas |
 | 13 | feature/seguridad | Dockerfile y Trivy |
 | 14 | feature/sonar | SonarQube Cloud (requiere acción del usuario) |
-| 15 | feature/ci | Pipeline de 8 jobs, render.yaml, reporte pre-despliegue, humo, registro de despliegues |
+| 15 | feature/ci | Pipeline de 8 etapas (la 3, SonarCloud, se agrega en la fase 14), render.yaml, reporte pre-despliegue, humo, release, registro de despliegues |
 | Cierre | main | Release v1.0.0, Render, punto de quiebre contra Render, EVIDENCIAS.md |
 
 ## Estado actual
 
-- **Carpeta del proyecto:** `D:\Descargas\Trivia_Proyecto` (no `D:\Users\User\Trivia_Proyecto`, que está vacía).
+- **Carpeta del proyecto:** depende de la máquina. Deivid: `D:\Descargas\Trivia_Proyecto`; Jack:
+  `C:\Users\Jack Limas\Universidad\Trivia_Proyecto`.
 - **Fases terminadas:** 0 a 13 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
-- **CI:** CI mínimo (`.github/workflows/ci.yml`, Ruff + pytest); en la Fase 15 se amplía a las 8 compuertas.
+- **CI (`.github/workflows/ci.yml`):** jobs `1 - Estilo`, `2 - Pruebas y cobertura`, `4 - Mutantes`,
+  `5 - Seguridad (Trivy)`, `6 - Rendimiento`, `7 - Reporte y despliegue` y `8 - Humo y release` (7 y 8 solo en
+  `main`). La etapa 3 (SonarCloud) se agrega al final; mientras falte, el reporte da **NO DESPLEGAR** y bloquea
+  despliegue y release. Todas las acciones están fijadas por SHA (incidente GHSA-69fq-xp46-6x23 de trivy-action,
+  19-03-2026) y la imagen base por digest; `.github/dependabot.yml` propone las actualizaciones contra `develop`
+  (solo actúa cuando llegue a `main`).
+- **Humo:** `/salud` devuelve `commit` (`RENDER_GIT_COMMIT` en Render, `APP_COMMIT` fuera de Render, `local` si
+  no hay). El job 8 espera hasta 15 min a que `/salud` responda `github.sha`, corre `pytest -m integracion_sistemas`
+  con `COMMIT_ESPERADO` y luego crea el release.
+- **Render:** blueprint `render.yaml` con `autoDeploy: false`; la activación requiere
+  `RENDER_DEPLOY_HOOK` como secreto y `APP_URL` como variable del repositorio.
 - **Saboteador:** 6 mutantes en `app/dominio/sabotajes.py`; `scripts/verificar_mutantes.py` → 6/6.
   El ejecutor del panel lanza pytest dentro del servidor: la imagen Docker necesita `tests/`, `pytest` y `httpx`.
 - **Rendimiento local:** RNF-01/02 cumplen; degradación 850 usuarios; quiebre no alcanzado hasta 1000.
   El servidor debe correr con `--timeout-keep-alive 75` (DEF-014). Usar `127.0.0.1`, no `localhost`.
-- **Seguridad:** `trivy fs` y `trivy config` limpios; la imagen quita pip (DEF-018). `trivy image` queda para el
-  CI (no hay Docker local). Trivy está en
-  `C:\Users\COREi5\AppData\Local\Microsoft\WinGet\Packages\AquaSecurity.Trivy_Microsoft.Winget.Source_8wekyb3d8bbwe\trivy.exe`.
+- **Seguridad / imagen:** base `python:3.12-alpine` (DEF-025): `trivy image`, `trivy fs` y `trivy config` en 0
+  HIGH/CRITICAL; la imagen quita pip (DEF-018) y corre como uid 10001. `test_reporte_predespliegue.py` está en
+  `.dockerignore` porque importa `scripts/` (DEF-026): dentro del contenedor corren 277 pruebas; en el CI, 290.
+  En la máquina de Jack hay Docker Desktop y Trivy 0.76.1 (en el PATH por WinGet); `docker build` se lanza desde
+  CMD o PowerShell (desde Git Bash falla el helper de credenciales de Docker).
 - **Front de demostración:** `app/static/` (HTML, CSS y JS sin dependencias),
   servido por FastAPI en `/`. Vistas: profesor, jugador y Saboteador (con tablero de dominó e impacto del sabotaje en vivo).
 - **Impacto del sabotaje:** evaluación sombra (`sin_sabotajes`, `ranking_real`, `impacto_por_jugador`), endpoints `/api/admin/partidas` e `/impacto` y monitoreo en panel admin.
-- **Siguiente:** Tarea 3 / Fase 14 (`feature/sonar`): SonarQube Cloud.
-- **Pruebas:** 277 en verde, cobertura 98 %. **Defectos:** DEF-001 a DEF-019.
+- **Trabajo actual:** Fase 15 en `feature/ci` con CI de GitHub en verde (Trivy contra la imagen incluido);
+  falta el humo contra una URL desplegada. SonarCloud (Fase 14) se deja para el final por decisión del
+  equipo; no desplegar hasta tener su Quality Gate aprobado.
+- **Validación local de Fase 15:** 290 passed, 2 pruebas de humo omitidas sin `APP_URL`, cobertura
+  97.53 %, mutantes 6/6, Ruff/format limpios; Locust 50 usuarios/60 s: p95 9 ms y 0 % fallos.
+  Entorno local Python 3.11.9 (CI objetivo 3.12).
+- **Bloque 1 (imagen Docker, 2026-11-05):** cerrado en local en la máquina de Jack (Python 3.12.10):
+  290 passed, 2 skipped, cobertura 98 %. Confirmado en GitHub Actions (run 42161113908).
+- **Bloque 2 (pipeline, 2026-11-06):** CI run 42168456389 en verde: 299 pruebas (3 omitidas sin `APP_URL`),
+  cobertura 97,55 %, mutantes 6/6, Trivy 0/0/0, Locust p95 3 ms y 0 % fallos. Local: 296 passed, 3 skipped.
+  **Defectos:** DEF-001 a DEF-026.

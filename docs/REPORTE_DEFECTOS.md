@@ -297,3 +297,101 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo `app/static/app.js` (interfaz del tablero de administración). |
 | Regresión ejecutada | `node --check app/static/app.js` OK; `pytest -q` → 259 passed. |
 | Estado | **Cerrado** |
+
+### DEF-020 – Ruff S314 señala el XML generado por las pruebas en el reporte predespliegue
+| Campo | Valor |
+|---|---|
+| Detectado por | Ruff, regla S314 (análisis estático) en `scripts/reporte_predespliegue.py` |
+| Severidad | Baja |
+| Pasos para reproducir | 1. Analizar el script del reporte con `ruff check scripts/reporte_predespliegue.py`. |
+| Resultado esperado / obtenido | Esperado: sin alertas. Obtenido: S314 en los dos `ET.parse` (`DEF-020-antes.txt`). |
+| Causa encontrada (debugging) | Ruff no puede distinguir los informes XML locales y generados por pytest/coverage de XML externo no confiable. El reporte solo lee archivos producidos dentro del workspace por el propio pipeline. |
+| Corrección | Riesgo aceptado, con `# noqa: S314` solo en las dos lecturas del XML generado por las herramientas del pipeline. No se desactiva la regla globalmente. |
+| Re-ejecución (confirmación) | `ruff check ...` → `All checks passed!` (`DEF-020-despues.txt`). |
+| Análisis de impacto | Solo el generador del reporte predespliegue. |
+| Regresión ejecutada | `pytest -q tests/componente/test_reporte_predespliegue.py tests/integracion_sistemas/test_humo.py` → 6 passed, 2 skipped sin `APP_URL`. |
+| Estado | **Riesgo aceptado** |
+
+### DEF-021 – Sintaxis inválida al escapar separadores en el reporte predespliegue
+| Campo | Valor |
+|---|---|
+| Detectado por | pytest, error de recolección de nivel componente |
+| Severidad | Baja |
+| Pasos para reproducir | Ejecutar `pytest -q tests/componente/test_reporte_predespliegue.py` antes de la corrección. |
+| Resultado esperado / obtenido | Esperado: se recolectan y ejecutan las pruebas. Obtenido: `SyntaxError: f-string expression part cannot include a backslash` (`DEF-021-antes.txt`). |
+| Causa encontrada (debugging) | El escapado Markdown con una barra invertida estaba dentro de una expresión f-string, sintaxis no permitida por Python. |
+| Corrección | Se calcula el texto escapado antes de interpolarlo en el f-string. |
+| Re-ejecución (confirmación) | `pytest -q tests/componente/test_reporte_predespliegue.py tests/integracion_sistemas/test_humo.py` → 8 passed, 2 skipped (`APP_URL` no configurada; `DEF-021-despues.txt`). |
+| Análisis de impacto | Solo el formato de la tabla del reporte predespliegue. |
+| Regresión ejecutada | Ruff check y format sobre los archivos nuevos; suite dirigida: 8 passed, 2 skipped. |
+| Estado | **Cerrado** |
+
+### DEF-022 – La ejecución directa del reporte no encuentra el módulo de rendimiento
+| Campo | Valor |
+|---|---|
+| Detectado por | Ejecución manual del comando de generación de reporte en la integración CI |
+| Severidad | Media (impide producir el artefacto de predespliegue) |
+| Pasos para reproducir | Ejecutar `python scripts/reporte_predespliegue.py ...` desde la raíz del repositorio. |
+| Resultado esperado / obtenido | Esperado: genera el Markdown con el veredicto. Obtenido: `ModuleNotFoundError: No module named 'performance'` (`DEF-022-antes.txt`). |
+| Causa encontrada (debugging) | Al ejecutar un archivo por ruta, Python agrega `scripts/` a `sys.path`; la raíz del repositorio no estaba disponible para importar `performance`. |
+| Corrección | Se agrega la raíz del repositorio a `sys.path` antes de importar el verificador de umbrales, evitando duplicarla cuando ya está presente. |
+| Re-ejecución (confirmación) | Ejecución del CLI con evidencias locales: genera el reporte y sale con código 1 por Trivy no ejecutado y Sonar pendiente (`DEF-022-despues.txt`). |
+| Análisis de impacto | Solo el generador del reporte predespliegue y su ejecución en CI. |
+| Regresión ejecutada | Suite de pruebas del reporte y suite completa. |
+| Estado | **Cerrado** |
+
+### DEF-023 – Línea larga en la prueba de conteo de omitidas
+| Campo | Valor |
+|---|---|
+| Detectado por | Ruff, regla E501, análisis estático del nuevo test |
+| Severidad | Baja |
+| Pasos para reproducir | Ejecutar `ruff check tests/componente/test_reporte_predespliegue.py`. |
+| Resultado esperado / obtenido | Esperado: sin líneas fuera del límite. Obtenido: línea de 121 caracteres (`DEF-023-antes.txt`). |
+| Causa encontrada (debugging) | La creación del XML de prueba y su codificación quedaron en una sola línea extensa. |
+| Corrección | Se divide la llamada `write_text` en varias líneas; no se cambia el límite de Ruff. |
+| Re-ejecución (confirmación) | Ruff check y format sobre el repositorio completo → sin hallazgos (`DEF-023-despues.txt`). |
+| Análisis de impacto | Solo legibilidad de la prueba del reporte. |
+| Regresión ejecutada | Suite completa de pytest. |
+| Estado | **Cerrado** |
+
+### DEF-024 – GitHub Actions no resuelve el tag de Trivy sin prefijo v
+| Campo | Valor |
+|---|---|
+| Detectado por | GitHub Actions, preparación del job Trivy en CI |
+| Severidad | Media (bloquea la compuerta de seguridad antes de escanear) |
+| Pasos para reproducir | Ejecutar el workflow en `feature/ci` con `aquasecurity/trivy-action@0.36.0`. |
+| Resultado esperado / obtenido | Esperado: inicia los escaneos. Obtenido: `Unable to resolve action ... unable to find version '0.36.0'` (`DEF-024-antes.txt`). |
+| Causa encontrada (debugging) | El tag publicado por la acción incluye el prefijo `v`; el workflow usaba `0.36.0`. |
+| Corrección | Se cambia la referencia en los tres pasos a `aquasecurity/trivy-action@v0.36.0`. |
+| Re-ejecución (confirmación) | GitHub Actions `42105714319` resolvió la acción y generó los tres JSON de escaneo (`DEF-024-despues.txt`). |
+| Análisis de impacto | Solo la ejecución de análisis Trivy en el CI. |
+| Regresión ejecutada | El job pasó de error al preparar la acción a ejecutar fs/config/imagen. Los hallazgos de imagen quedan registrados en DEF-025. |
+| Estado | **Cerrado** |
+
+### DEF-025 – 46 vulnerabilidades HIGH en los paquetes del sistema de la imagen
+| Campo | Valor |
+|---|---|
+| Detectado por | Trivy `image`, escaneo de seguridad del pipeline |
+| Severidad | Alta |
+| Pasos para reproducir | 1. Construir `testquiz:ci`. 2. Ejecutar Trivy imagen con severidades HIGH/CRITICAL. |
+| Resultado esperado / obtenido | Esperado: 0 HIGH/CRITICAL. Obtenido: 46 HIGH, 0 CRITICAL en paquetes Debian de `python:3.12-slim`; fs y config sin bloqueos (`DEF-025-antes.txt`, CI). Confirmado en local con Trivy 0.76.1 el 2026-11-05: `Total: 46 (HIGH: 46, CRITICAL: 0)` (`DEF-025-antes-local.txt`); contando todas las severidades, 186 (46 HIGH, 72 MEDIUM, 62 LOW, 6 UNKNOWN). |
+| Causa encontrada (debugging) | Diagnóstico con `trivy image --ignore-unfixed` sobre `testquiz:slim` (solo diagnóstico; el CI no usa esa opción): **0 de las 46 tenían versión corregida**. 45 tienen estado `affected` y 1 `fix_deferred` (CVE-2026-9538 en perl-base). Están en util-linux y sus bibliotecas, ncurses, systemd, acl, SQLite, perl-base y zlib de Debian 13 (`DEF-025-diagnostico-ignore-unfixed.txt`). Por eso **actualizar paquetes con apt no las resolvía**: Debian aún no publicó el parche. La salida real era cambiar de base. |
+| Corrección | Mantenimiento **adaptativo**: commit `fix(docker): usa python:3.12-alpine como imagen base (DEF-025)` (`5370e31`). Se reemplaza la base Debian por Alpine 3.24 y el usuario sin privilegios se crea con `addgroup`/`adduser` de BusyBox (mismo uid/gid 10001, sin home y con `/sbin/nologin`). Las 46 vulnerabilidades **no se corrigieron**: se dejaron de usar los paquetes Debian que las tenían. No se cambió el umbral de Trivy ni se usó `--ignore-unfixed` en el CI. |
+| Re-ejecución (confirmación) | `docker build -t testquiz:alpine .` y `trivy image --scanners vuln --severity HIGH,CRITICAL testquiz:alpine` → alpine 3.24.4: **0 hallazgos reportados**; sin filtro de severidad también 0. `trivy fs --scanners vuln,secret,misconfig` → 0; `trivy config` → 0 (`DEF-025-despues.txt`). Tamaño de la imagen: 259 MB → 151 MB. **Limitación:** según la documentación de Trivy v0.76.1 (`docs/guide/coverage/os/alpine.md`), para Alpine la detección de *unfixed vulnerabilities* no está soportada, porque los avisos de Alpine solo listan vulnerabilidades con parche. Para Debian sí lo está. Así que el 0 significa que **no hay hallazgos reportados**, no que el riesgo sea cero. Se mitiga repitiendo el escaneo en cada push del CI. |
+| Análisis de impacto | Solo la imagen de despliegue (`Dockerfile`; Render usa `runtime: docker`). El código de la app no cambia. Riesgo revisado: Alpine usa musl en lugar de glibc; las dependencias (`pydantic-core`, `uvloop`, `httptools`, `watchfiles`) se instalaron desde ruedas musllinux sin compilar. El proceso sigue sin ser root (`id` → uid=10001). |
+| Regresión ejecutada | Dentro del contenedor: `python -m pytest -q` → 277 passed, 2 skipped. Contenedor en marcha: `/salud` 200 con versión 1.0.0, healthcheck `healthy`, panel 403 sin token; con `empates_mal` el ejecutor del panel marcó Ranking y Partida CAIDO (4 fallidas) y tras reparar 0 fallidas (`DEF-026-despues.txt`). Local: `pytest -q` → 290 passed, 2 skipped. Pendiente: confirmar el job Trivy en GitHub Actions. |
+| Estado | **Cerrado** (0 hallazgos reportados en local, con la limitación anterior; el CI lo vuelve a comprobar en cada push) |
+
+### DEF-026 – La suite no se ejecuta dentro de la imagen Docker (error de recolección)
+| Campo | Valor |
+|---|---|
+| Detectado por | pytest dentro del contenedor (nivel sistema / despliegue), al validar la imagen con Docker local |
+| Severidad | Alta (en el despliegue el panel del Saboteador no puede ejecutar las pruebas: el tablero de dominó queda inservible) |
+| Pasos para reproducir | 1. `docker build -t testquiz:slim .` 2. `docker run --rm -e ADMIN_TOKEN=demo123 testquiz:slim python -m pytest -q -p no:cacheprovider` 3. Con el contenedor en marcha, activar `empates_mal` y llamar `POST /api/admin/pruebas`. |
+| Resultado esperado / obtenido | Esperado: la suite corre y el panel marca Ranking y Partida como CAIDO. Obtenido: `ModuleNotFoundError: No module named 'scripts'` en `tests/componente/test_reporte_predespliegue.py`, `Interrupted: 1 error during collection`, **0 pruebas ejecutadas** (código 2). El panel devolvió `pruebas: 1, fallidas: 1, por_nivel: sin_nivel` y ningún módulo caído (`DEF-026-antes.txt`). |
+| Causa encontrada (debugging) | `test_reporte_predespliegue.py` importa `scripts.reporte_predespliegue`, pero `.dockerignore` excluye `scripts/` (la imagen no lo necesita). Un solo error de recolección hace que pytest interrumpa toda la ejecución. La prueba pertenece al pipeline (evalúa el reporte predespliegue), no al servidor. |
+| Corrección | Commit `fix(docker): excluye de la imagen la prueba del reporte predespliegue (DEF-026)` (`1ef6e54`): se agrega `tests/componente/test_reporte_predespliegue.py` a `.dockerignore`. La prueba se sigue ejecutando en el CI (job de pruebas), que sí tiene `scripts/`. No se borró ninguna prueba. |
+| Re-ejecución (confirmación) | `docker run --rm -e ADMIN_TOKEN=demo123 testquiz:alpine python -m pytest -q -p no:cacheprovider` → **277 passed, 2 skipped**, código 0 (`DEF-026-despues.txt`). 277 = 290 de la suite − 13 pruebas del reporte predespliegue. |
+| Análisis de impacto | Imagen Docker y panel del Saboteador en el despliegue (`app/calidad/ejecutor.py` lanza pytest dentro del servidor). La suite del CI no cambia: el job de pruebas sigue ejecutando las 13 pruebas del reporte. |
+| Regresión ejecutada | Contenedor en marcha: panel con `empates_mal` → `pruebas: 279, fallidas: 4, caidos: Partida, Ranking, en_riesgo: API, Gestor`; tras `reparar` → 0 fallidas. Local: `pytest -q` → 290 passed, 2 skipped. |
+| Estado | **Cerrado** |

@@ -1,5 +1,7 @@
 # Imagen de producción de TestQuiz – El Saboteador
-FROM python:3.12-slim
+# Alpine en lugar de slim: la base Debian traía 46 vulnerabilidades HIGH (DEF-025).
+# Fijada por digest (build reproducible); Dependabot propone el digest nuevo y Trivy la escanea en cada push.
+FROM python:3.12-alpine@sha256:213242b537a1c166a0c53e903461fc18d5518e7196c93dbecda452660a848918
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -9,8 +11,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Usuario sin privilegios (uid 10001): el proceso nunca corre como root.
-RUN groupadd --gid 10001 appuser \
- && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin appuser
+RUN addgroup -g 10001 -S appuser \
+ && adduser -u 10001 -G appuser -S -D -H -s /sbin/nologin appuser
 
 COPY requirements.txt requirements-panel.txt ./
 # Se instala y luego se quita pip: la app no lo necesita en ejecución y su copia interna de

@@ -1,0 +1,5 @@
+Comando: .venv\Scripts\ruff.exe check .
+Resultado: All checks passed!
+
+Comando: .venv\Scripts\ruff.exe format --check .
+Resultado: 90 files already formatted

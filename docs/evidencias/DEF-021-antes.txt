@@ -1,0 +1,6 @@
+Comando: .venv\Scripts\pytest.exe -q tests\componente\test_reporte_predespliegue.py tests\integracion_sistemas\test_humo.py
+Resultado: error durante la recolección de tests:
+
+File "scripts\reporte_predespliegue.py", line 157
+  f"| {c.nombre} | {c.estado} | {c.evidencia.replace('|', r'\|')} |" for c in compuertas
+SyntaxError: f-string expression part cannot include a backslash

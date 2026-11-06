@@ -1,0 +1,4 @@
+Ejecución: GitHub Actions 42104075536, job 127515267886 (Trivy)
+Resultado:
+##[error]Unable to resolve action `aquasecurity/trivy-action@0.36.0`, unable to find version `0.36.0`
+Los escaneos fs/config/imagen no llegaron a ejecutarse.
