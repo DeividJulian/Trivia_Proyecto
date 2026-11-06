@@ -204,7 +204,8 @@ function pintarJugador(estado) {
       $("jug-mensaje").textContent = "Resultados de la pregunta";
     }
   }
-  if (["RESULTADOS", "FINALIZADA"].includes(estado.estado)) actualizarMarcador();
+  // actualizarMarcador captura sus errores; void indica que no se espera a propósito (DEF-030).
+  if (["RESULTADOS", "FINALIZADA"].includes(estado.estado)) void actualizarMarcador();
 }
 
 async function responder(opcion, numero) {
