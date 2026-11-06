@@ -1,0 +1,23 @@
+DEF-037, evidencia después (2026-11-06), con la corrección 0599294.
+
+1. Pruebas de regresión:
+   pytest -q tests/componente/test_monitor_cpu.py  -> 25 passed
+   (las 6 pruebas nuevas fallaban sin la corrección: ver DEF-037-antes.txt)
+   pytest -q  -> 381 passed, 3 skipped
+
+2. Reproducción real con el código corregido: misma consola ficticia (comando con "locust" en un
+   comentario) y, a la vez, un Locust real (locust.exe -f performance\locustfile.py -u 1 -t 25s):
+     14328 python.exe C:\Users\Jack Limas\AppData\Local\Programs\Python\Python312\python.exe C:\Users\Jack Limas\Universid...
+     25664 python.exe C:\Users\Jack Limas\Universidad\Trivia_Proyecto\.venv\Scripts\python.exe C:\Users\Jack Limas\Univers...
+     26832 locust.exe C:\Users\Jack Limas\Universidad\Trivia_Proyecto\.venv\Scripts\locust.exe -f performance\locustfile.p...
+     consola ficticia: 25796  lanzador locust.exe: 26832
+   El monitor encuentra el lanzador locust.exe y los dos python.exe que ejecutan locust.exe
+   (el python del venv redirige al python base); la consola ficticia (25796) ya no aparece.
+
+3. Datos ya tomados:
+   - quiebre_render_cpu.csv: la CPU medida sube con la carga (0 % al inicio, máx. 66,4 %) y Locust no
+     registró ningún aviso "CPU usage above 90%": midió al generador real. Válido.
+   - carga_ws_render_cpu.csv: inválido (máx. 0,8 %). Se reporta "sin dato"; Locust tampoco registró
+     avisos de CPU en esa corrida.
+   - Corridas del Paso 3: el orquestador lanzaba Locust con Start-Process desde un script cuyo comando no
+     contenía "locust"; los valores (38 % a 96 %) suben con la carga como los de un generador activo.

@@ -544,8 +544,8 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Pasos para reproducir | 1. Tener abierta una consola cuyo comando contenga "locust" (por ejemplo, la misma que va a lanzar Locust). 2. Lanzar `python performance\monitor_cpu.py salida.csv`. 3. Lanzar Locust. |
 | Resultado esperado / obtenido | Esperado: el monitor mide el proceso de Locust. Obtenido: mide la consola (CPU máxima 0,8 %); `_procesos("locust")` devuelve una consola, un `python -c` y un `tail` que lee el log de Locust (`DEF-037-antes.txt`). |
 | Causa encontrada (debugging) | `es_proceso` acepta el patrón en **cualquier parte** de cualquier argumento (`patron in arg`), y `main()` deja de buscar en cuanto encuentra un proceso. |
-| Corrección | Pendiente |
-| Re-ejecución (confirmación) | Pendiente |
-| Análisis de impacto | Pendiente |
-| Regresión ejecutada | Pendiente |
-| Estado | **Abierto** |
+| Corrección | Commit `fix(rendimiento): el monitor de CPU solo reconoce el programa, no su nombre en un argumento (DEF-037)` (`0599294`): `es_proceso` compara el **nombre del programa** (`PureWindowsPath(arg).stem`) del ejecutable, del script que corre el intérprete o del módulo de `-m`, en vez de buscar el texto en cualquier argumento. |
+| Re-ejecución (confirmación) | 6 pruebas nuevas en `test_monitor_cpu.py` fallan sin la corrección y pasan con ella; con una consola ficticia y un Locust real a la vez, el monitor solo encuentra `locust.exe` y sus `python.exe` (`DEF-037-despues.txt`). |
+| Análisis de impacto | Solo `performance/monitor_cpu.py` (herramienta de prueba); la aplicación no cambia. Datos: la CPU del generador de `carga_ws_render` queda **sin dato**; la de `quiebre_render` es válida (sube con la carga, máx. 66 %, sin avisos de Locust); las del Paso 3 no se afectan (el orquestador no tenía "locust" en su comando). |
+| Regresión ejecutada | `ruff check .`, `ruff format --check .`; `pytest -q` → 381 passed, 3 skipped. |
+| Estado | **Cerrado** |
