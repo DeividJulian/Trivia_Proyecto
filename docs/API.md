@@ -6,7 +6,7 @@ Base local: `http://127.0.0.1:8000`. La especificación interactiva está dispon
 
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
-| `GET` | `/salud` | Público | Estado y versión del servicio. |
+| `GET` | `/salud` | Público | Estado, versión y commit desplegado (`RENDER_GIT_COMMIT` o `APP_COMMIT`; `local` si no hay). |
 | `POST` | `/api/partidas` | Público | Crea una partida; acepta opcionalmente `{"categoria":"pruebas"}` o `{"categoria":"cultura"}`. Devuelve `pin` y `token_host`. |
 | `GET` | `/api/partidas/{pin}` | Público | Estado público de la partida. El PIN debe tener seis dígitos. |
 | `POST` | `/api/partidas/{pin}/jugadores` | Público | Une un jugador con `{"nombre":"..."}`. |

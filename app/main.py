@@ -71,8 +71,8 @@ def crear_app(
 
     @app.get("/salud", tags=["salud"])
     def salud() -> dict:
-        """Indica que el servicio está en pie y qué versión corre."""
-        return {"estado": "ok", "version": VERSION}
+        """Indica que el servicio está en pie, qué versión corre y de qué commit es el despliegue."""
+        return {"estado": "ok", "version": VERSION, "commit": config.commit}
 
     # El front de demostración se monta al final: las rutas de la API y /docs tienen prioridad.
     if DIRECTORIO_FRONT.is_dir():

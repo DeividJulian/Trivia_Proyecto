@@ -14,4 +14,4 @@ def test_salud_responde_ok_con_la_version():
     respuesta = cliente.get("/salud")
 
     assert respuesta.status_code == 200
-    assert respuesta.json() == {"estado": "ok", "version": VERSION}
+    assert respuesta.json() == {"estado": "ok", "version": VERSION, "commit": app.state.config.commit}
