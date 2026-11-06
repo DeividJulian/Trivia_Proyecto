@@ -1,0 +1,9 @@
+SonarQube Cloud, rama feature/sonar, análisis del commit f0f1ed1 (GitHub Actions run 42257204499). API pública:
+GET https://sonarcloud.io/api/issues/search?componentKeys=DeividJulian_Trivia_Proyecto&branch=feature/sonar&rules=pythonbugs:S2259
+
+BUG MAJOR pythonbugs:S2259 app/dominio/partida.py:346
+  Fix this attribute access on a value that can be 'None'.
+  impactos: [{'softwareQuality': 'RELIABILITY', 'severity': 'MEDIUM'}]
+  clave: AaGxzdc0J4N3lUY5zV0t
+
+Total: 1

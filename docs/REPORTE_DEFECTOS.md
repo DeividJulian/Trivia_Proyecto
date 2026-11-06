@@ -409,3 +409,73 @@ Cada defecto sigue el ciclo de mantenimiento visto en clase:
 | Análisis de impacto | Solo `performance/locustfile.py` (herramienta de prueba). La aplicación y los demás escenarios no lo usaban. |
 | Regresión ejecutada | `pytest -q` → 296 passed, 3 skipped. Locust 20 usuarios / 30 s contra uvicorn local → 476 peticiones, 0 fallos, p95 10 ms (RNF-01 y RNF-02 cumplen). |
 | Estado | **Cerrado** |
+
+### DEF-028 – estado_publico usa la pregunta sin comprobar que exista (Sonar S2259)
+| Campo | Valor |
+|---|---|
+| Detectado por | SonarQube Cloud, regla `pythonbugs:S2259` (bug, confiabilidad MEDIUM), primer análisis de la etapa 3 del CI (run 42257204499) |
+| Severidad | Media |
+| Pasos para reproducir | 1. Analizar la rama `feature/sonar` con SonarQube Cloud. 2. Ver `app/dominio/partida.py:346`. |
+| Resultado esperado / obtenido | Esperado: no acceder a atributos de un valor que puede ser `None`. Obtenido: `estado["correcta"] = pregunta.correcta` en el estado RESULTADOS, aunque `pregunta` viene de `pregunta_actual`, que devuelve `None` si el índice queda fuera de rango (`DEF-028-antes.txt`). |
+| Causa encontrada (debugging) | El bloque anterior sí comprueba `pregunta is not None`, pero el bloque de RESULTADOS no. Con el flujo normal el índice es válido en RESULTADOS, por eso ninguna prueba lo vio; si el estado y el índice se desalinean, `estado_publico` lanza `AttributeError` y la difusión por WebSocket se cae. |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |
+
+### DEF-029 – La cobertura de Sonar mezcla el front JS sin reporte con el backend
+| Campo | Valor |
+|---|---|
+| Detectado por | SonarQube Cloud, condición `new_coverage` del Quality Gate (73,5 % < 80 %) |
+| Severidad | Media (bloquea el Quality Gate) |
+| Pasos para reproducir | 1. Correr la etapa 3 del CI. 2. Consultar `api/measures/component` de la rama y de `app/static/app.js`. |
+| Resultado esperado / obtenido | Esperado: la cobertura de Sonar coincide con la de pytest-cov (97,55 %). Obtenido: 73,5 %; `app/static/app.js` aporta 307 líneas por cubrir con 0 % (`DEF-029-antes.txt`). |
+| Causa encontrada (debugging) | Las rutas de `coverage.xml` sí se resolvieron: las 23 líneas sin cubrir de Python coinciden con pytest-cov. La diferencia (1247 − 940 = 307 líneas) es `app/static/app.js`: `sonar.sources=app` incluye el front de demostración, que no tiene herramienta de cobertura (no hay pruebas unitarias de JS; el front se prueba a nivel de sistema). |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |
+
+### DEF-030 – Promesa sin manejar explícitamente en el front (Sonar S9383)
+| Campo | Valor |
+|---|---|
+| Detectado por | SonarQube Cloud, regla `javascript:S9383` (bug, confiabilidad MEDIUM) |
+| Severidad | Baja (la función ya captura sus errores por dentro) |
+| Pasos para reproducir | Ver `app/static/app.js:207` en el análisis de `feature/sonar`. |
+| Resultado esperado / obtenido | Esperado: toda promesa se espera, se captura o se marca como ignorada a propósito. Obtenido: `actualizarMarcador();` se llama sin `await`, sin `.catch` y sin `void` (`DEF-030-antes.txt`). |
+| Causa encontrada (debugging) | `actualizarMarcador` es `async` y tiene su propio `try/catch`, así que hoy no deja promesas rechazadas; pero la llamada no lo dice y un cambio futuro dentro de la función sí podría dejar un rechazo sin manejar. |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |
+
+### DEF-031 – El log del panel registra la clave tal como llega en la URL (Sonar S5145)
+| Campo | Valor |
+|---|---|
+| Detectado por | SonarQube Cloud, regla `pythonsecurity:S5145` (vulnerabilidad, seguridad LOW, análisis de flujo de datos) en `admin.activar()` y `admin.desactivar()` |
+| Severidad | Baja |
+| Pasos para reproducir | Ver `app/api/admin.py:83` y `:91` en el análisis de `feature/sonar`. |
+| Resultado esperado / obtenido | Esperado: el log no escribe datos controlados por el cliente. Obtenido: `logger.warning("Sabotaje ACTIVADO: %s", clave)` con `clave` del path (`DEF-031-antes.txt`). |
+| Causa encontrada (debugging) | Hoy no es explotable: `_validar_clave` responde 404 con cualquier clave fuera del catálogo antes de llegar al log, así que solo se registran las 6 claves conocidas. Pero el valor registrado sigue siendo el texto de la petición; si alguien quitara o cambiara la validación, se podrían inyectar saltos de línea en el log. |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |
+
+### DEF-032 – Títulos vacíos en el HTML del front (Sonar S6850)
+| Campo | Valor |
+|---|---|
+| Detectado por | SonarQube Cloud, regla `Web:S6850` (code smell, accesibilidad), 3 casos |
+| Severidad | Baja |
+| Pasos para reproducir | Ver `app/static/index.html:47, 53 y 83` en el análisis de `feature/sonar`. |
+| Resultado esperado / obtenido | Esperado: todo título tiene contenido para lectores de pantalla. Obtenido: `<h3 id="prof-texto"></h3>`, `<h3 id="prof-ganador"></h3>` y `<h3 id="jug-texto"></h3>` vacíos (`DEF-032-antes.txt`). |
+| Causa encontrada (debugging) | El JS rellena esos títulos cuando llega el estado de la partida; en el HTML inicial quedan vacíos. |
+| Corrección | Pendiente |
+| Re-ejecución (confirmación) | Pendiente |
+| Análisis de impacto | Pendiente |
+| Regresión ejecutada | Pendiente |
+| Estado | **Abierto** |

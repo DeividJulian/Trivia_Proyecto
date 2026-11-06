@@ -1,0 +1,10 @@
+SonarQube Cloud, rama feature/sonar, análisis del commit f0f1ed1 (GitHub Actions run 42257204499). API pública:
+
+Condición del Quality Gate:
+  [ERROR] new_coverage real=73.5 umbral LT 80
+
+Cobertura del proyecto: {'coverage': '73.5', 'lines_to_cover': '1247', 'uncovered_lines': '330'}
+Cobertura de app/static/app.js: {'coverage': '0.0', 'lines_to_cover': '307', 'uncovered_lines': '307'}
+
+Comparación con pytest-cov del mismo commit (job 2, coverage.xml): lines-valid=940, lines-covered=917 (97,55 %).
+1247 - 940 = 307 líneas = las de app/static/app.js; 330 - 307 = 23 líneas sin cubrir = las de pytest-cov.
