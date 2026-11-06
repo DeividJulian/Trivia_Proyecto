@@ -127,7 +127,10 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
   Automatic Analysis desactivado, `SONAR_TOKEN` como secreto. `sonar-project.properties` en la raíz;
   `app/static/**` excluido solo de la cobertura (DEF-029). Quality Gate OK en `feature/sonar` (0 bugs,
   0 vulnerabilidades, 0 code smells, 0 hotspots, cobertura 97,6 %).
-- **Trabajo actual:** falta el humo contra una URL desplegada (Render, con autorización).
+- **Trabajo actual:** `develop` da **APTO PARA DESPLEGAR** (16/16 compuertas, CI run 42293105068). Falta, con
+  autorización del equipo: integrar en `main`, crear el servicio con el Blueprint y guardar `RENDER_DEPLOY_HOOK` y
+  `APP_URL` (pasos en `docs/GUIA_RENDER.md`, los hace Deivid como dueño del repo), y el humo contra Render.
+- **Demo:** guion de 3 minutos en `docs/GUIA_DEMO.md` (con `bono_sin_acierto` cambia el ganador).
 - **Validación local de Fase 15:** 290 passed, 2 pruebas de humo omitidas sin `APP_URL`, cobertura
   97.53 %, mutantes 6/6, Ruff/format limpios; Locust 50 usuarios/60 s: p95 9 ms y 0 % fallos.
   Entorno local Python 3.11.9 (CI objetivo 3.12).
