@@ -89,10 +89,10 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 - **Carpeta del proyecto:** depende de la máquina. Deivid: `D:\Descargas\Trivia_Proyecto`; Jack:
   `C:\Users\Jack Limas\Universidad\Trivia_Proyecto`.
 - **Fases terminadas:** 0 a 13 (integradas en `develop`). Tags: `v1-sin-bono`, `v2-cambio-con-error`, `v3-corregido`.
-- **CI (`.github/workflows/ci.yml`):** jobs `1 - Estilo`, `2 - Pruebas y cobertura`, `4 - Mutantes`,
+- **CI (`.github/workflows/ci.yml`):** jobs `1 - Estilo`, `2 - Pruebas y cobertura`, `3 - Sonar`, `4 - Mutantes`,
   `5 - Seguridad (Trivy)`, `6 - Rendimiento`, `7 - Reporte y despliegue` y `8 - Humo y release` (7 y 8 solo en
-  `main`). La etapa 3 (SonarCloud) se agrega al final; mientras falte, el reporte da **NO DESPLEGAR** y bloquea
-  despliegue y release. Todas las acciones están fijadas por SHA (incidente GHSA-69fq-xp46-6x23 de trivy-action,
+  `main`). El job 3 descarga `coverage.xml` del job 2, falla si el Quality Gate falla y sube `quality-gate.json`
+  (`evidencias-sonar`), que el job 7 pasa al reporte predespliegue. Todas las acciones están fijadas por SHA (incidente GHSA-69fq-xp46-6x23 de trivy-action,
   19-03-2026) y la imagen base por digest; `.github/dependabot.yml` propone las actualizaciones contra `develop`
   (solo actúa cuando llegue a `main`).
 - **Humo:** `/salud` devuelve `commit` (`RENDER_GIT_COMMIT` en Render, `APP_COMMIT` fuera de Render, `local` si
@@ -112,9 +112,11 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
 - **Front de demostración:** `app/static/` (HTML, CSS y JS sin dependencias),
   servido por FastAPI en `/`. Vistas: profesor, jugador y Saboteador (con tablero de dominó e impacto del sabotaje en vivo).
 - **Impacto del sabotaje:** evaluación sombra (`sin_sabotajes`, `ranking_real`, `impacto_por_jugador`), endpoints `/api/admin/partidas` e `/impacto` y monitoreo en panel admin.
-- **Trabajo actual:** Fase 15 en `feature/ci` con CI de GitHub en verde (Trivy contra la imagen incluido);
-  falta el humo contra una URL desplegada. SonarCloud (Fase 14) se deja para el final por decisión del
-  equipo; no desplegar hasta tener su Quality Gate aprobado.
+- **SonarQube Cloud (fase 14):** organization `deividjulian`, projectKey `DeividJulian_Trivia_Proyecto`,
+  Automatic Analysis desactivado, `SONAR_TOKEN` como secreto. `sonar-project.properties` en la raíz;
+  `app/static/**` excluido solo de la cobertura (DEF-029). Quality Gate OK en `feature/sonar` (0 bugs,
+  0 vulnerabilidades, 0 code smells, 0 hotspots, cobertura 97,6 %).
+- **Trabajo actual:** falta el humo contra una URL desplegada (Render, con autorización).
 - **Validación local de Fase 15:** 290 passed, 2 pruebas de humo omitidas sin `APP_URL`, cobertura
   97.53 %, mutantes 6/6, Ruff/format limpios; Locust 50 usuarios/60 s: p95 9 ms y 0 % fallos.
   Entorno local Python 3.11.9 (CI objetivo 3.12).
@@ -127,4 +129,4 @@ regresión, análisis de impacto, mantenimiento, rendimiento y punto de quiebre.
   los `noqa` de Ruff; Radon: CC media A, `Partida.responder` D (29) y 4 funciones C quedan como deuda técnica
   (sin refactor antes de la exposición); Vulture: DEF-027 y falsos positivos documentados; pip-audit: 0.
   Las 4 herramientas se instalan solo en local, no están en `requirements` ni en el CI.
-  **Defectos:** DEF-001 a DEF-027.
+  **Defectos:** DEF-001 a DEF-032.
