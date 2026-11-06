@@ -30,10 +30,41 @@ def test_porcentaje_docker(texto, esperado):
         (["python", "-m", "LOCUST"], True),
         (["python", "app.py"], False),
         ([], False),
+        (
+            [
+                "C:\\proyecto\\.venv\\Scripts\\python.exe",
+                "C:\\proyecto\\.venv\\Scripts\\locust.exe",
+                "-f",
+                "x.py",
+            ],
+            True,
+        ),
+        (["/usr/bin/locust", "-f", "x.py"], True),
     ],
 )
 def test_es_proceso(cmdline, esperado):
     assert es_proceso(cmdline, "locust") is esperado
+
+
+@pytest.mark.parametrize(
+    "cmdline",
+    [
+        ["powershell.exe", "-NoProfile", "-Command", "Start-Sleep 25; .venv\\Scripts\\locust.exe -f x.py"],
+        ["tail.exe", "-F", "performance/resultados/quiebre_render_locust.log"],
+        ["python.exe", "-c", "from monitor_cpu import _procesos; _procesos('locust')"],
+        ["python.exe", "performance\\monitor_cpu.py", "performance\\resultados\\carga_locust_cpu.csv"],
+        ["python.exe", "performance\\locustfile_ws.py"],
+    ],
+)
+def test_es_proceso_no_confunde_a_quien_solo_menciona_el_nombre(cmdline):
+    """DEF-037: una consola, un tail o un log con 'locust' en el texto no son el generador."""
+    assert es_proceso(cmdline, "locust") is False
+
+
+def test_es_proceso_reconoce_uvicorn_lanzado_como_modulo_o_ejecutable():
+    assert es_proceso(["python.exe", "-m", "uvicorn", "app.main:app"], "uvicorn") is True
+    assert es_proceso(["C:\\p\\.venv\\Scripts\\uvicorn.exe", "app.main:app"], "uvicorn") is True
+    assert es_proceso(["cmd.exe", "/c", "set PORT=8000 && uvicorn app.main:app"], "uvicorn") is False
 
 
 @pytest.mark.parametrize(
