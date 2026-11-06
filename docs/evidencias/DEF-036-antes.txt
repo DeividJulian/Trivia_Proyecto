@@ -15,3 +15,9 @@ Diagnóstico: Docker Desktop dejó de responder (RAM libre de la máquina ~0,6-0
 `docker stats --no-stream` del monitor no tiene tiempo límite, así que el monitor quedó bloqueado los
 41 minutos y perdió toda la medición de CPU. Reproducción controlada posterior (30 WebSockets contra el
 contenedor y contra uvicorn local): el servidor siguió respondiendo; el congelamiento no se repitió.
+
+
+Prueba de regresión contra el código SIN la corrección (2026-11-06):
+pytest -q tests/componente/test_monitor_cpu.py -k cuelga
+E       subprocess.TimeoutExpired: Command '['docker', 'stats', '--no-stream', '--format', '{{.CPUPerc}}', 'testquiz-carga']' timed out after None seconds
+1 failed, 16 deselected in 0.09s
