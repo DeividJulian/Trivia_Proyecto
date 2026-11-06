@@ -81,6 +81,7 @@ y no era un defecto real: se documenta y se silencia **solo esa línea**, nunca 
 | DEF-033 | pytest (contrato de la ventana de daño) | Con dos sabotajes, la diferencia se atribuía al sabotaje equivocado | Correctivo | El desglose usa la racha real previa; prueba primero con `xfail` | Prueba en verde; mutantes 6/6 | [antes](evidencias/DEF-033-antes.txt) · [despues](evidencias/DEF-033-despues.txt) |
 | DEF-034 | Playwright (navegador real) | Con dos sabotajes, el desglose no sumaba la diferencia total (−200 de −300) | Correctivo | Racha sombra por sabotaje; prueba primero con `xfail` | Desglose = diferencia en los 3 jugadores reales | [antes](evidencias/DEF-034-antes.txt) · [despues](evidencias/DEF-034-despues.txt) |
 | DEF-035 | Playwright (navegador real) | La tabla de posiciones desbordaba en el celular | Perfectivo | Tabla con desplazamiento propio | 390 px sin desborde; prueba de regresión | [antes](evidencias/DEF-035-antes.txt) · [despues](evidencias/DEF-035-despues.txt) |
+| DEF-036 | Ejecución de la prueba de carga (monitor de CPU) | El monitor se colgaba 41 min si Docker no respondía | Correctivo (herramienta de prueba) | Tiempo límite para `docker stats`; vigilante por corrida | Prueba falla sin la corrección y pasa con ella; corridas completas | [antes](evidencias/DEF-036-antes.txt) · [despues](evidencias/DEF-036-despues.txt) |
 
 ## Mantenimiento preventivo sin defecto previo (Bloque 2)
 
