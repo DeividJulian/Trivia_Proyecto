@@ -19,7 +19,7 @@ import shutil
 import subprocess
 import sys
 import time
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -42,9 +42,25 @@ def porcentaje_docker(texto: str) -> float | None:
 
 
 def es_proceso(cmdline: list[str], patron: str) -> bool:
-    """True si algún argumento del proceso contiene el patrón (sin distinguir mayúsculas)."""
+    """True si el proceso ES el programa `patron` (sin distinguir mayúsculas).
+
+    Cuenta el ejecutable (`locust.exe`), el script que corre el intérprete (`python locust.exe ...`,
+    como hace el lanzador de Windows) o el módulo (`python -m locust`). DEF-037: no basta con que
+    el nombre aparezca en un argumento (una consola, un `tail` del log, un `python -c`).
+    """
     patron = patron.casefold()
-    return any(patron in Path(arg).name.casefold() or patron in arg.casefold() for arg in cmdline)
+
+    def es_programa(arg: str) -> bool:
+        return PureWindowsPath(arg).stem.casefold() == patron  # separa con \ y con /
+
+    if not cmdline:
+        return False
+    if es_programa(cmdline[0]):
+        return True
+    resto = cmdline[1:]
+    if len(resto) >= 2 and resto[0] == "-m":
+        return resto[1].casefold() == patron
+    return bool(resto) and not resto[0].startswith("-") and es_programa(resto[0])
 
 
 def usuarios_en(momento: float, historial: list[tuple[float, int]]) -> int:
