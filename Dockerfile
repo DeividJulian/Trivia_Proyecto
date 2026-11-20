@@ -1,7 +1,7 @@
 # Imagen de producción de TestQuiz – El Saboteador
 # Alpine en lugar de slim: la base Debian traía 46 vulnerabilidades HIGH (DEF-025).
 # Fijada por digest (build reproducible); Dependabot propone el digest nuevo y Trivy la escanea en cada push.
-FROM python:3.12-alpine@sha256:213242b537a1c166a0c53e903461fc18d5518e7196c93dbecda452660a848918
+FROM python:3.15-alpine@sha256:0f9552bb28711333da16915ec146f5e6bb44a7fdac9ced15dc17c2e0206346dd
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
